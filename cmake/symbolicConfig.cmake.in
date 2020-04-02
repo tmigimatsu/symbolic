@@ -1,0 +1,36 @@
+############################################################
+# CMake config for the symbolic library.
+#
+# Copyright 2020. All Rights Reserved.
+#
+# Created: April 1, 2020
+# Authors: Toki Migimatsu
+############################################################
+
+include(CMakeFindDependencyMacro)
+
+list(APPEND CMAKE_MODULE_PATH @CMAKE_BINARY_DIR@)
+# find_dependency(@VAL_LIB@ REQUIRED)
+# if(@BUILD_CPP_REDIS@)
+#     find_dependency(cpp_redis @cpp_redis_VERSION@ REQUIRED)
+# endif()
+# if(@BUILD_EIGEN@)
+#     find_dependency(Eigen3 @Eigen3_VERSION@ REQUIRED)
+# endif()
+# if(@BUILD_NLOHMANN_JSON@)
+#     find_dependency(nlohmann_json @nlohmann_json_VERSION@ REQUIRED)
+# endif()
+# if(@BUILD_YAML_CPP@)
+#     find_dependency(yaml-cpp @yaml-cpp_VERSION@ REQUIRED)
+# endif()
+# if(@BUILD_OPENCV@)
+#     find_dependency(OpenCV @OpenCV_VERSION@ REQUIRED)
+# endif()
+# if(@BUILD_CATCH2@)
+#     find_dependency(Catch2 @Catch2_VERSION@ REQUIRED)
+# endif()
+
+if(NOT TARGET @LIB_NAME@::@LIB_NAME@)
+    include("@CMAKE_BINARY_DIR@/@LIB_NAME@Targets.cmake")
+    set(@LIB_NAME@_EXTERNAL_DIR @LIB_EXT_DIR@)
+endif()
