@@ -57,6 +57,14 @@ class Pddl {
 
   bool IsValidPlan(const std::vector<std::string>& action_skeleton) const;
 
+  std::vector<std::vector<Object>> ListValidArguments(const std::set<Proposition>& state,
+                                                      const Action& action) const;
+  std::vector<std::vector<std::string>> ListValidArguments(const std::set<std::string>& state,
+                                                           const std::string& action_name) const;
+
+  std::vector<std::string> ListValidActions(const std::set<Proposition>& state) const;
+  std::vector<std::string> ListValidActions(const std::set<std::string>& state) const;
+
   const VAL::analysis& analysis() const { return *analysis_; }
 
   const VAL::domain& domain() const { return domain_; }

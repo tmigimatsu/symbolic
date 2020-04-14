@@ -11,9 +11,12 @@
 
 #include <fstream>  // std::ifstream
 #include <string>   // std::string
+#include <utility>  // std::move
 
 #include "FlexLexer.h"
 #include "typecheck.h"
+
+#include "symbolic/utils/parameter_generator.h"
 
 extern int yyparse();
 extern int yydebug;
@@ -84,6 +87,28 @@ std::set<std::string> StringifyState(const std::set<Proposition>& state) {
     str_state.emplace(prop.to_string());
   }
   return str_state;
+}
+
+std::set<std::string> StringifyActions(const std::set<Action>& actions) {
+  std::set<std::string> str_actions;
+  for (const Action& action : actions) {
+    str_actions.emplace(action.name());
+  }
+  return str_actions;
+}
+
+std::vector<std::vector<std::string>> StringifyArguments(const std::vector<std::vector<Object>>& arguments) {
+  std::vector<std::vector<std::string>> str_arguments;
+  str_arguments.reserve(arguments.size());
+  for (const std::vector<Object>& args : arguments) {
+    std::vector<std::string> str_args;
+    str_args.reserve(args.size());
+    for (const Object& arg : args) {
+      str_args.emplace_back(arg.name());
+    }
+    str_arguments.emplace_back(std::move(str_args));
+  }
+  return str_arguments;
 }
 
 std::vector<Object> GetObjects(const VAL::domain& domain, const VAL::problem& problem) {
@@ -234,9 +259,51 @@ bool Pddl::IsValidPlan(const std::vector<std::string>& action_skeleton) const {
   return goal_(state);
 }
 
+std::vector<std::vector<Object>> Pddl::ListValidArguments(const std::set<Proposition>& state,
+                                                          const Action& action) const {
+  std::vector<std::vector<Object>> arguments;
+  ParameterGenerator param_gen(object_map(), action.parameters());
+  for (const std::vector<Object>& args : param_gen) {
+    if (action.IsValid(state, args)) arguments.push_back(args);
+  }
+  return arguments;
+}
+std::vector<std::vector<std::string>> Pddl::ListValidArguments(const std::set<std::string>& str_state,
+                                                               const std::string& action_name) const {
+  // Parse strings
+  const std::set<Proposition> state = ParseState(*this, str_state);
+  const Action action(*this, action_name);
+  const std::vector<std::vector<Object>> arguments = ListValidArguments(state, action);
+  return StringifyArguments(arguments);
+}
+
+std::set<std::string> Pddl::initial_state_str() const {
+  return StringifyState(initial_state_);
+}
+
+std::set<std::string> Pddl::actions_str() const {
+  return StringifyActions(actions_);
+}
+
+std::vector<std::string> Pddl::ListValidActions(const std::set<Proposition>& state) const {
+  std::vector<std::string> actions;
+  for (const Action& action : actions_) {
+    const std::vector<std::vector<Object>> arguments = ListValidArguments(state, action);
+    for (const std::vector<Object>& args : arguments) {
+      actions.emplace_back(action.to_string(args));
+    }
+  }
+  return actions;
+}
+
+std::vector<std::string> Pddl::ListValidActions(const std::set<std::string>& state) const {
+  return ListValidActions(ParseState(*this, state));
+}
+
 std::ostream& operator<<(std::ostream& os, const Pddl& pddl) {
   os << pddl.domain() << std::endl;
   os << pddl.problem() << std::endl;
+  return os;
 }
 
 }  // namespace symbolic

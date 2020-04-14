@@ -87,6 +87,19 @@ TEST_CASE("pddl", "[Pddl]") {
     REQUIRE(pddl.IsValidPlan({ "pick(hook)" }) == false);
   }
 
+  SECTION("ListValidArguments") {
+    const std::vector<std::vector<symbolic::Object>> arguments = {{ hook }};
+    const std::vector<std::vector<std::string>> str_arguments = {{ "hook" }};
+    REQUIRE(pddl.ListValidArguments(state, action) == arguments);
+    REQUIRE(pddl.ListValidArguments(str_state, "pick") == str_arguments);
+  }
+
+  SECTION("ListValidActions") {
+    const std::vector<std::string> actions = {{ "pick(hook)" }};
+    REQUIRE(pddl.ListValidActions(state) == actions);
+    REQUIRE(pddl.ListValidActions(str_state) == actions);
+  }
+
   // symbolic::Planner planner(pddl);
   // symbolic::BreadthFirstSearch<symbolic::Planner::Node> bfs(planner.root(), 4);
   // for (const std::vector<symbolic::Planner::Node>& plan : bfs) {
