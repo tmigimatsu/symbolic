@@ -96,7 +96,10 @@ std::vector<Object> GetObjects(const VAL::domain& domain, const VAL::problem& pr
 std::map<std::string, std::vector<Object>> CreateObjectTypeMap(const std::vector<Object>& objects) {
   std::map<std::string, std::vector<Object>> object_map;
   for (const Object& object : objects) {
-    object_map[object.type()].push_back(object);
+    std::vector<std::string> types = object.type().ListTypes();
+    for (const std::string& type : types) {
+      object_map[type].push_back(object);
+    }
   }
   return object_map;
 }

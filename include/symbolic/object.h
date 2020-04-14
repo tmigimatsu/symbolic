@@ -26,44 +26,58 @@ class Object {
 
  public:
 
+  class Type {
+
+   public:
+
+    Type() {}
+
+    Type(const VAL::pddl_type* symbol) : symbol_(symbol), name_(symbol->getName()) {}
+
+    const VAL::pddl_type* symbol() const { return symbol_; }
+
+    bool IsSubtype(const std::string& type) const;
+
+    std::vector<std::string> ListTypes() const;
+
+    const std::string& name() const { return name_; }
+
+   private:
+
+    const VAL::pddl_type* symbol_ = nullptr;
+
+    std::string name_;
+
+  };
+
   Object() {}
 
   // Object(const VAL::pddl_typed_symbol* symbol) : symbol_(symbol), name_(symbol_->getName()) {}
   Object(const VAL::pddl_typed_symbol* symbol)
-      : symbol_(symbol), name_(symbol->getName()), type_(symbol->type->getName()) {}
+      : symbol_(symbol), name_(symbol->getName()), type_(symbol->type) {}
 
   Object(const Pddl& pddl, const std::string& name_object);
 
-  Object(const std::string& name_object, const std::string& type)
-      : name_(name_object), type_(type) {}
+  // Object(const std::string& name_object, const std::string& type)
+  //     : name_(name_object), type_(type) {}
 
   const VAL::pddl_typed_symbol* symbol() const { return symbol_; }
 
   const std::string& name() const { return name_; }
 
-  const std::string& type() const { return type_; }
-
-  // bool operator<(const Object& rhs) const;
-  // bool operator==(const Object& rhs) const;
-  // bool operator!=(const Object& rhs) const;
+  const Type& type() const { return type_; }
 
  private:
 
   const VAL::pddl_typed_symbol* symbol_;
   // TODO: Make const?
   std::string name_;
-  std::string type_;
+  Type type_;
 
 };
 
 // Atom is a proposition or action
 std::vector<Object> ParseArguments(const Pddl& pddl, const std::string& atom);
-
-// using ObjectTypeMap = std::map<std::string, std::vector<Object>>;
-
-// std::shared_ptr<const ObjectTypeMap> CreateObjectsMap(const VAL::const_symbol_list* constants,
-//                                                       const VAL::const_symbol_list* objects);
-
 
 template<typename T>
 std::vector<Object> ConvertObjects(const VAL::typed_symbol_list<T>* symbols) {
@@ -78,6 +92,14 @@ std::vector<Object> ConvertObjects(const VAL::typed_symbol_list<T>* symbols) {
 inline std::ostream& operator<<(std::ostream& os, const Object& object) {
   os << object.name();
   return os;
+}
+
+inline bool operator<(const Object::Type& lhs, const Object::Type& rhs) {
+  return lhs.name() < rhs.name();
+}
+
+inline bool operator==(const Object::Type& lhs, const Object::Type& rhs) {
+  return lhs.name() == rhs.name();
 }
 
 inline bool operator<(const Object& lhs, const Object& rhs) {

@@ -20,7 +20,7 @@ ParamTypes(const ParameterGenerator::ObjectTypeMap& object_map,
   std::vector<const std::vector<Object>*> types;
   types.reserve(params.size());
   for (const Object& param : params) {
-    types.push_back(&object_map.at(param.type()));
+    types.push_back(&object_map.at(param.type().name()));
   }
   return types;
 }

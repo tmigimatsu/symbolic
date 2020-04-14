@@ -84,10 +84,25 @@ std::vector<std::string> TokenizeArguments(const std::string& proposition) {
 
 namespace symbolic {
 
+bool Object::Type::IsSubtype(const std::string& type) const {
+  for (const VAL::pddl_type* curr = symbol_; curr != nullptr; curr = curr->type) {
+    if (curr->getName() == type) return true;
+  }
+  return false;
+}
+
+std::vector<std::string> Object::Type::ListTypes() const {
+  std::vector<std::string> types;
+  for (const VAL::pddl_type* curr = symbol_; curr != nullptr; curr = curr->type) {
+    types.push_back(curr->getName());
+  }
+  return types;
+}
+
 Object::Object(const Pddl& pddl, const std::string& name_object)
     : symbol_(GetSymbol(pddl, name_object)),
       name_(name_object),
-      type_(symbol_->type->getName()) {}
+      type_(symbol_->type) {}
 
 std::vector<Object> ParseArguments(const Pddl& pddl, const std::string& atom) {
   // std::cout << "ParseArguments: " << atom << " -> ";
