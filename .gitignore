@@ -4,3 +4,4 @@ external/
 
 compile_commands.json
 *.so
+*.egg-info
