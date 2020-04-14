@@ -165,7 +165,6 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
       object_map_(CreateObjectTypeMap(objects_)),
       actions_(GetActions(*this, domain_)),
       initial_state_(GetInitialState(problem_, objects_)),
-      initial_state_str_(StringifyState(initial_state_)),
       goal_(*this, problem_.the_goal) {}
 
 bool Pddl::IsValid(bool verbose, std::ostream& os) const {

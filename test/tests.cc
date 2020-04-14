@@ -34,7 +34,7 @@ TEST_CASE("pddl", "[Pddl]") {
   REQUIRE(pddl.IsValid());
 
   const std::set<symbolic::Proposition>& state = pddl.initial_state();
-  const std::set<std::string>& str_state = pddl.initial_state_str();
+  const std::set<std::string> str_state = pddl.initial_state_str();
 
   const symbolic::Action action(pddl, "pick");
   const symbolic::Object hook(pddl, "hook");

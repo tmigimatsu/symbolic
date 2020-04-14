@@ -23,30 +23,23 @@ namespace {
 struct Args {
   std::string filename_domain;
   std::string filename_problem;
-  size_t depth = 0;
+  size_t depth = 5;
 };
 
 Args ParseArgs(int argc, char *argv[]) {
   Args parsed_args;
-  int i;
-  std::string arg;
-  for (i = 1; i < argc; i++) {
-    arg = argv[i];
-    if (parsed_args.filename_domain.empty()) {
-      parsed_args.filename_domain = argv[i];
-    } else if (parsed_args.filename_problem.empty()) {
-      parsed_args.filename_problem = argv[i];
-    } else if (i == 3) {
-      parsed_args.depth = std::stoi(argv[i]);
-    } else {
-      break;
+  try {
+    if (argc < 3) {
+      throw std::runtime_error("Incorrect number of arguments.");
     }
+    parsed_args.filename_domain = argv[1];
+    parsed_args.filename_problem = argv[2];
+    if (argc > 3) parsed_args.depth = std::stoi(argv[3]);
+  } catch (const std::runtime_error& e) {
+    std::cout << "Usage:" << std::endl
+              << "\t./pddl domain.pddl problem.pddl [search_depth (default 5)]" << std::endl;
+    throw e;
   }
-
-  if (parsed_args.filename_domain.empty() || parsed_args.filename_problem.empty()) {
-    throw std::invalid_argument("ParseArgs(): PDDL domain and problem files required.");
-  }
-  if (i != argc) throw std::invalid_argument("ParseArgs(): Invalid '" + arg + "' argument.");
   return parsed_args;
 }
 
@@ -54,6 +47,9 @@ Args ParseArgs(int argc, char *argv[]) {
 
 int main(int argc, char* argv[]) {
   Args args = ParseArgs(argc, argv);
+  std::cout << "Domain: " << args.filename_domain << std::endl
+            << "Problem: " << args.filename_problem << std::endl
+            << "Depth: " << args.depth << std::endl << std::endl;
 
   const symbolic::Pddl pddl(args.filename_domain, args.filename_problem);
   pddl.IsValid(true);
@@ -62,6 +58,7 @@ int main(int argc, char* argv[]) {
 
   symbolic::Planner planner(pddl);
 
+  std::cout << "Planning:" << std::endl;
   symbolic::BreadthFirstSearch<symbolic::Planner::Node> bfs(planner.root(), args.depth);
   for (const std::vector<symbolic::Planner::Node>& plan : bfs) {
     for (const symbolic::Planner::Node& node : plan) {

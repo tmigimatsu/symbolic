@@ -72,13 +72,14 @@ class Pddl {
   const VAL::problem& problem() const { return problem_; }
 
   const std::set<Proposition>& initial_state() const { return initial_state_; }
-  const std::set<std::string>& initial_state_str() const { return initial_state_str_; }
+  std::set<std::string> initial_state_str() const;
 
   const ObjectTypeMap& object_map() const { return object_map_; }
 
   const std::vector<Object>& objects() const { return objects_; }
 
   const std::set<Action>& actions() const { return actions_; }
+  std::set<std::string> actions_str() const;
 
   const Formula& goal() const { return goal_; }
 
@@ -94,7 +95,6 @@ class Pddl {
   const std::set<Action> actions_;
 
   const std::set<Proposition> initial_state_;
-  const std::set<std::string> initial_state_str_;
   const Formula goal_;
 
 };
