@@ -12,6 +12,7 @@
 
 #include <cstddef>   // ptrdiff_t
 #include <iterator>  // std::input_iterator_tag
+#include <iostream>  // std::cout
 #include <queue>     // std::queue
 #include <vector>    // std::vector
 #include <utility>   // std::pair
@@ -69,6 +70,7 @@ class BreadthFirstSearch<NodeT>::iterator {
 
 template<typename NodeT>
 typename BreadthFirstSearch<NodeT>::iterator& BreadthFirstSearch<NodeT>::iterator::operator++() {
+  size_t depth = 0;
   while (!queue_.empty()) {
     std::pair<NodeT, std::vector<NodeT>>& front = queue_.front();
 
@@ -76,6 +78,12 @@ typename BreadthFirstSearch<NodeT>::iterator& BreadthFirstSearch<NodeT>::iterato
     ancestors_.swap(front.second);
     ancestors_.push_back(std::move(front.first));
     queue_.pop();
+
+    // Print search depth
+    if (ancestors_.size() - 1 > depth) {
+      depth = ancestors_.size() - 1;
+      std::cout << "BFS depth: " << depth << std::endl;
+    }
 
     // Return if node evaluates to true
     const NodeT& node = ancestors_.back();
