@@ -40,7 +40,7 @@ class Proposition {
   // Properties
   const std::string& name() const { return name_; }
 
-  const std::vector<Object> arguments() const { return arguments_; }
+  const std::vector<Object>& arguments() const { return arguments_; }
 
   std::string to_string() const;
 
