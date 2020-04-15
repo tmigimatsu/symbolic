@@ -42,14 +42,21 @@ class CombinationGenerator {
 
   CombinationGenerator() {}
 
-  CombinationGenerator(const std::vector<ContainerT*>& options) : options_(options) {}
+  CombinationGenerator(const std::vector<ContainerT*>& options)
+      : options_(options), end_(iterator::end(&options_)) {}
 
-  iterator begin() { return iterator::begin(options_); };
-  iterator end() { return iterator::end(options_); };
-  const_iterator begin() const { return const_iterator::begin(options_); };
-  const_iterator end() const { return const_iterator::end(options_); };
-  const_iterator cbegin() const { return const_iterator::begin(options_); };
-  const_iterator cend() const { return const_iterator::end(options_); };
+  CombinationGenerator(const CombinationGenerator& other)
+      : options_(other.options_), end_(iterator::end(&other.options_)) {}
+
+  CombinationGenerator(CombinationGenerator&& other)
+      : options_(std::move(other.options_)), end_(iterator::end(&options_)) {}
+
+  iterator begin() { return iterator::begin(&options_); };
+  const iterator& end() { return end_; };
+  const_iterator begin() const { return const_iterator::begin(&options_); };
+  const const_iterator& end() const { return end_; };
+  const_iterator cbegin() const { return const_iterator::begin(&options_); };
+  const const_iterator& cend() const { return end_; };
 
   reverse_iterator rbegin() { return reverse_iterator(end()); }
   reverse_iterator rend() { return reverse_iterator(begin()); }
@@ -60,7 +67,8 @@ class CombinationGenerator {
 
  private:
 
-  std::vector<ContainerT*> options_;
+  const std::vector<ContainerT*> options_;
+  const const_iterator end_;
 
 };
 
@@ -80,7 +88,7 @@ class CombinationGenerator<ContainerT>::Iterator {
   using pointer = typename std::conditional_t<Const, const value_type*, value_type*>;
   using reference = typename std::conditional_t<Const, const value_type&, value_type&>;
 
-  Iterator(const std::vector<ContainerT*>& options, std::vector<IteratorT>&& it_options);
+  Iterator(const std::vector<ContainerT*>* options, std::vector<IteratorT>&& it_options);
 
   Iterator& operator++();
   Iterator& operator--();
@@ -90,10 +98,10 @@ class CombinationGenerator<ContainerT>::Iterator {
 
  private:
 
-  static Iterator begin(const std::vector<ContainerT*>& options);
-  static Iterator end(const std::vector<ContainerT*>& options);
+  static Iterator begin(const std::vector<ContainerT*>* options);
+  static Iterator end(const std::vector<ContainerT*>* options);
 
-  std::vector<ContainerT*> options_;
+  const std::vector<ContainerT*>* options_ = nullptr;
   std::vector<IteratorT> it_options_;
   std::vector<ValueT> combination_;
 
@@ -129,11 +137,11 @@ class CombinationGenerator<ContainerT>::ReverseIterator {
 
 template<typename ContainerT>
 template<bool Const>
-CombinationGenerator<ContainerT>::Iterator<Const>::Iterator(const std::vector<ContainerT*>& options,
+CombinationGenerator<ContainerT>::Iterator<Const>::Iterator(const std::vector<ContainerT*>* options,
                                                             std::vector<IteratorT>&& it_options)
-    : options_(options), it_options_(std::move(it_options)), combination_(options_.size()) {
-  if (it_options_.front() == options_.front()->end()) return;
-  for (size_t i = 0; i < options_.size(); i++) {
+    : options_(options), it_options_(std::move(it_options)), combination_(options_->size()) {
+  if (it_options_.front() == options_->front()->end()) return;
+  for (size_t i = 0; i < options_->size(); i++) {
     combination_[i] = *it_options_[i];
   }
 }
@@ -143,10 +151,10 @@ template<bool Const>
 typename CombinationGenerator<ContainerT>::template Iterator<Const>&
 CombinationGenerator<ContainerT>::Iterator<Const>::operator++() {
   // Check for end flag
-  if (options_.empty() || it_options_.front() == options_.front()->end()) return *this;
+  if (options_->empty() || it_options_.front() == options_->front()->end()) return *this;
 
-  for (size_t i = options_.size() - 1; i >= 0; i--) {
-    ContainerT& values = *options_[i];
+  for (size_t i = options_->size() - 1; i >= 0; i--) {
+    ContainerT& values = *options_->at(i);
     IteratorT& it_value = it_options_[i];
     ValueT& value = combination_[i];
 
@@ -176,10 +184,10 @@ CombinationGenerator<ContainerT>::Iterator<Const>::operator--() {
   if (*this == begin(options_)) return *this;
 
   // Check for end flag
-  if (it_options_.front() == options_.front()->end()) {
+  if (it_options_.front() == options_->front()->end()) {
     // Reset
-    for (size_t i = 0; i < options_.size(); i++) {
-      ContainerT& values = *options_[i];
+    for (size_t i = 0; i < options_->size(); i++) {
+      ContainerT& values = *options_->at(i);
       IteratorT& it_value = it_options_[i];
       ValueT& value = combination_[i];
 
@@ -189,8 +197,8 @@ CombinationGenerator<ContainerT>::Iterator<Const>::operator--() {
     return *this;
   }
 
-  for (size_t i = options_.size() - 1; i >= 0; i--) {
-    ContainerT& values = *options_[i];
+  for (size_t i = options_->size() - 1; i >= 0; i--) {
+    ContainerT& values = *options_->at(i);
     IteratorT& it_value = it_options_[i];
     ValueT& value = combination_[i];
 
@@ -217,20 +225,19 @@ template<typename ContainerT>
 template<bool Const>
 bool CombinationGenerator<ContainerT>::Iterator<Const>::operator==(const Iterator& other) const {
   // Check if empty
-  if (options_.empty() && other.options_.empty()) return true;
+  if (options_->empty() && other.options_->empty()) return true;
 
   // Check if options are equal
-  if (options_.size() != other.options_.size()) return false;
-  for (size_t i = 0; i < options_.size(); i++) {
-    if (options_[i] != other.options_[i]) return false;
-  }
+  if (options_ != other.options_) return false;
 
   // Check end flag
-  if (it_options_.front() == options_.front()->end() &&
-      other.it_options_.front() == other.options_.front()->end()) return true;
+  const bool is_end = it_options_.front() == options_->front()->end();
+  const bool is_other_end = other.it_options_.front() == other.options_->front()->end();
+  if (is_end && is_other_end) return true;
+  if (is_end || is_other_end) return false;
 
   // Check iterator positions
-  for (size_t i = 0; i < options_.size(); i++) {
+  for (size_t i = 0; i < options_->size(); i++) {
     if (it_options_[i] != other.it_options_[i]) return false;
   }
   return true;
@@ -240,8 +247,8 @@ template<typename ContainerT>
 template<bool Const>
 typename CombinationGenerator<ContainerT>::template Iterator<Const>::reference
 CombinationGenerator<ContainerT>::Iterator<Const>::operator*() {
-  if (options_.empty()) return combination_;
-  if (it_options_.front() == options_.front()->end()) {
+  if (options_->empty()) return combination_;
+  if (it_options_.front() == options_->front()->end()) {
     throw std::out_of_range("ParameterGenerator::iterator::operator*(): Cannot dereference.");
   }
   return combination_;
@@ -250,10 +257,10 @@ CombinationGenerator<ContainerT>::Iterator<Const>::operator*() {
 template<typename ContainerT>
 template<bool Const>
 typename CombinationGenerator<ContainerT>::template Iterator<Const>
-CombinationGenerator<ContainerT>::Iterator<Const>::begin(const std::vector<ContainerT*>& options) {
+CombinationGenerator<ContainerT>::Iterator<Const>::begin(const std::vector<ContainerT*>* options) {
   std::vector<IteratorT> it_options;
-  it_options.reserve(options.size());
-  for (ContainerT* option : options) {
+  it_options.reserve(options->size());
+  for (ContainerT* option : *options) {
     it_options.push_back(option->begin());
   }
   return Iterator(options, std::move(it_options));
@@ -262,10 +269,10 @@ CombinationGenerator<ContainerT>::Iterator<Const>::begin(const std::vector<Conta
 template<typename ContainerT>
 template<bool Const>
 typename CombinationGenerator<ContainerT>::template Iterator<Const>
-CombinationGenerator<ContainerT>::Iterator<Const>::end(const std::vector<ContainerT*>& options) {
+CombinationGenerator<ContainerT>::Iterator<Const>::end(const std::vector<ContainerT*>* options) {
   std::vector<IteratorT> it_options;
-  it_options.reserve(options.size());
-  for (ContainerT* option : options) {
+  it_options.reserve(options->size());
+  for (ContainerT* option : *options) {
     it_options.push_back(option->end());
   }
   return Iterator(options, std::move(it_options));
@@ -275,8 +282,8 @@ template<typename ContainerT>
 template<typename IteratorT>
 CombinationGenerator<ContainerT>::ReverseIterator<IteratorT>::ReverseIterator(IteratorT&& it)
     : it_(std::move(it)) {
-  if (it_ == IteratorT::begin(it_.options_)) {
-    it_ = IteratorT::end(it_.options_);
+  if (it_ == IteratorT::begin(*it_.options_)) {
+    it_ = IteratorT::end(*it_.options_);
   } else {
     --it_;
   }
@@ -286,9 +293,9 @@ template<typename ContainerT>
 template<typename IteratorT>
 typename CombinationGenerator<ContainerT>::template ReverseIterator<IteratorT>&
 CombinationGenerator<ContainerT>::ReverseIterator<IteratorT>::operator++() {
-  if (it_ == IteratorT::begin(it_.options_)) {
-    it_ = IteratorT::end(it_.options_);
-  } else if (it_ != IteratorT::end(it_.options_)) {
+  if (it_ == IteratorT::begin(*it_.options_)) {
+    it_ = IteratorT::end(*it_.options_);
+  } else if (it_ != IteratorT::end(*it_.options_)) {
     --it_;
   }
   return *this;
@@ -298,8 +305,8 @@ template<typename ContainerT>
 template<typename IteratorT>
 typename CombinationGenerator<ContainerT>::template ReverseIterator<IteratorT>&
 CombinationGenerator<ContainerT>::ReverseIterator<IteratorT>::operator--() {
-  if (it_ == IteratorT::end(it_.options_)) {
-    it_ = IteratorT::begin(it_.options_);
+  if (it_ == IteratorT::end(*it_.options_)) {
+    it_ = IteratorT::begin(*it_.options_);
   } else {
     ++it_;
   }
