@@ -18,7 +18,6 @@
 #include "ptree.h"
 
 #include "symbolic/pddl.h"
-#include "symbolic/utils/parameter_generator.h"
 
 namespace symbolic {
 
@@ -99,7 +98,6 @@ class Planner::Node::iterator {
 
   std::set<Action>::const_iterator it_action_;
 
-  ParameterGenerator param_gen_;
   ParameterGenerator::const_iterator it_param_;
 
   friend class Node;

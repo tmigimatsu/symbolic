@@ -23,6 +23,7 @@
 #include "symbolic/object.h"
 #include "symbolic/proposition.h"
 #include "symbolic/formula.h"
+#include "symbolic/utils/parameter_generator.h"
 
 namespace symbolic {
 
@@ -55,6 +56,8 @@ class Action {
 
   const std::vector<Object>& parameters() const { return parameters_; }
 
+  const ParameterGenerator& parameter_generator() const { return param_gen_; }
+
   std::string to_string() const;
 
   std::string to_string(const std::vector<Object>& arguments) const;
@@ -64,6 +67,7 @@ class Action {
   const VAL::operator_* symbol_;
   std::string name_;
   std::vector<Object> parameters_;
+  ParameterGenerator param_gen_;
 
   Formula Preconditions_;
   std::function<void(const std::vector<Object>&, std::set<Proposition>*)> Apply_;

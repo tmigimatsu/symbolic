@@ -17,6 +17,9 @@
 
 namespace symbolic {
 
+// CombinatorGenerator class contains no mutable member variables. All state is
+// held inside the iterator, meaning multiple parallel instances can use the
+// same generator.
 class ParameterGenerator : public CombinationGenerator<const std::vector<Object>> {
 
  public:

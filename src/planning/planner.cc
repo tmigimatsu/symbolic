@@ -36,25 +36,23 @@ std::ostream& operator<<(std::ostream& os, const symbolic::Planner::Node& node) 
 Planner::Node::iterator::iterator(const Node* parent)
     : pddl_(parent->pddl_), parent_(parent), child_(pddl_, parent->depth_ + 1),
       it_action_(pddl_.actions().begin()),
-      param_gen_(ParameterGenerator(pddl_.object_map(), it_action_->parameters())),
-      it_param_(param_gen_.begin()) {}
+      it_param_(it_action_->parameter_generator().begin()) {}
 
 Planner::Node::iterator& Planner::Node::iterator::operator++() {
 
   while (it_action_ != pddl_.actions().end()) {
-    if (it_param_ == param_gen_.end()) {
+    const ParameterGenerator& param_gen = it_action_->parameter_generator();
+    if (it_param_ == param_gen.end()) {
       // Move onto next action
       ++it_action_;
       if (it_action_ == pddl_.actions().end()) break;
-      const Action& action = *it_action_;
 
       // Generate new parameters
-      param_gen_ = ParameterGenerator(pddl_.object_map(), action.parameters());
-      it_param_ = param_gen_.begin();
+      it_param_ = it_action_->parameter_generator().begin();
     } else {
       // Move onto next parameters
       ++it_param_;
-      if (it_param_ == param_gen_.end()) continue;
+      if (it_param_ == param_gen.end()) continue;
     }
 
     // Check action preconditions
@@ -76,8 +74,8 @@ Planner::Node::iterator& Planner::Node::iterator::operator--() {
   if (it_action_ == pddl_.actions().end()) {
     --it_action_;
     const Action& action = *it_action_;
-    param_gen_ = ParameterGenerator(pddl_.object_map(), action.parameters());
-    it_param_ = --param_gen_.end();
+    it_param_ = it_action_->parameter_generator().end();
+    --it_param_;
 
     // Check action preconditions
     const std::vector<Object>& arguments = *it_param_;
@@ -89,15 +87,15 @@ Planner::Node::iterator& Planner::Node::iterator::operator--() {
     }
   }
 
-  while (it_action_ != pddl_.actions().begin() || it_param_ != param_gen_.begin()) {
-    if (it_param_ == param_gen_.begin()) {
+  while (it_action_ != pddl_.actions().begin() ||
+         it_param_ != it_action_->parameter_generator().begin()) {
+    if (it_param_ == it_action_->parameter_generator().begin()) {
       // Move onto next action
       --it_action_;
-      const Action& action = *it_action_;
 
       // Generate new parameters
-      param_gen_ = ParameterGenerator(pddl_.object_map(), action.parameters());
-      it_param_ = --param_gen_.end();
+      it_param_ = it_action_->parameter_generator().end();
+      --it_param_;
     } else {
       // Move onto next parameters
       --it_param_;
