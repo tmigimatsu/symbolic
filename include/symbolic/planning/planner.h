@@ -12,8 +12,6 @@
 
 #include <memory>    // std::shared_ptr
 #include <iostream>  // std::ostream
-#include <set>       // std::ostream
-#include <vector>    // std::vector
 
 #include "ptree.h"
 
@@ -27,33 +25,36 @@ class Planner {
 
   class Node {
 
+    struct NodeImpl;
+
    public:
 
     class iterator;
     class reverse_iterator;
 
-    Node(const Pddl& pddl, size_t depth) : pddl_(pddl), depth_(depth) {}
+    Node() {}
+    Node(const Pddl& pddl, const std::set<Proposition>& state, size_t depth = 0);
+    Node(const Node& parent, const Node& sibling, std::set<Proposition>&& state,
+         std::string&& action);
 
-    Node(const Pddl& pddl, const std::set<Proposition>& state, size_t depth = 0)
-        : pddl_(pddl), state_(state), depth_(depth) {}
-
-    const std::string action() const { return action_; }
-
-    const std::set<Proposition>& state() const { return state_; }
-
-    size_t depth() const { return depth_; }
+    const std::string& action() const;
+    const std::set<Proposition>& state() const;
+    size_t depth() const;
 
     iterator begin() const;
     iterator end() const;
 
     explicit operator bool() const;
 
+    bool operator<(const Node& rhs) const;
+    bool operator==(const Node& rhs) const;
+
    private:
 
-    const Pddl& pddl_;
-    std::string action_;
-    std::set<Proposition> state_;
-    size_t depth_;
+    NodeImpl* operator->() { return impl_.get(); }
+    const NodeImpl* operator->() const { return impl_.get(); }
+
+    std::shared_ptr<NodeImpl> impl_;
 
   };
 
@@ -63,9 +64,7 @@ class Planner {
 
  private:
 
-  const Pddl& pddl_;
-
-  Node root_;
+  const Node root_;
 
 };
 
@@ -81,7 +80,7 @@ class Planner::Node::iterator {
   using pointer = const value_type*;
   using reference = const value_type&;
 
-  iterator(const Node* parent);
+  iterator(const Node& parent);
 
   iterator& operator++();
   iterator& operator--();
@@ -93,11 +92,10 @@ class Planner::Node::iterator {
 
   const Pddl& pddl_;
 
-  const Node* parent_;
+  const Node& parent_;
   Node child_;
 
   std::set<Action>::const_iterator it_action_;
-
   ParameterGenerator::const_iterator it_param_;
 
   friend class Node;

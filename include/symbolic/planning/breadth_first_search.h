@@ -51,34 +51,22 @@ class BreadthFirstSearch<NodeT>::iterator {
   using pointer = const value_type*;
   using reference = const value_type&;
 
-  using NodePtr = std::shared_ptr<const NodeT>;
-  using NodePtrList = std::vector<NodePtr>;
-
   iterator() {}
   iterator(const NodeT& root, size_t max_depth)
-      : queue_({{std::make_shared<NodeT>(root), std::make_shared<NodePtrList>()}}),
+      : queue_({{root, std::make_shared<std::vector<NodeT>>()}}),
         kMaxDepth(max_depth) {}
 
   iterator& operator++();
   bool operator==(const iterator& other) const { return queue_.empty() && other.queue_.empty(); }
   bool operator!=(const iterator& other) const { return !(*this == other); }
-  value_type operator*() const {
-    plan_.clear();
-    plan_.reserve(ancestors_->size());
-    for (const NodePtr& node : *ancestors_) {
-      plan_.push_back(*node);
-    }
-    return plan_;
-  }
+  reference operator*() const { return *ancestors_; }
 
  private:
 
   const size_t kMaxDepth = 0;
 
-  std::queue<std::pair<NodePtr, std::shared_ptr<NodePtrList>>> queue_;
-  std::shared_ptr<NodePtrList> ancestors_;
-
-  mutable std::vector<NodeT> plan_;
+  std::queue<std::pair<NodeT, std::shared_ptr<std::vector<NodeT>>>> queue_;
+  std::shared_ptr<std::vector<NodeT>> ancestors_;
 
 };
 
@@ -86,10 +74,10 @@ template<typename NodeT>
 typename BreadthFirstSearch<NodeT>::iterator& BreadthFirstSearch<NodeT>::iterator::operator++() {
   size_t depth = 0;
   while (!queue_.empty()) {
-    std::pair<NodePtr, std::shared_ptr<NodePtrList>>& front = queue_.front();
+    std::pair<NodeT, std::shared_ptr<std::vector<NodeT>>>& front = queue_.front();
 
     // Take ancestors list and append current node
-    ancestors_ = std::make_shared<NodePtrList>(*front.second);
+    ancestors_ = std::make_shared<std::vector<NodeT>>(*front.second);
     ancestors_->push_back(front.first);
     queue_.pop();
 
@@ -100,7 +88,7 @@ typename BreadthFirstSearch<NodeT>::iterator& BreadthFirstSearch<NodeT>::iterato
     }
 
     // Return if node evaluates to true
-    const NodeT& node = *ancestors_->back();
+    const NodeT& node = ancestors_->back();
     if (node) break;
 
     // Skip children if max depth has been reached
@@ -108,7 +96,7 @@ typename BreadthFirstSearch<NodeT>::iterator& BreadthFirstSearch<NodeT>::iterato
 
     // Add node's children to queue
     for (const NodeT& child : node) {
-      queue_.emplace(std::make_shared<NodeT>(child), ancestors_);
+      queue_.emplace(child, ancestors_);
     }
   }
   return *this;

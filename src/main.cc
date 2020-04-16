@@ -7,6 +7,7 @@
  * Authors: Toki Migimatsu
  */
 
+#include <chrono>    // std::chrono
 #include <iostream>  // std::cout
 #include <set>       // std::set
 #include <string>    // std::stoi
@@ -59,13 +60,17 @@ int main(int argc, char* argv[]) {
   symbolic::Planner planner(pddl);
 
   std::cout << "Planning:" << std::endl;
+  const auto t_start = std::chrono::high_resolution_clock::now();
   symbolic::BreadthFirstSearch<symbolic::Planner::Node> bfs(planner.root(), args.depth);
   for (const std::vector<symbolic::Planner::Node>& plan : bfs) {
+    std::cout << std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - t_start).count() << "s" << std::endl;
     for (const symbolic::Planner::Node& node : plan) {
       std::cout << node << std::endl;
     }
     std::cout << std::endl;
   }
+
+  std::cout << "Finished in " << std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - t_start).count() << "s" << std::endl;
 
   // symbolic::DepthFirstSearch<symbolic::Planner::Node> dfs(planner.root(), 5);
   // for (const std::vector<symbolic::Planner::Node>& plan : dfs) {
