@@ -27,14 +27,16 @@ class BreadthFirstSearch {
 
   class iterator;
 
-  BreadthFirstSearch(const NodeT& root, size_t max_depth) : kMaxDepth(max_depth), root_(root) {}
+  BreadthFirstSearch(const NodeT& root, size_t max_depth, bool verbose = false)
+      : max_depth_(max_depth), verbose_(verbose), root_(root) {}
 
-  iterator begin() { iterator it(root_, kMaxDepth); return ++it; }
-  iterator end() { return iterator(); }
+  iterator begin() const { iterator it(this); return ++it; }
+  iterator end() const { return iterator(); }
 
  private:
 
-  const size_t kMaxDepth;
+  const size_t max_depth_;
+  const bool verbose_;
 
   const NodeT& root_;
 
@@ -52,9 +54,9 @@ class BreadthFirstSearch<NodeT>::iterator {
   using reference = const value_type&;
 
   iterator() {}
-  iterator(const NodeT& root, size_t max_depth)
-      : queue_({{root, std::make_shared<std::vector<NodeT>>()}}),
-        kMaxDepth(max_depth) {}
+  iterator(const BreadthFirstSearch<NodeT>* bfs)
+      : bfs_(bfs),
+        queue_({{bfs_->root_, std::make_shared<std::vector<NodeT>>()}}) {}
 
   iterator& operator++();
   bool operator==(const iterator& other) const { return queue_.empty() && other.queue_.empty(); }
@@ -63,7 +65,7 @@ class BreadthFirstSearch<NodeT>::iterator {
 
  private:
 
-  const size_t kMaxDepth = 0;
+  const BreadthFirstSearch<NodeT>* bfs_ = nullptr;
 
   std::queue<std::pair<NodeT, std::shared_ptr<std::vector<NodeT>>>> queue_;
   std::shared_ptr<std::vector<NodeT>> ancestors_;
@@ -82,7 +84,7 @@ typename BreadthFirstSearch<NodeT>::iterator& BreadthFirstSearch<NodeT>::iterato
     queue_.pop();
 
     // Print search depth
-    if (ancestors_->size() > depth) {
+    if (bfs_->verbose_ && ancestors_->size() > depth) {
       depth = ancestors_->size();
       std::cout << "BFS depth: " << depth - 1 << std::endl;
     }
@@ -92,7 +94,7 @@ typename BreadthFirstSearch<NodeT>::iterator& BreadthFirstSearch<NodeT>::iterato
     if (node) break;
 
     // Skip children if max depth has been reached
-    if (ancestors_->size() > kMaxDepth) continue;
+    if (ancestors_->size() > bfs_->max_depth_) continue;
 
     // Add node's children to queue
     for (const NodeT& child : node) {

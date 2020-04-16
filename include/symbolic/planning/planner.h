@@ -41,11 +41,14 @@ class Planner {
     const std::set<Proposition>& state() const;
     size_t depth() const;
 
+    // Iterate over children
     iterator begin() const;
     iterator end() const;
 
+    // Evaluate goal condition
     explicit operator bool() const;
 
+    // Compare states for caching
     bool operator<(const Node& rhs) const;
     bool operator==(const Node& rhs) const;
 

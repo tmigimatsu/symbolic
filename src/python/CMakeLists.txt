@@ -16,6 +16,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/symbolic)
 set(PYBIND11_LIB_DIR ${ctrl_utils_EXTERNAL_DIR}/pybind11.git)
 add_subdirectory(${PYBIND11_LIB_DIR} ${CMAKE_CURRENT_BINARY_DIR}/pybind11)
 
-pybind11_add_module(symbolic pddl.cc)
+pybind11_add_module(symbolic symbolic.cc)
 
 target_link_libraries(symbolic PUBLIC pybind11::pybind11 symbolic::symbolic)
