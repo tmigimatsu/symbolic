@@ -34,7 +34,7 @@ FormulaFunction CreateProposition(const VAL::simple_goal* symbol,
   const VAL::proposition* prop = symbol->getProp();
   const std::string name_predicate = prop->head->getName();
   const std::vector<Object> prop_params = symbolic::ConvertObjects(prop->args);
-  const ApplicationFunction Apply = CreateApplicationFunction(parameters, prop_params);
+  ApplicationFunction Apply = CreateApplicationFunction(parameters, prop_params);
   return [name_predicate, Apply = std::move(Apply)](const std::set<Proposition>& state,
                                                     const std::vector<Object>& arguments) {
     Proposition P(name_predicate, Apply(arguments));
@@ -81,7 +81,7 @@ FormulaFunction CreateDisjunction(const Pddl& pddl, const VAL::disj_goal* symbol
 FormulaFunction CreateNegation(const Pddl& pddl, const VAL::neg_goal* symbol,
                                const std::vector<Object>& parameters) {
   const VAL::goal* goal = symbol->getGoal();
-  const FormulaFunction P = CreateFormula(pddl, goal, parameters);
+  FormulaFunction P = CreateFormula(pddl, goal, parameters);
   return [P = std::move(P)](const std::set<Proposition>& state,
                             const std::vector<Object>& arguments) -> bool {
     // Negate positive formula
@@ -93,11 +93,11 @@ FormulaFunction CreateForall(const Pddl& pddl, const VAL::qfied_goal* symbol,
                              const std::vector<Object>& parameters) {
   // Create forall parameters
   std::vector<Object> forall_params = parameters;
-  const std::vector<Object> types = symbolic::ConvertObjects(symbol->getVars());
+  std::vector<Object> types = symbolic::ConvertObjects(symbol->getVars());
   forall_params.insert(forall_params.end(), types.begin(), types.end());
 
   const VAL::goal* goal = symbol->getGoal();
-  const FormulaFunction P = CreateFormula(pddl, goal, forall_params);
+  FormulaFunction P = CreateFormula(pddl, goal, forall_params);
 
   return [&pddl, types = std::move(types), P = std::move(P)](const std::set<Proposition>& state,
                                                              const std::vector<Object>& arguments) -> bool {
@@ -118,11 +118,11 @@ FormulaFunction CreateExists(const Pddl& pddl, const VAL::qfied_goal* symbol,
                              const std::vector<Object>& parameters) {
   // Create exists parameters
   std::vector<Object> exists_params = parameters;
-  const std::vector<Object> types = symbolic::ConvertObjects(symbol->getVars());
+  std::vector<Object> types = symbolic::ConvertObjects(symbol->getVars());
   exists_params.insert(exists_params.end(), types.begin(), types.end());
 
   const VAL::goal* goal = symbol->getGoal();
-  const FormulaFunction P = CreateFormula(pddl, goal, exists_params);
+  FormulaFunction P = CreateFormula(pddl, goal, exists_params);
 
   return [&pddl, types = std::move(types), P = std::move(P)](const std::set<Proposition>& state,
                                                              const std::vector<Object>& arguments) -> bool {

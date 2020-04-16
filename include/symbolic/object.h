@@ -70,7 +70,7 @@ class Object {
  private:
 
   const VAL::pddl_typed_symbol* symbol_;
-  // TODO: Make const?
+
   std::string name_;
   Type type_;
 
