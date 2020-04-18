@@ -34,8 +34,6 @@ class Formula {
 
   Formula(const Pddl& pddl, const VAL::goal* symbol, const std::vector<Object>& parameters);
 
-  Formula(const Pddl& pddl, const Action& action);
-
   const VAL::goal* symbol() const { return symbol_; }
 
   bool operator()(const std::set<Proposition>& state,
@@ -52,6 +50,10 @@ class Formula {
 
 };
 
+/**
+ * Create a function that takes action_args and returns prop_args based on the
+ * mapping (action_params -> prop_params).
+ */
 std::function<std::vector<Object>(const std::vector<Object>&)>
 CreateApplicationFunction(const std::vector<Object>& action_params,
                           const std::vector<Object>& prop_params);

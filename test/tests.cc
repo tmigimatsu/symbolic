@@ -14,6 +14,7 @@
 #include <iostream>   // std::cout
 #include <iterator>   // std::back_inserter
 
+#include "symbolic/normal_form.h"
 #include "symbolic/pddl.h"
 #include "symbolic/planning/breadth_first_search.h"
 #include "symbolic/planning/planner.h"
@@ -108,4 +109,30 @@ TEST_CASE("pddl", "[Pddl]") {
   //   }
   //   std::cout << std::endl;
   // }
+}
+
+TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
+  const symbolic::Pddl pddl("../resources/domain.pddl", "../resources/problem.pddl");
+
+  const symbolic::Action action(pddl, "pick");
+  const symbolic::Object hook(pddl, "hook");
+
+  const std::vector<symbolic::Proposition> pos = { symbolic::Proposition(pddl, "inworkspace(hook)") };
+  const std::vector<symbolic::Proposition> neg = { symbolic::Proposition(pddl, "inhand(hook)"),
+                                                   symbolic::Proposition(pddl, "inhand(box)") };
+;
+  symbolic::DisjunctiveFormula precond(pddl, action.preconditions(), action.parameters(), { hook });
+  REQUIRE(precond == symbolic::DisjunctiveFormula({{ pos, neg }}));
+
+  symbolic::DisjunctiveFormula neg_precond = symbolic::Negate(std::move(precond));
+  REQUIRE(neg_precond == symbolic::DisjunctiveFormula({{{ symbolic::Proposition(pddl, "inhand(hook)") }, {}},
+                                                       {{ symbolic::Proposition(pddl, "inhand(box)") }, {}},
+                                                       {{}, { symbolic::Proposition(pddl, "inworkspace(hook)") }}}));
+
+  symbolic::DisjunctiveFormula postcond(pddl, action.postconditions(), action.parameters(), { hook });
+  REQUIRE(postcond == symbolic::DisjunctiveFormula({{{ symbolic::Proposition(pddl, "inhand(hook)") },
+                                                     { symbolic::Proposition(pddl, "on(hook, table)"),
+                                                       symbolic::Proposition(pddl, "on(hook, shelf)"),
+                                                       symbolic::Proposition(pddl, "on(hook, hook)"),
+                                                       symbolic::Proposition(pddl, "on(hook, box)") }}}));
 }

@@ -9,7 +9,6 @@
 
 #include "symbolic/formula.h"
 
-#include <algorithm>  // std::find
 #include <map>        // std::map
 #include <utility>    // std::move
 

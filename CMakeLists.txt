@@ -72,6 +72,7 @@ target_sources(${VAL_LIB} PRIVATE
 set(LIB_SRC
     ${LIB_SRC_DIR}/action.cc
     ${LIB_SRC_DIR}/formula.cc
+    ${LIB_SRC_DIR}/normal_form.cc
     ${LIB_SRC_DIR}/object.cc
     ${LIB_SRC_DIR}/pddl.cc
     ${LIB_SRC_DIR}/proposition.cc

@@ -58,6 +58,10 @@ class Action {
 
   const ParameterGenerator& parameter_generator() const { return param_gen_; }
 
+  const Formula& preconditions() const { return Preconditions_; }
+
+  const VAL::effect_lists* postconditions() const { return symbol_->effects; }
+
   std::string to_string() const;
 
   std::string to_string(const std::vector<Object>& arguments) const;
