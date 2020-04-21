@@ -80,16 +80,28 @@ struct ConjunctiveFormula {
 
 };
 
-DisjunctiveFormula Disjoin(std::vector<DisjunctiveFormula>&& dnfs);
+inline std::pair<DisjunctiveFormula, DisjunctiveFormula>
+NormalizeConditions(const Pddl& pddl, const std::string& action_call) {
+  const auto aa = ParseAction(pddl, action_call);
+  return { DisjunctiveFormula(pddl, aa.first.preconditions().symbol(), aa.first.parameters(), aa.second),
+           DisjunctiveFormula(pddl, aa.first.postconditions(), aa.first.parameters(), aa.second) };
+}
 
-DisjunctiveFormula Conjoin(const std::vector<DisjunctiveFormula>& dnfs);
+// bool Simplify(DisjunctiveFormula* dnf);
+
+// DisjunctiveFormula Disjoin(std::vector<DisjunctiveFormula>&& dnfs);
+
+// DisjunctiveFormula Conjoin(const std::vector<DisjunctiveFormula>& dnfs);
 
 DisjunctiveFormula Negate(DisjunctiveFormula&& dnf);
 
-ConjunctiveFormula Flip(DisjunctiveFormula&& cnf);
+// ConjunctiveFormula Flip(DisjunctiveFormula&& cnf);
 
 inline bool operator==(const FormulaLiterals& lhs, const FormulaLiterals& rhs) {
   return lhs.pos == rhs.pos && lhs.neg == rhs.neg;
+}
+inline bool operator<(const FormulaLiterals& lhs, const FormulaLiterals& rhs) {
+  return std::tie(lhs.pos, lhs.neg) < std::tie(rhs.pos, rhs.neg);
 }
 
 inline bool operator==(const DisjunctiveFormula& lhs, const DisjunctiveFormula& rhs) {

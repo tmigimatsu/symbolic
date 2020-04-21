@@ -113,26 +113,31 @@ TEST_CASE("pddl", "[Pddl]") {
 
 TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
   const symbolic::Pddl pddl("../resources/domain.pddl", "../resources/problem.pddl");
+  const symbolic::Pddl pddl2("../resources/gridworld_domain.pddl", "../resources/gridworld_problem.pddl");
 
   const symbolic::Action action(pddl, "pick");
   const symbolic::Object hook(pddl, "hook");
 
   const std::vector<symbolic::Proposition> pos = { symbolic::Proposition(pddl, "inworkspace(hook)") };
-  const std::vector<symbolic::Proposition> neg = { symbolic::Proposition(pddl, "inhand(hook)"),
-                                                   symbolic::Proposition(pddl, "inhand(box)") };
+  const std::vector<symbolic::Proposition> neg = { symbolic::Proposition(pddl, "inhand(box)"),
+                                                   symbolic::Proposition(pddl, "inhand(hook)") };
 ;
   symbolic::DisjunctiveFormula precond(pddl, action.preconditions(), action.parameters(), { hook });
   REQUIRE(precond == symbolic::DisjunctiveFormula({{ pos, neg }}));
 
   symbolic::DisjunctiveFormula neg_precond = symbolic::Negate(std::move(precond));
-  REQUIRE(neg_precond == symbolic::DisjunctiveFormula({{{ symbolic::Proposition(pddl, "inhand(hook)") }, {}},
+  REQUIRE(neg_precond == symbolic::DisjunctiveFormula({{{}, { symbolic::Proposition(pddl, "inworkspace(hook)") }},
                                                        {{ symbolic::Proposition(pddl, "inhand(box)") }, {}},
-                                                       {{}, { symbolic::Proposition(pddl, "inworkspace(hook)") }}}));
+                                                       {{ symbolic::Proposition(pddl, "inhand(hook)") }, {}}}));
 
   symbolic::DisjunctiveFormula postcond(pddl, action.postconditions(), action.parameters(), { hook });
   REQUIRE(postcond == symbolic::DisjunctiveFormula({{{ symbolic::Proposition(pddl, "inhand(hook)") },
-                                                     { symbolic::Proposition(pddl, "on(hook, table)"),
-                                                       symbolic::Proposition(pddl, "on(hook, shelf)"),
+                                                     { symbolic::Proposition(pddl, "on(hook, box)"),
                                                        symbolic::Proposition(pddl, "on(hook, hook)"),
-                                                       symbolic::Proposition(pddl, "on(hook, box)") }}}));
+                                                       symbolic::Proposition(pddl, "on(hook, shelf)"),
+                                                       symbolic::Proposition(pddl, "on(hook, table)") }}}));
+
+  const auto cond = symbolic::NormalizeConditions(pddl2, "goto(chest)");
+  std::cout << cond.first << std::endl << cond.second << std::endl;
+  std::cout << cond.first.conjunctions.size() << " " << cond.second.conjunctions.size() << std::endl;
 }
