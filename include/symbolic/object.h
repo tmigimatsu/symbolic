@@ -103,11 +103,14 @@ inline bool operator==(const Object::Type& lhs, const Object::Type& rhs) {
 }
 
 inline bool operator<(const Object& lhs, const Object& rhs) {
-  return std::tie(lhs.type(), lhs.name()) < std::tie(rhs.type(), rhs.name());
+  return std::tie(lhs.name(), lhs.type()) < std::tie(rhs.name(), rhs.type());
 }
 
 inline bool operator==(const Object& lhs, const Object& rhs) {
-  return lhs.type() == rhs.type() && lhs.name() == rhs.name();
+  return std::tie(lhs.name(), lhs.type()) == std::tie(rhs.name(), rhs.type());
+}
+inline bool operator!=(const Object& lhs, const Object& rhs) {
+  return !(lhs.type() == rhs.type());
 }
 
 }  // namespace symbolic

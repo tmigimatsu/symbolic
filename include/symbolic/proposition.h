@@ -14,6 +14,7 @@
 #include <set>      // std::set
 #include <string>   // std::string
 #include <vector>   // std::vector
+#include <utility>  // std::tie
 
 #include "ptree.h"
 
@@ -57,8 +58,13 @@ inline std::string ParseHead(const std::string& atom) {
 
 std::ostream& operator<<(std::ostream& os, const Proposition& P);
 
-bool operator<(const Proposition& lhs, const Proposition& rhs);
-bool operator==(const Proposition& lhs, const Proposition& rhs);
+inline bool operator<(const Proposition& lhs, const Proposition& rhs) {
+  return std::tie(lhs.name(), lhs.arguments()) < std::tie(rhs.name(), rhs.arguments());
+}
+inline bool operator==(const Proposition& lhs, const Proposition& rhs) {
+  return std::tie(lhs.name(), lhs.arguments()) == std::tie(rhs.name(), rhs.arguments());
+}
+inline bool operator!=(const Proposition& lhs, const Proposition& rhs) { return !(lhs == rhs); }
 
 }  // namespace symbolic
 

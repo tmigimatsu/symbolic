@@ -37,24 +37,24 @@ std::ostream& operator<<(std::ostream& os, const symbolic::Proposition& P) {
   return os;
 }
 
-bool operator<(const Proposition& lhs, const Proposition& rhs) {
-  if (lhs.name() != rhs.name()) return lhs.name() < rhs.name();
-  if (lhs.arguments().size() != rhs.arguments().size()) {
-    return lhs.arguments().size() < rhs.arguments().size();
-  }
-  for (size_t i = 0; i < lhs.arguments().size(); i++) {
-    if (lhs.arguments()[i] != rhs.arguments()[i]) return lhs.arguments()[i] < rhs.arguments()[i];
-  }
-  return false;
-}
+// bool operator<(const Proposition& lhs, const Proposition& rhs) {
+//   if (lhs.name() != rhs.name()) return lhs.name() < rhs.name();
+//   if (lhs.arguments().size() != rhs.arguments().size()) {
+//     return lhs.arguments().size() < rhs.arguments().size();
+//   }
+//   for (size_t i = 0; i < lhs.arguments().size(); i++) {
+//     if (lhs.arguments()[i] != rhs.arguments()[i]) return lhs.arguments()[i] < rhs.arguments()[i];
+//   }
+//   return false;
+// }
 
-bool operator==(const Proposition& lhs, const Proposition& rhs) {
-  if (lhs.name() != rhs.name()) return false;
-  if (lhs.arguments().size() != rhs.arguments().size()) return false;
-  for (size_t i = 0; i < lhs.arguments().size(); i++) {
-    if (lhs.arguments()[i] != rhs.arguments()[i]) return false;
-  }
-  return true;
-}
+// bool operator==(const Proposition& lhs, const Proposition& rhs) {
+//   if (lhs.name() != rhs.name()) return false;
+//   if (lhs.arguments().size() != rhs.arguments().size()) return false;
+//   for (size_t i = 0; i < lhs.arguments().size(); i++) {
+//     if (lhs.arguments()[i] != rhs.arguments()[i]) return false;
+//   }
+//   return true;
+// }
 
 }  // namespace symbolic

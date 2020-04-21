@@ -140,7 +140,8 @@ template<bool Const>
 CombinationGenerator<ContainerT>::Iterator<Const>::Iterator(const std::vector<ContainerT*>* options,
                                                             std::vector<IteratorT>&& it_options)
     : options_(options), it_options_(std::move(it_options)), combination_(options_->size()) {
-  if (it_options_.front() == options_->front()->end()) return;
+
+  if (options_->empty() || it_options_.front() == options_->front()->end()) return;
   for (size_t i = 0; i < options_->size(); i++) {
     combination_[i] = *it_options_[i];
   }
