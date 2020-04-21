@@ -9,7 +9,7 @@
 
 #include "symbolic/action.h"
 
-#include <exception>  // std::runtime_error
+#include <exception>  // std::runtime_error, std::invalid_argument
 #include <cassert>    // assert
 #include <map>        // std::map
 #include <sstream>    // std::stringstream
@@ -183,8 +183,35 @@ std::string Action::to_string(const std::vector<Object>& arguments) const {
 }
 
 std::pair<Action, std::vector<Object>> ParseAction(const Pddl& pddl, const std::string& action_call) {
-  return std::make_pair<Action, std::vector<Object>>(Action(pddl, action_call),
-                                                     ParseArguments(pddl, action_call));
+  const auto aa = std::make_pair<Action, std::vector<Object>>(Action(pddl, action_call),
+                                                              ParseArguments(pddl, action_call));
+  const Action& action = aa.first;
+  const std::vector<Object>& args = aa.second;
+
+  // Check number of arguments
+  if (action.parameters().size() != args.size()) {
+    std::stringstream ss;
+    ss << "symbolic::ParseAction(): action " << action
+       << " requires " << action.parameters().size() << " arguments but received "
+       << args.size() << ": " << action_call << ".";
+    throw std::invalid_argument(ss.str());
+  }
+
+  // Check argument types
+  for (size_t i = 0; i < action.parameters().size(); i++) {
+    const Object& param = action.parameters()[i];
+    const Object& arg = args[i];
+    if (!arg.type().IsSubtype(param.type())) {
+      std::stringstream ss;
+      ss << "symbolic::ParseAction(): action " << action
+         << " requires parameter " << param << " to be of type "
+         << param.type() << " but received " << arg << " with type " << arg
+         << ": " << action_call << ".";
+      throw std::invalid_argument(ss.str());
+    }
+  }
+
+  return aa;
 }
 
 std::ostream& operator<<(std::ostream& os, const Action& action) {
