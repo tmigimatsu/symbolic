@@ -12,6 +12,7 @@
 #include <pybind11/functional.h>
 #include <pybind11/stl.h>
 
+#include "symbolic/normal_form.h"
 #include "symbolic/pddl.h"
 #include "symbolic/planning/breadth_first_search.h"
 #include "symbolic/planning/planner.h"
@@ -66,6 +67,20 @@ PYBIND11_MODULE(symbolic, m) {
       .def("__iter__", [](const BreadthFirstSearch<Planner::Node>& bfs) {
         return py::make_iterator(bfs.begin(), bfs.end());
       }, py::keep_alive<0, 1>());
+
+  py::class_<DisjunctiveFormula>(m, "DisjunctiveFormula")
+      .def_readwrite("conjunctions", &DisjunctiveFormula::conjunctions)
+      .def("__repr__", [](const DisjunctiveFormula& dnf) {
+        std::stringstream ss;
+        ss << dnf;
+        return ss.str();
+      });
+
+  py::class_<FormulaLiterals>(m, "FormulaLiterals")
+      .def_readwrite("pos", &FormulaLiterals::pos)
+      .def_readwrite("neg", &FormulaLiterals::neg);
+
+  m.def("NormalizeConditions", &NormalizeConditions, "pddl"_a, "action"_a);
 
 }
 

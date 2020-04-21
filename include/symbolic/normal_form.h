@@ -14,9 +14,11 @@
 #include <ostream>     // std::ostream
 #include <set>         // std::set
 #include <vector>      // std::vector
+#include <utility>     // std::pair
 
 #include "ptree.h"
 
+#include "symbolic/action.h"
 #include "symbolic/formula.h"
 
 namespace symbolic {
@@ -55,6 +57,8 @@ struct DisjunctiveFormula {
                      const std::vector<Object>& arguments);
 
   DisjunctiveFormula(ConjunctiveFormula&& cnf);
+
+  bool empty() const { return conjunctions.empty(); }
 
   std::vector<Conjunction> conjunctions;
 

@@ -37,6 +37,7 @@ class Object {
     const VAL::pddl_type* symbol() const { return symbol_; }
 
     bool IsSubtype(const std::string& type) const;
+    bool IsSubtype(const Type& type) const { return IsSubtype(type.name()); }
 
     std::vector<std::string> ListTypes() const;
 
@@ -91,6 +92,11 @@ std::vector<Object> ConvertObjects(const VAL::typed_symbol_list<T>* symbols) {
 
 inline std::ostream& operator<<(std::ostream& os, const Object& object) {
   os << object.name();
+  return os;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const Object::Type& type) {
+  os << type.name();
   return os;
 }
 
