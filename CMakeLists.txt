@@ -14,7 +14,7 @@ cmake_minimum_required(VERSION 3.6)
 project(symbolic VERSION 1.0.0 LANGUAGES CXX)
 
 # Set CMake flags
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
@@ -79,7 +79,6 @@ set(LIB_SRC
     ${LIB_SRC_DIR}/planning/planner.cc
     ${LIB_SRC_DIR}/utils/parameter_generator.cc
 )
-
 
 # target_include_directories(${SYMBOLIC_BIN}
 #     PUBLIC
