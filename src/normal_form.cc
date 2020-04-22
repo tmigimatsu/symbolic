@@ -67,11 +67,7 @@ bool IsSubset(const DisjunctiveFormula::Conjunction& sub,
 // If conj is a superset, keep the subset. If conj is neither a subset nor
 // superset, return false.
 bool TryInsertSubset(const DisjunctiveFormula::Conjunction& conj,
-#ifdef DNF_USE_VECTOR
                      std::vector<DisjunctiveFormula::Conjunction>* conjunctions) {
-#else
-                     std::set<DisjunctiveFormula::Conjunction>* conjunctions) {
-#endif
   for (auto it = conjunctions->begin(); it != conjunctions->end(); ++it) {
     // If current conjunction is a superset, don't add it
     if (IsSubset(*it, conj)) {
@@ -81,27 +77,18 @@ bool TryInsertSubset(const DisjunctiveFormula::Conjunction& conj,
   }
 
   bool is_subset = false;
-#ifdef DNF_USE_VECTOR
   for (auto it = conjunctions->begin(); it != conjunctions->end(); ++it) {
-#else
-  std::set<DisjunctiveFormula::Conjunction> conjunctions_frozen = *conjunctions;
-  for (auto it = conjunctions_frozen.begin(); it != conjunctions_frozen.end(); ++it) {
-#endif
     // Current conjunction is a subset: replace previous one
     if (IsSubset(conj, *it)) {
       is_subset = true;
-#ifdef DNF_USE_VECTOR
       *it = conj;
-#else
-      conjunctions->erase(*it);
-#endif
     }
   }
-#ifdef DNF_USE_VECTOR
-  if (is_subset) SortUnique(conjunctions);
-#else
-  if (is_subset) conjunctions->insert(conj);
-#endif
+
+  if (is_subset) {
+    SortUnique(conjunctions);
+  }
+
   return is_subset;
 }
 
@@ -125,23 +112,17 @@ std::optional<bool> Evaluate(const DisjunctiveFormula::Conjunction& conj) {
 
 std::optional<DisjunctiveFormula> Simplify(DisjunctiveFormula&& dnf) {
   DisjunctiveFormula ret;
-#ifdef DNF_USE_VECTOR
   ret.conjunctions.reserve(dnf.conjunctions.size());
   for (DisjunctiveFormula::Conjunction& conj : dnf.conjunctions) {
+    // Sort conjunction
     SortUnique(&conj.pos);
     SortUnique(&conj.neg);
-#else
-  for (const DisjunctiveFormula::Conjunction& conj : dnf.conjunctions) {
-#endif
+
     const std::optional<bool> is_true = Evaluate(conj);
     if (!is_true.has_value()) {
       if (!TryInsertSubset(conj, &ret.conjunctions)) {
         // Current conjunction is not a subset or superset: append it
-#ifdef DNF_USE_VECTOR
         ret.conjunctions.push_back(std::move(conj));
-#else
-        ret.conjunctions.insert(conj);
-#endif
       }
     } else if (*is_true) {
       // Conjunction is true: short-circuit disjunction and return empty formula
@@ -155,9 +136,7 @@ std::optional<DisjunctiveFormula> Simplify(DisjunctiveFormula&& dnf) {
   if (ret.conjunctions.empty()) return {};
 
   // Sort conjunctions
-#ifdef DNF_USE_VECTOR
   SortUnique(&ret.conjunctions);
-#endif
 
   return ret;
 }
@@ -165,13 +144,9 @@ std::optional<DisjunctiveFormula> Simplify(DisjunctiveFormula&& dnf) {
 std::optional<DisjunctiveFormula> Disjoin(std::vector<DisjunctiveFormula>&& dnfs) {
   DisjunctiveFormula disj;
   for (DisjunctiveFormula& dnf : dnfs) {
-#ifdef DNF_USE_VECTOR
     disj.conjunctions.insert(disj.conjunctions.end(),
                              std::make_move_iterator(dnf.conjunctions.begin()),
                              std::make_move_iterator(dnf.conjunctions.end()));
-#else
-    disj.conjunctions.insert(dnf.conjunctions.begin(), dnf.conjunctions.end());
-#endif
   }
   return Simplify(std::move(disj));
 }
@@ -182,37 +157,22 @@ std::optional<DisjunctiveFormula> Conjoin(const std::vector<DisjunctiveFormula>&
   DisjunctiveFormula conj;
 
   // Create combination generator for conjunctions
-#ifdef DNF_USE_VECTOR
   std::vector<const std::vector<DisjunctiveFormula::Conjunction>*> conjunctions;
-#else
-  std::vector<const std::set<DisjunctiveFormula::Conjunction>*> conjunctions;
-#endif
   conjunctions.reserve(dnfs.size());
   for (const DisjunctiveFormula& dnf : dnfs) {
     if (dnf.empty()) continue;
     conjunctions.push_back(&dnf.conjunctions);
   }
-#ifdef DNF_USE_VECTOR
   CombinationGenerator<const std::vector<DisjunctiveFormula::Conjunction>> gen(conjunctions);
-#else
-  CombinationGenerator<const std::set<DisjunctiveFormula::Conjunction>> gen(conjunctions);
-#endif
 
   // Iterate over all combinations
   for (const std::vector<DisjunctiveFormula::Conjunction>& combo : gen) {
     DisjunctiveFormula::Conjunction term;
     for (const DisjunctiveFormula::Conjunction& term_i : combo) {
-#ifdef DNF_USE_VECTOR
       term.pos.insert(term.pos.end(), term_i.pos.begin(), term_i.pos.end());
       term.neg.insert(term.neg.end(), term_i.neg.begin(), term_i.neg.end());
     }
     conj.conjunctions.push_back(std::move(term));
-#else
-      term.pos.insert(term_i.pos.begin(), term_i.pos.end());
-      term.neg.insert(term_i.neg.begin(), term_i.neg.end());
-    }
-    conj.conjunctions.insert(std::move(term));
-#endif
   }
 
   return Simplify(std::move(conj));
@@ -229,7 +189,6 @@ std::vector<DisjunctiveFormula> Convert(ConjunctiveFormula&& cnf) {
   // [(a | b), (c | d), (e | f))
   std::vector<DisjunctiveFormula> dnfs;
   dnfs.reserve(cnf.disjunctions.size());
-#ifdef DNF_USE_VECTOR
   for (ConjunctiveFormula::Disjunction& disj : cnf.disjunctions) {
     DisjunctiveFormula dnf;
     dnf.conjunctions.reserve(disj.size());
@@ -239,16 +198,6 @@ std::vector<DisjunctiveFormula> Convert(ConjunctiveFormula&& cnf) {
     for (Proposition& prop : disj.neg) {
       dnf.conjunctions.push_back({{}, { std::move(prop) }});
     }
-#else
-  for (const ConjunctiveFormula::Disjunction& disj : cnf.disjunctions) {
-    DisjunctiveFormula dnf;
-    for (const Proposition& prop : disj.pos) {
-      dnf.conjunctions.insert({{ prop }, {}});
-    }
-    for (const Proposition& prop : disj.neg) {
-      dnf.conjunctions.insert({{}, { prop }});
-    }
-#endif
     dnfs.push_back(std::move(dnf));
   }
   return dnfs;
@@ -261,22 +210,12 @@ DisjunctiveFormula Negate(DisjunctiveFormula&& dnf) {
   // !((a & b) | (c & d) | (e & f))
 
   // ((!a & !b) | (!c & !d) | (!e & !f))
-#ifdef DNF_USE_VECTOR
   for (DisjunctiveFormula::Conjunction& conj : dnf.conjunctions) {
     std::swap(conj.pos, conj.neg);
   }
 
   // ((!a | !b) & (!c | !d) & (!e | !f))
   ConjunctiveFormula cnf = Flip(std::move(dnf));
-#else
-  DisjunctiveFormula dnf_neg;
-  for (const DisjunctiveFormula::Conjunction& conj : dnf.conjunctions) {
-    dnf_neg.conjunctions.insert({ conj.neg, conj.pos });
-  }
-
-  // ((!a | !b) & (!c | !d) & (!e | !f))
-  ConjunctiveFormula cnf = Flip(std::move(dnf_neg));
-#endif
 
   // ((!a & !c & !e) | ...)
   return DisjunctiveFormula(std::move(cnf));
@@ -404,35 +343,23 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::effect_lists
 
   // Add effects
   DisjunctiveFormula::Conjunction simple;
-#ifdef DNF_USE_VECTOR
   simple.pos.reserve(effects->add_effects.size());
-#endif
   for (const VAL::simple_effect* effect : effects->add_effects) {
     const std::string name_predicate = effect->prop->head->getName();
     const std::vector<Object> effect_params = symbolic::ConvertObjects(effect->prop->args);
     const auto Apply = CreateApplicationFunction(parameters, effect_params);
 
-#ifdef DNF_USE_VECTOR
     simple.pos.emplace_back(name_predicate, Apply(arguments));
-#else
-    simple.pos.emplace(name_predicate, Apply(arguments));
-#endif
   }
 
   // Del effects
-#ifdef DNF_USE_VECTOR
   simple.neg.reserve(effects->del_effects.size());
-#endif
   for (const VAL::simple_effect* effect : effects->del_effects) {
     const std::string name_predicate = effect->prop->head->getName();
     const std::vector<Object> effect_params = symbolic::ConvertObjects(effect->prop->args);
     const auto Apply = CreateApplicationFunction(parameters, effect_params);
 
-#ifdef DNF_USE_VECTOR
     simple.neg.emplace_back(name_predicate, Apply(arguments));
-#else
-    simple.neg.emplace(name_predicate, Apply(arguments));
-#endif
   }
 
   if (!simple.empty()) {
