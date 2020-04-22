@@ -21,6 +21,8 @@
 #include "symbolic/action.h"
 #include "symbolic/formula.h"
 
+#define DNF_USE_VECTOR
+
 namespace symbolic {
 
 struct ConjunctiveFormula;
@@ -28,9 +30,15 @@ struct ConjunctiveFormula;
 struct FormulaLiterals {
 
   bool empty() const { return pos.empty() && neg.empty(); }
+  size_t size() const { return pos.size() + neg.size(); }
 
+#ifdef DNF_USE_VECTOR
   std::vector<Proposition> pos;
   std::vector<Proposition> neg;
+#else
+  std::set<Proposition> pos;
+  std::set<Proposition> neg;
+#endif
 
 };
 
@@ -40,7 +48,11 @@ struct DisjunctiveFormula {
 
   DisjunctiveFormula() {}
 
+#ifdef DNF_USE_VECTOR
   DisjunctiveFormula(std::vector<Conjunction>&& conjunctions)
+#else
+  DisjunctiveFormula(std::set<Conjunction>&& conjunctions)
+#endif
       : conjunctions(std::move(conjunctions)) {}
 
   DisjunctiveFormula(const Pddl& pddl, const Formula& formula,
@@ -60,7 +72,11 @@ struct DisjunctiveFormula {
 
   bool empty() const { return conjunctions.empty(); }
 
+#ifdef DNF_USE_VECTOR
   std::vector<Conjunction> conjunctions;
+#else
+  std::set<Conjunction> conjunctions;
+#endif
 
 };
 
@@ -76,7 +92,11 @@ struct ConjunctiveFormula {
 
   // ConjunctiveFormula(const DisjunctiveFormula& dnf);
 
+#ifdef DNF_USE_VECTOR
   std::vector<Disjunction> disjunctions;
+#else
+  std::set<Disjunction> disjunctions;
+#endif
 
 };
 
@@ -108,6 +128,7 @@ inline bool operator==(const DisjunctiveFormula& lhs, const DisjunctiveFormula& 
   return lhs.conjunctions == rhs.conjunctions;
 }
 
+ostream& operator<<(ostream& os, const DisjunctiveFormula::Conjunction& conj);
 ostream& operator<<(ostream& os, const DisjunctiveFormula& dnf);
 
 }  // namespace symbolic

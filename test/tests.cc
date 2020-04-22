@@ -11,6 +11,7 @@
 #include <catch2/catch.hpp>
 
 #include <algorithm>  // std::transform
+#include <chrono>     // std::chrono
 #include <iostream>   // std::cout
 #include <iterator>   // std::back_inserter
 
@@ -118,12 +119,13 @@ TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
   const symbolic::Action action(pddl, "pick");
   const symbolic::Object hook(pddl, "hook");
 
-  const std::vector<symbolic::Proposition> pos = { symbolic::Proposition(pddl, "inworkspace(hook)") };
-  const std::vector<symbolic::Proposition> neg = { symbolic::Proposition(pddl, "inhand(box)"),
-                                                   symbolic::Proposition(pddl, "inhand(hook)") };
+  // const std::vector<symbolic::Proposition> pos = ;
+  // const std::vector<symbolic::Proposition> neg = ;
 ;
   symbolic::DisjunctiveFormula precond(pddl, action.preconditions(), action.parameters(), { hook });
-  REQUIRE(precond == symbolic::DisjunctiveFormula({{ pos, neg }}));
+  REQUIRE(precond == symbolic::DisjunctiveFormula({{{ symbolic::Proposition(pddl, "inworkspace(hook)") },
+                                                    { symbolic::Proposition(pddl, "inhand(box)"),
+                                                       symbolic::Proposition(pddl, "inhand(hook)") }}}));
 
   symbolic::DisjunctiveFormula neg_precond = symbolic::Negate(std::move(precond));
   REQUIRE(neg_precond == symbolic::DisjunctiveFormula({{{}, { symbolic::Proposition(pddl, "inworkspace(hook)") }},
@@ -137,7 +139,12 @@ TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
                                                        symbolic::Proposition(pddl, "on(hook, shelf)"),
                                                        symbolic::Proposition(pddl, "on(hook, table)") }}}));
 
-  const auto cond = symbolic::NormalizeConditions(pddl2, "goto(chest)");
+
+  const auto t_start = std::chrono::high_resolution_clock::now();
+  const auto cond = symbolic::NormalizeConditions(pddl2, "goto(door_key)");
+  const auto t_end = std::chrono::high_resolution_clock::now();
+
   std::cout << cond.first << std::endl << cond.second << std::endl;
   std::cout << cond.first.conjunctions.size() << " " << cond.second.conjunctions.size() << std::endl;
+  std::cout << std::chrono::duration<double>(t_end - t_start).count() << std::endl;
 }

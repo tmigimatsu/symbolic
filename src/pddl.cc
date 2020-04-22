@@ -39,7 +39,7 @@ char* current_filename = nullptr;  // Expected in parse_error.h
 namespace {
 
 std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
-                                               const std::string& filename_problem) {
+                                         const std::string& filename_problem) {
   std::unique_ptr<VAL::analysis> analysis = std::make_unique<VAL::analysis>();
   yyFlexLexer yfl;
 
