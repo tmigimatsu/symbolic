@@ -7,8 +7,8 @@
  * Authors: Toki Migimatsu
  */
 
-#ifndef SYMBOLIC_ACTIONS_H_
-#define SYMBOLIC_ACTIONS_H_
+#ifndef SYMBOLIC_ACTION_H_
+#define SYMBOLIC_ACTION_H_
 
 #include <functional>  // std::function
 #include <memory>      // std::shared_ptr
@@ -18,9 +18,10 @@
 #include <string>      // std::string
 #include <utility>     // std::pair
 
+#include "symbolic/formula.h"
 #include "symbolic/object.h"
 #include "symbolic/proposition.h"
-#include "symbolic/formula.h"
+#include "symbolic/state.h"
 #include "symbolic/utils/parameter_generator.h"
 
 namespace symbolic {
@@ -36,16 +37,14 @@ class Action {
    // action_call can be action(params) or action name
   Action(const Pddl& pddl, const std::string& action_call);
 
-  bool IsValid(const std::set<Proposition>& state,
-               const std::vector<Object>& arguments) const {
+  bool IsValid(const State& state, const std::vector<Object>& arguments) const {
     return Preconditions_(state, arguments);
   }
 
-  std::set<Proposition> Apply(const std::set<Proposition>& state,
-                              const std::vector<Object>& arguments) const;
+  State Apply(const State& state, const std::vector<Object>& arguments) const;
 
-  void Apply(const std::vector<Object>& arguments, std::set<Proposition>* state) const {
-    Apply_(arguments, state);
+  bool Apply(const std::vector<Object>& arguments, State* state) const {
+    return Apply_(arguments, state);
   }
 
   const VAL::operator_* symbol() const { return symbol_; }
@@ -72,7 +71,7 @@ class Action {
   ParameterGenerator param_gen_;
 
   Formula Preconditions_;
-  std::function<void(const std::vector<Object>&, std::set<Proposition>*)> Apply_;
+  std::function<bool(const std::vector<Object>&, State*)> Apply_;
 
 };
 
@@ -90,4 +89,4 @@ inline bool operator==(const Action& lhs, const Action& rhs) {
 
 }  // namespace symbolic
 
-#endif  // SYMBOLIC_ACTIONS_H_
+#endif  // SYMBOLIC_ACTION_H_

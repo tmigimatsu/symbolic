@@ -27,8 +27,8 @@ PYBIND11_MODULE(symbolic, m) {
   // Pddl
   py::class_<Pddl>(m, "Pddl")
       .def(py::init<const std::string&, const std::string&>(), "domain"_a, "problem"_a)
-      .def_property_readonly("initial_state", &Pddl::initial_state_str)
-      .def_property_readonly("actions", &Pddl::actions_str)
+      .def_property_readonly("initial_state", [](const Pddl& pddl) { return Stringify(pddl.initial_state()); })
+      .def_property_readonly("actions", [](const Pddl& pddl) { return Stringify(pddl.actions()); })
       .def("is_valid", [](const Pddl& pddl, bool verbose) { return pddl.IsValid(verbose); }, "verbose"_a = false)
       .def("next_state", (std::set<std::string> (Pddl::*)(const std::set<std::string>&, const std::string&) const) &Pddl::NextState)
       .def("is_valid_action", (bool (Pddl::*)(const std::set<std::string>&, const std::string&) const) &Pddl::IsValidAction)
@@ -41,14 +41,7 @@ PYBIND11_MODULE(symbolic, m) {
   // Planner::Node
   py::class_<Planner::Node>(m, "PlannerNode")
       .def_property_readonly("action", &Planner::Node::action)
-      .def_property_readonly("state", [](const Planner::Node& node) {
-        const std::set<Proposition>& state = node.state();
-        std::set<std::string> str_state;
-        for (const Proposition& prop : state) {
-          str_state.emplace(prop.to_string());
-        }
-        return str_state;
-      })
+      .def_property_readonly("state", [](const Planner::Node& node) { return Stringify(node.state()); })
       .def_property_readonly("depth", &Planner::Node::depth)
       .def("__repr__", [](const Planner::Node& node) {
         std::stringstream ss;

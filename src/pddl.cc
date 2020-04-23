@@ -69,46 +69,18 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
 }
 
 using ::symbolic::Action;
+using ::symbolic::Axiom;
+using ::symbolic::Object;
 using ::symbolic::Pddl;
 using ::symbolic::Proposition;
-using ::symbolic::Object;
+using ::symbolic::State;
 
-std::set<Proposition> ParseState(const Pddl& pddl, const std::set<std::string>& str_state) {
-  std::set<Proposition> state;
+State ParseState(const Pddl& pddl, const std::set<std::string>& str_state) {
+  State state;
   for (const std::string& str_prop : str_state) {
     state.emplace(pddl, str_prop);
   }
   return state;
-}
-
-std::set<std::string> StringifyState(const std::set<Proposition>& state) {
-  std::set<std::string> str_state;
-  for (const Proposition& prop : state) {
-    str_state.emplace(prop.to_string());
-  }
-  return str_state;
-}
-
-std::vector<std::string> StringifyActions(const std::vector<Action>& actions) {
-  std::vector<std::string> str_actions;
-  for (const Action& action : actions) {
-    str_actions.emplace_back(action.name());
-  }
-  return str_actions;
-}
-
-std::vector<std::vector<std::string>> StringifyArguments(const std::vector<std::vector<Object>>& arguments) {
-  std::vector<std::vector<std::string>> str_arguments;
-  str_arguments.reserve(arguments.size());
-  for (const std::vector<Object>& args : arguments) {
-    std::vector<std::string> str_args;
-    str_args.reserve(args.size());
-    for (const Object& arg : args) {
-      str_args.emplace_back(arg.name());
-    }
-    str_arguments.emplace_back(std::move(str_args));
-  }
-  return str_arguments;
 }
 
 std::vector<Object> GetObjects(const VAL::domain& domain, const VAL::problem& problem) {
@@ -149,8 +121,8 @@ std::vector<Action> GetAxioms(const Pddl& pddl, const VAL::domain& domain) {
   return axioms;
 }
 
-std::set<Proposition> GetInitialState(const VAL::problem& problem, const std::vector<Object>& objects) {
-  std::set<Proposition> initial_state;
+State GetInitialState(const VAL::problem& problem, const std::vector<Object>& objects) {
+  State initial_state;
   for (const VAL::simple_effect* effect : problem.initial_state->add_effects) {
     std::vector<Object> arguments;
     arguments.reserve(effect->prop->args->size());
@@ -196,10 +168,9 @@ bool Pddl::IsValid(bool verbose, std::ostream& os) const {
   return is_domain_valid && is_problem_valid;
 }
 
-std::set<Proposition> Pddl::NextState(const std::set<Proposition>& state,
-                                      const std::string& action_call) const {
+State Pddl::NextState(const State& state, const std::string& action_call) const {
   // Parse strings
-  std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
+  const std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
@@ -208,19 +179,18 @@ std::set<Proposition> Pddl::NextState(const std::set<Proposition>& state,
 std::set<std::string> Pddl::NextState(const std::set<std::string>& str_state,
                                       const std::string& action_call) const {
   // Parse strings
-  std::set<Proposition> state = ParseState(*this, str_state);
-  std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
+  State state = ParseState(*this, str_state);
+  const std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
   action.Apply(arguments, &state);
-  return StringifyState(state);
+  return Stringify(state);
 }
 
-bool Pddl::IsValidAction(const std::set<Proposition>& state,
-                         const std::string& action_call) const {
+bool Pddl::IsValidAction(const State& state, const std::string& action_call) const {
   // Parse strings
-  std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
+  const std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
@@ -231,11 +201,10 @@ bool Pddl::IsValidAction(const std::set<std::string>& str_state,
   return IsValidAction(ParseState(*this, str_state), action_call);
 }
 
-bool Pddl::IsValidTuple(const std::set<Proposition>& state,
-                        const std::string& action_call,
-                        const std::set<Proposition>& next_state) const {
+bool Pddl::IsValidTuple(const State& state, const std::string& action_call,
+                        const State& next_state) const {
   // Parse strings
-  std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
+  const std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
@@ -245,20 +214,20 @@ bool Pddl::IsValidTuple(const std::set<std::string>& str_state,
                         const std::string& action_call,
                         const std::set<std::string>& str_next_state) const {
   // Parse strings
-  std::set<Proposition> state = ParseState(*this, str_state);
-  std::set<Proposition> next_state = ParseState(*this, str_next_state);
+  const State state = ParseState(*this, str_state);
+  const State next_state = ParseState(*this, str_next_state);
   return IsValidTuple(state, action_call, next_state);
 }
 
 bool Pddl::IsGoalSatisfied(const std::set<std::string>& str_state) const {
   // Parse strings
-  std::set<Proposition> state = ParseState(*this, str_state);
+  const State state = ParseState(*this, str_state);
 
   return goal_(state);
 }
 
 bool Pddl::IsValidPlan(const std::vector<std::string>& action_skeleton) const {
-  std::set<Proposition> state = initial_state_;
+  State state = initial_state_;
   for (const std::string& action_call : action_skeleton) {
     // Parse strings
     std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
@@ -271,7 +240,7 @@ bool Pddl::IsValidPlan(const std::vector<std::string>& action_skeleton) const {
   return goal_(state);
 }
 
-std::vector<std::vector<Object>> Pddl::ListValidArguments(const std::set<Proposition>& state,
+std::vector<std::vector<Object>> Pddl::ListValidArguments(const State& state,
                                                           const Action& action) const {
   std::vector<std::vector<Object>> arguments;
   ParameterGenerator param_gen(object_map(), action.parameters());
@@ -283,21 +252,21 @@ std::vector<std::vector<Object>> Pddl::ListValidArguments(const std::set<Proposi
 std::vector<std::vector<std::string>> Pddl::ListValidArguments(const std::set<std::string>& str_state,
                                                                const std::string& action_name) const {
   // Parse strings
-  const std::set<Proposition> state = ParseState(*this, str_state);
+  const State state = ParseState(*this, str_state);
   const Action action(*this, action_name);
   const std::vector<std::vector<Object>> arguments = ListValidArguments(state, action);
-  return StringifyArguments(arguments);
+  return Stringify(arguments);
 }
 
-std::set<std::string> Pddl::initial_state_str() const {
-  return StringifyState(initial_state_);
-}
+// std::set<std::string> Pddl::initial_state_str() const {
+//   return StringifyState(initial_state_);
+// }
 
-std::vector<std::string> Pddl::actions_str() const {
-  return StringifyActions(actions_);
-}
+// std::vector<std::string> Pddl::actions_str() const {
+//   return StringifyActions(actions_);
+// }
 
-std::vector<std::string> Pddl::ListValidActions(const std::set<Proposition>& state) const {
+std::vector<std::string> Pddl::ListValidActions(const State& state) const {
   std::vector<std::string> actions;
   for (const Action& action : actions_) {
     const std::vector<std::vector<Object>> arguments = ListValidArguments(state, action);
@@ -311,6 +280,37 @@ std::vector<std::string> Pddl::ListValidActions(const std::set<Proposition>& sta
 std::vector<std::string> Pddl::ListValidActions(const std::set<std::string>& state) const {
   return ListValidActions(ParseState(*this, state));
 }
+
+std::set<std::string> Stringify(const State& state) {
+  std::set<std::string> str_state;
+  for (const Proposition& prop : state) {
+    str_state.emplace(prop.to_string());
+  }
+  return str_state;
+}
+
+std::vector<std::string> Stringify(const std::vector<Action>& actions) {
+  std::vector<std::string> str_actions;
+  for (const Action& action : actions) {
+    str_actions.emplace_back(action.name());
+  }
+  return str_actions;
+}
+
+std::vector<std::vector<std::string>> Stringify(const std::vector<std::vector<Object>>& arguments) {
+  std::vector<std::vector<std::string>> str_arguments;
+  str_arguments.reserve(arguments.size());
+  for (const std::vector<Object>& args : arguments) {
+    std::vector<std::string> str_args;
+    str_args.reserve(args.size());
+    for (const Object& arg : args) {
+      str_args.emplace_back(arg.name());
+    }
+    str_arguments.emplace_back(std::move(str_args));
+  }
+  return str_arguments;
+}
+
 
 std::ostream& operator<<(std::ostream& os, const Pddl& pddl) {
   os << pddl.domain() << std::endl;

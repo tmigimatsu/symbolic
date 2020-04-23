@@ -55,10 +55,10 @@ bool IsSubset(const DisjunctiveFormula::Conjunction& sub,
   if (sub.size() > super.size()) return false;
 
   for (const Proposition& prop : sub.pos) {
-    if (!Contains(super.pos, prop)) return false;
+    if (!super.pos.contains(prop)) return false;
   }
   for (const Proposition& prop : sub.neg) {
-    if (!Contains(super.neg, prop)) return false;
+    if (!super.neg.contains(prop)) return false;
   }
   return true;
 }
@@ -105,18 +105,16 @@ std::optional<bool> Evaluate(const DisjunctiveFormula::Conjunction& conj) {
 
   // Ensure pos and neg sets don't overlap
   for (const Proposition& prop : conj.pos) {
-    if (Contains(conj.neg, prop)) return false;
+    if (conj.neg.contains(prop)) return false;
   }
   return {};
 }
 
-std::optional<DisjunctiveFormula> Simplify(DisjunctiveFormula&& dnf) {
+std::optional<DisjunctiveFormula> Simplify(const Pddl& pddl, DisjunctiveFormula&& dnf) {
   DisjunctiveFormula ret;
   ret.conjunctions.reserve(dnf.conjunctions.size());
   for (DisjunctiveFormula::Conjunction& conj : dnf.conjunctions) {
     // Sort conjunction
-    SortUnique(&conj.pos);
-    SortUnique(&conj.neg);
 
     const std::optional<bool> is_true = Evaluate(conj);
     if (!is_true.has_value()) {
@@ -169,8 +167,8 @@ std::optional<DisjunctiveFormula> Conjoin(const std::vector<DisjunctiveFormula>&
   for (const std::vector<DisjunctiveFormula::Conjunction>& combo : gen) {
     DisjunctiveFormula::Conjunction term;
     for (const DisjunctiveFormula::Conjunction& term_i : combo) {
-      term.pos.insert(term.pos.end(), term_i.pos.begin(), term_i.pos.end());
-      term.neg.insert(term.neg.end(), term_i.neg.begin(), term_i.neg.end());
+      term.pos.insert(term_i.pos.begin(), term_i.pos.end());
+      term.neg.insert(term_i.neg.begin(), term_i.neg.end());
     }
     conj.conjunctions.push_back(std::move(term));
   }
@@ -349,7 +347,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::effect_lists
     const std::vector<Object> effect_params = symbolic::ConvertObjects(effect->prop->args);
     const auto Apply = CreateApplicationFunction(parameters, effect_params);
 
-    simple.pos.emplace_back(name_predicate, Apply(arguments));
+    simple.pos.emplace(name_predicate, Apply(arguments));
   }
 
   // Del effects
@@ -359,7 +357,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::effect_lists
     const std::vector<Object> effect_params = symbolic::ConvertObjects(effect->prop->args);
     const auto Apply = CreateApplicationFunction(parameters, effect_params);
 
-    simple.neg.emplace_back(name_predicate, Apply(arguments));
+    simple.neg.emplace(name_predicate, Apply(arguments));
   }
 
   if (!simple.empty()) {

@@ -9,8 +9,6 @@
 
 #include "symbolic/planning/planner.h"
 
-#include "symbolic/action.h"
-
 namespace symbolic {
 
 Planner::Planner(const Pddl& pddl)
@@ -18,19 +16,19 @@ Planner::Planner(const Pddl& pddl)
 
 struct Planner::Node::NodeImpl {
 
-  NodeImpl(const Pddl& pddl, std::set<Proposition>&& state,
+  NodeImpl(const Pddl& pddl, State&& state,
            const std::shared_ptr<const std::set<Node>>& ancestors,
            std::string&& action, size_t depth)
       : pddl_(pddl), state_(std::move(state)), ancestors_(ancestors),
         action_(std::move(action)), depth_(depth) {}
 
-  NodeImpl(const Pddl& pddl, const std::set<Proposition>& state, size_t depth = 0)
+  NodeImpl(const Pddl& pddl, const State& state, size_t depth = 0)
       : pddl_(pddl), state_(state), ancestors_(std::make_shared<const std::set<Node>>()),
         depth_(depth) {}
 
   const Pddl& pddl_;
 
-  const std::set<Proposition> state_;
+  const State state_;
   const std::shared_ptr<const std::set<Node>> ancestors_;
 
   // For debugging
@@ -39,10 +37,10 @@ struct Planner::Node::NodeImpl {
 
 };
 
-Planner::Node::Node(const Pddl& pddl, const std::set<Proposition>& state, size_t depth)
+Planner::Node::Node(const Pddl& pddl, const State& state, size_t depth)
     : impl_(std::make_shared<NodeImpl>(pddl, state, depth)) {}
 
-Planner::Node::Node(const Node& parent, const Node& sibling, std::set<Proposition>&& state,
+Planner::Node::Node(const Node& parent, const Node& sibling, State&& state,
                     std::string&& action) {
   if (!sibling.impl_) {
     auto ancestors = std::make_shared<std::set<Node>>(*parent->ancestors_);
@@ -60,7 +58,7 @@ const std::string& Planner::Node::action() const {
   return impl_->action_;
 }
 
-const std::set<Proposition>& Planner::Node::state() const {
+const State& Planner::Node::state() const {
   return impl_->state_;
 }
 
@@ -83,7 +81,7 @@ Planner::Node::iterator Planner::Node::begin() const {
   const Node& parent = it.parent_;
   if (action.IsValid(parent.state(), arguments)) {
     // Set action and apply postconditions to child
-    std::set<Proposition> state = action.Apply(parent.state(), arguments);
+    State state = action.Apply(parent.state(), arguments);
     it.child_ = Node(parent, it.child_, std::move(state), action.to_string(arguments));
 
     // Return if state hasn't been previously visited
@@ -158,7 +156,7 @@ Planner::Node::iterator& Planner::Node::iterator::operator++() {
     const std::vector<Object>& arguments = *it_param_;
     if (action.IsValid(parent_.state(), arguments)) {
       // Set action and apply postconditions to child
-      std::set<Proposition> state = action.Apply(parent_.state(), arguments);
+      State state = action.Apply(parent_.state(), arguments);
       child_ = Node(parent_, child_, std::move(state), action.to_string(arguments));
 
       // Return if state hasn't been previously visited
@@ -182,7 +180,7 @@ Planner::Node::iterator& Planner::Node::iterator::operator--() {
     const std::vector<Object>& arguments = *it_param_;
     if (action.IsValid(parent_.state(), arguments)) {
       // Set action and apply postconditions to child
-      std::set<Proposition> state = action.Apply(parent_.state(), arguments);
+      State state = action.Apply(parent_.state(), arguments);
       child_ = Node(parent_, child_, std::move(state), action.to_string(arguments));
 
       // Return if state hasn't been previously visited
@@ -210,7 +208,7 @@ Planner::Node::iterator& Planner::Node::iterator::operator--() {
     const std::vector<Object>& arguments = *it_param_;
     if (action.IsValid(parent_.state(), arguments)) {
       // Set action and apply postconditions to child
-      std::set<Proposition> state = action.Apply(parent_.state(), arguments);
+      State state = action.Apply(parent_.state(), arguments);
       child_ = Node(parent_, child_, std::move(state), action.to_string(arguments));
 
       // Return if state hasn't been previously visited

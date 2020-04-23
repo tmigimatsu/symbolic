@@ -16,6 +16,7 @@
 
 #include "symbolic/object.h"
 #include "symbolic/proposition.h"
+#include "symbolic/state.h"
 #include "symbolic/utils/parameter_generator.h"
 
 namespace symbolic {
@@ -34,17 +35,17 @@ class Formula {
 
   const VAL::goal* symbol() const { return symbol_; }
 
-  bool operator()(const std::set<Proposition>& state,
-                  const std::vector<Object>& arguments) const { return P_(state, arguments); };
+  bool operator()(const State& state, const std::vector<Object>& arguments) const {
+    return P_(state, arguments);
+  };
 
-  bool operator()(const std::set<Proposition>& state) const { return P_(state, {}); };
+  bool operator()(const State& state) const { return P_(state, {}); };
 
  private:
 
   const VAL::goal* symbol_;
 
-  std::function<bool(const std::set<Proposition>& state,
-                     const std::vector<Object>& arguments)> P_;
+  std::function<bool(const State& state, const std::vector<Object>& arguments)> P_;
 
 };
 

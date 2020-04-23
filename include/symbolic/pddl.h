@@ -33,34 +33,31 @@ class Pddl {
 
   bool IsValid(bool verbose = false, std::ostream& output = std::cout) const;
 
-  std::set<Proposition> NextState(const std::set<Proposition>& state,
-                                  const std::string& action_call) const;
+  State NextState(const State& state, const std::string& action_call) const;
   std::set<std::string> NextState(const std::set<std::string>& state,
                                   const std::string& action_call) const;
 
-  bool IsValidAction(const std::set<Proposition>& state,
-                     const std::string& action_call) const;
+  bool IsValidAction(const State& state, const std::string& action_call) const;
   bool IsValidAction(const std::set<std::string>& state,
                      const std::string& action_call) const;
 
-  bool IsValidTuple(const std::set<Proposition>& state,
-                    const std::string& action_call,
-                    const std::set<Proposition>& next_state) const;
+  bool IsValidTuple(const State& state, const std::string& action_call,
+                    const State& next_state) const;
   bool IsValidTuple(const std::set<std::string>& state,
                     const std::string& action_call,
                     const std::set<std::string>& next_state) const;
 
-  bool IsGoalSatisfied(const std::set<Proposition>& state) const { return goal_(state); }
+  bool IsGoalSatisfied(const State& state) const { return goal_(state); }
   bool IsGoalSatisfied(const std::set<std::string>& state) const;
 
   bool IsValidPlan(const std::vector<std::string>& action_skeleton) const;
 
-  std::vector<std::vector<Object>> ListValidArguments(const std::set<Proposition>& state,
+  std::vector<std::vector<Object>> ListValidArguments(const State& state,
                                                       const Action& action) const;
   std::vector<std::vector<std::string>> ListValidArguments(const std::set<std::string>& state,
                                                            const std::string& action_name) const;
 
-  std::vector<std::string> ListValidActions(const std::set<Proposition>& state) const;
+  std::vector<std::string> ListValidActions(const State& state) const;
   std::vector<std::string> ListValidActions(const std::set<std::string>& state) const;
 
   const VAL::analysis& analysis() const { return *analysis_; }
@@ -69,15 +66,15 @@ class Pddl {
 
   const VAL::problem& problem() const { return problem_; }
 
-  const std::set<Proposition>& initial_state() const { return initial_state_; }
-  std::set<std::string> initial_state_str() const;
+  const State& initial_state() const { return initial_state_; }
+  // std::set<std::string> initial_state_str() const;
 
   const ObjectTypeMap& object_map() const { return object_map_; }
 
   const std::vector<Object>& objects() const { return objects_; }
 
   const std::vector<Action>& actions() const { return actions_; }
-  std::vector<std::string> actions_str() const;
+  // std::vector<std::string> actions_str() const;
 
   const std::vector<Action>& axioms() const { return axioms_; }
 
@@ -95,10 +92,14 @@ class Pddl {
   const std::vector<Action> actions_;
   const std::vector<Action> axioms_;
 
-  const std::set<Proposition> initial_state_;
+  const State initial_state_;
   const Formula goal_;
 
 };
+
+std::set<std::string> Stringify(const State& state);
+std::vector<std::string> Stringify(const std::vector<Action>& actions);
+std::vector<std::vector<std::string>> Stringify(const std::vector<std::vector<Object>>& arguments);
 
 std::ostream& operator<<(std::ostream& os, const Pddl& pddl);
 

@@ -20,33 +20,22 @@
 #include "symbolic/planning/breadth_first_search.h"
 #include "symbolic/planning/planner.h"
 
-namespace {
-
-std::set<std::string> Stringify(const std::set<symbolic::Proposition>& state) {
-  std::set<std::string> str_state;
-  std::transform(state.begin(), state.end(), std::inserter(str_state, str_state.begin()),
-                 [](const symbolic::Proposition& prop) { return prop.to_string(); });
-  return str_state;
-}
-
-}  // namespace
-
 TEST_CASE("pddl", "[Pddl]") {
   const symbolic::Pddl pddl("../resources/domain.pddl", "../resources/problem.pddl");
   REQUIRE(pddl.IsValid());
 
-  const std::set<symbolic::Proposition>& state = pddl.initial_state();
-  const std::set<std::string> str_state = pddl.initial_state_str();
+  const symbolic::State& state = pddl.initial_state();
+  const std::set<std::string> str_state = symbolic::Stringify(state);
 
   const symbolic::Action action(pddl, "pick");
   const symbolic::Object hook(pddl, "hook");
   const symbolic::Object box(pddl, "box");
   const std::string str_action = "pick(hook)";
 
-  std::set<symbolic::Proposition> next_state = state;
+  symbolic::State next_state = state;
   next_state.erase(symbolic::Proposition(pddl, "on(hook, table)"));
   next_state.emplace(pddl, "inhand(hook)");
-  std::set<std::string> str_next_state = Stringify(next_state);
+  std::set<std::string> str_next_state = symbolic::Stringify(next_state);
 
   SECTION("IsValidAction") {
     REQUIRE(action.IsValid(state, { hook }) == true);
@@ -127,7 +116,7 @@ TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
                                                     { symbolic::Proposition(pddl, "inhand(box)"),
                                                        symbolic::Proposition(pddl, "inhand(hook)") }}}));
 
-  symbolic::DisjunctiveFormula neg_precond = symbolic::Negate(std::move(precond));
+  symbolic::DisjunctiveFormula neg_precond = symbolic::Negate(pddl, std::move(precond));
   REQUIRE(neg_precond == symbolic::DisjunctiveFormula({{{}, { symbolic::Proposition(pddl, "inworkspace(hook)") }},
                                                        {{ symbolic::Proposition(pddl, "inhand(box)") }, {}},
                                                        {{ symbolic::Proposition(pddl, "inhand(hook)") }, {}}}));

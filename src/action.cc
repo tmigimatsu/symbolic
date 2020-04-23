@@ -1,5 +1,5 @@
 /**
- * actions.cc
+ * action.cc
  *
  * Copyright 2018. All Rights Reserved.
  *
@@ -22,11 +22,11 @@ namespace {
 using ::symbolic::Object;
 using ::symbolic::Proposition;
 using ::symbolic::Pddl;
+using ::symbolic::State;
 
-using ActionFunction = std::function<std::set<Proposition>(const std::set<Proposition>&,
-                                                           const std::vector<Object>&)>;
+using ActionFunction = std::function<State(const State&, const std::vector<Object>&)>;
 
-using EffectsFunction = std::function<void(const std::vector<Object>&, std::set<Proposition>*)>;
+using EffectsFunction = std::function<bool(const std::vector<Object>&, State*)>;
 
 using ApplicationFunction = std::function<std::vector<Object>(const std::vector<Object>&)>;
 
@@ -43,15 +43,17 @@ EffectsFunction CreateForall(const Pddl& pddl, const VAL::forall_effect* effect,
 
   return [&pddl, gen = symbolic::ParameterGenerator(pddl.object_map(), types),
           ForallEffects = std::move(ForallEffects)](const std::vector<Object>& arguments,
-                                                    std::set<Proposition>* state) {
+                                                    State* state) {
     // Loop over forall arguments
+    bool is_state_changed = false;
     for (const std::vector<Object>& forall_objs : gen) {
       // Create forall arguments
       std::vector<Object> forall_args = arguments;
       forall_args.insert(forall_args.end(), forall_objs.begin(), forall_objs.end());
 
-      ForallEffects(forall_args, state);
+      is_state_changed |= ForallEffects(forall_args, state);
     }
+    return is_state_changed;
   };
 }
 
@@ -62,9 +64,8 @@ EffectsFunction CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
   ApplicationFunction Apply = symbolic::CreateApplicationFunction(parameters, effect_params);
 
   return [name_predicate = effect->prop->head->getName(),
-          Apply = std::move(Apply)](const std::vector<Object>& arguments,
-                                    std::set<Proposition>* state) {
-    state->emplace(name_predicate, Apply(arguments));
+          Apply = std::move(Apply)](const std::vector<Object>& arguments, State* state) {
+    return state->emplace(name_predicate, Apply(arguments));
   };
 }
 
@@ -75,9 +76,8 @@ EffectsFunction CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
   ApplicationFunction Apply = symbolic::CreateApplicationFunction(parameters, effect_params);
 
   return [name_predicate = effect->prop->head->getName(),
-          Apply = std::move(Apply)](const std::vector<Object>& arguments,
-                                    std::set<Proposition>* state) {
-    state->erase(Proposition(name_predicate, Apply(arguments)));
+          Apply = std::move(Apply)](const std::vector<Object>& arguments, State* state) {
+    return state->erase(Proposition(name_predicate, Apply(arguments)));
   };
 }
 
@@ -87,12 +87,13 @@ EffectsFunction CreateCond(const Pddl& pddl, const VAL::cond_effect* effect,
   EffectsFunction CondEffects = CreateEffectsFunction(pddl, effect->getEffects(), parameters);
   return [Condition = std::move(Condition),
           CondEffects = std::move(CondEffects)](const std::vector<Object>& arguments,
-                                                std::set<Proposition>* state) {
+                                                State* state) {
     // TODO: Condition might return different results depending on ordering of
     // other effects since state is modified in place.
     if (Condition(*state, arguments)) {
-      CondEffects(arguments, state);
+      return CondEffects(arguments, state);
     }
+    return false;
   };
 }
 
@@ -120,10 +121,12 @@ EffectsFunction CreateEffectsFunction(const Pddl& pddl, const VAL::effect_lists*
   }
 
   return [effect_functions = std::move(effect_functions)](const std::vector<Object>& arguments,
-                                                          std::set<Proposition>* state) {
+                                                          State* state) {
+    bool is_state_changed = false;
     for (const EffectsFunction& Effect : effect_functions) {
-      Effect(arguments, state);
+      is_state_changed |= Effect(arguments, state);
     }
+    return is_state_changed;
   };
 }
 
@@ -157,9 +160,8 @@ Action::Action(const Pddl& pddl, const std::string& action_call)
       Preconditions_(pddl, symbol_->precondition, parameters_),
       Apply_(CreateEffectsFunction(pddl, symbol_->effects, parameters_)) {}
 
-std::set<Proposition> Action::Apply(const std::set<Proposition>& state,
-                                    const std::vector<Object>& arguments) const {
-  std::set<Proposition> next_state(state);
+State Action::Apply(const State& state, const std::vector<Object>& arguments) const {
+  State next_state(state);
   Apply_(arguments, &next_state);
   return next_state;
 }

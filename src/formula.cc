@@ -19,9 +19,10 @@ namespace {
 using ::symbolic::Object;
 using ::symbolic::Proposition;
 using ::symbolic::Pddl;
+using ::symbolic::State;
 
 using FormulaFunction =
-std::function<bool(const std::set<Proposition>& state, const std::vector<Object>& arguments)>;
+std::function<bool(const State& state, const std::vector<Object>& arguments)>;
 
 using ApplicationFunction = std::function<std::vector<Object>(const std::vector<Object>&)>;
 
@@ -34,10 +35,10 @@ FormulaFunction CreateProposition(const VAL::simple_goal* symbol,
   const std::string name_predicate = prop->head->getName();
   const std::vector<Object> prop_params = symbolic::ConvertObjects(prop->args);
   ApplicationFunction Apply = CreateApplicationFunction(parameters, prop_params);
-  return [name_predicate, Apply = std::move(Apply)](const std::set<Proposition>& state,
+  return [name_predicate, Apply = std::move(Apply)](const State& state,
                                                     const std::vector<Object>& arguments) {
     Proposition P(name_predicate, Apply(arguments));
-    return state.find(P) != state.end();
+    return state.contains(P);
   };
 }
 
@@ -50,7 +51,7 @@ FormulaFunction CreateConjunction(const Pddl& pddl, const VAL::conj_goal* symbol
     subformulas.push_back(CreateFormula(pddl, goal, parameters));
   }
 
-  return [subformulas = std::move(subformulas)](const std::set<Proposition>& state,
+  return [subformulas = std::move(subformulas)](const State& state,
                                                 const std::vector<Object>& arguments) -> bool {
     for (const FormulaFunction& P : subformulas) {
       if (!P(state, arguments)) return false;
@@ -68,7 +69,7 @@ FormulaFunction CreateDisjunction(const Pddl& pddl, const VAL::disj_goal* symbol
     subformulas.push_back(CreateFormula(pddl, goal, parameters));
   }
 
-  return [subformulas = std::move(subformulas)](const std::set<Proposition>& state,
+  return [subformulas = std::move(subformulas)](const State& state,
                                                 const std::vector<Object>& arguments) -> bool {
     for (const FormulaFunction& P : subformulas) {
       if (P(state, arguments)) return true;
@@ -81,7 +82,7 @@ FormulaFunction CreateNegation(const Pddl& pddl, const VAL::neg_goal* symbol,
                                const std::vector<Object>& parameters) {
   const VAL::goal* goal = symbol->getGoal();
   FormulaFunction P = CreateFormula(pddl, goal, parameters);
-  return [P = std::move(P)](const std::set<Proposition>& state,
+  return [P = std::move(P)](const State& state,
                             const std::vector<Object>& arguments) -> bool {
     // Negate positive formula
     return !P(state, arguments);
@@ -98,7 +99,7 @@ FormulaFunction CreateForall(const Pddl& pddl, const VAL::qfied_goal* symbol,
   const VAL::goal* goal = symbol->getGoal();
   FormulaFunction P = CreateFormula(pddl, goal, forall_params);
 
-  return [&pddl, types = std::move(types), P = std::move(P)](const std::set<Proposition>& state,
+  return [&pddl, types = std::move(types), P = std::move(P)](const State& state,
                                                              const std::vector<Object>& arguments) -> bool {
     // Loop over forall arguments
     symbolic::ParameterGenerator gen(pddl.object_map(), types);
@@ -123,7 +124,7 @@ FormulaFunction CreateExists(const Pddl& pddl, const VAL::qfied_goal* symbol,
   const VAL::goal* goal = symbol->getGoal();
   FormulaFunction P = CreateFormula(pddl, goal, exists_params);
 
-  return [&pddl, types = std::move(types), P = std::move(P)](const std::set<Proposition>& state,
+  return [&pddl, types = std::move(types), P = std::move(P)](const State& state,
                                                              const std::vector<Object>& arguments) -> bool {
     // Loop over exists arguments
     symbolic::ParameterGenerator gen(pddl.object_map(), types);

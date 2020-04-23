@@ -80,6 +80,7 @@ set(LIB_SRC
     ${LIB_SRC_DIR}/object.cc
     ${LIB_SRC_DIR}/pddl.cc
     ${LIB_SRC_DIR}/proposition.cc
+    ${LIB_SRC_DIR}/state.cc
     ${LIB_SRC_DIR}/planning/planner.cc
     ${LIB_SRC_DIR}/utils/parameter_generator.cc
 )

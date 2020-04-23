@@ -18,6 +18,7 @@
 
 #include "symbolic/action.h"
 #include "symbolic/formula.h"
+#include "symbolic/state.h"
 
 namespace symbolic {
 
@@ -28,8 +29,8 @@ struct FormulaLiterals {
   bool empty() const { return pos.empty() && neg.empty(); }
   size_t size() const { return pos.size() + neg.size(); }
 
-  std::vector<Proposition> pos;
-  std::vector<Proposition> neg;
+  State pos;
+  State neg;
 
 };
 

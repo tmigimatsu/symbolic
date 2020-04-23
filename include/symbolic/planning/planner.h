@@ -31,12 +31,12 @@ class Planner {
     class reverse_iterator;
 
     Node() {}
-    Node(const Pddl& pddl, const std::set<Proposition>& state, size_t depth = 0);
-    Node(const Node& parent, const Node& sibling, std::set<Proposition>&& state,
+    Node(const Pddl& pddl, const State& state, size_t depth = 0);
+    Node(const Node& parent, const Node& sibling, State&& state,
          std::string&& action);
 
     const std::string& action() const;
-    const std::set<Proposition>& state() const;
+    const State& state() const;
     size_t depth() const;
 
     // Iterate over children
