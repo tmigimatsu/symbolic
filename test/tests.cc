@@ -139,10 +139,17 @@ TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
                                                        symbolic::Proposition(pddl, "on(hook, shelf)"),
                                                        symbolic::Proposition(pddl, "on(hook, table)") }}}));
 
-
   const auto t_start = std::chrono::high_resolution_clock::now();
   const auto cond = symbolic::NormalizeConditions(pddl2, "goto(door_key)");
   const auto t_end = std::chrono::high_resolution_clock::now();
+
+  for (const symbolic::Action& axiom : pddl2.axioms()) {
+    std::cout << "Axiom: " << axiom << std::endl;
+    symbolic::DisjunctiveFormula context(pddl, axiom.preconditions(), axiom.parameters(), { hook, hook });
+    symbolic::DisjunctiveFormula implies(pddl, axiom.postconditions(), axiom.parameters(), { hook, hook });
+    std::cout << "  Context: " << context << std::endl;
+    std::cout << "  Implies: " << implies << std::endl;
+  }
 
   std::cout << cond.first << std::endl << cond.second << std::endl;
   std::cout << cond.first.conjunctions.size() << " " << cond.second.conjunctions.size() << std::endl;

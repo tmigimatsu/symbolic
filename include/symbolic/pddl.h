@@ -76,8 +76,10 @@ class Pddl {
 
   const std::vector<Object>& objects() const { return objects_; }
 
-  const std::set<Action>& actions() const { return actions_; }
-  std::set<std::string> actions_str() const;
+  const std::vector<Action>& actions() const { return actions_; }
+  std::vector<std::string> actions_str() const;
+
+  const std::vector<Action>& axioms() const { return axioms_; }
 
   const Formula& goal() const { return goal_; }
 
@@ -90,7 +92,8 @@ class Pddl {
   const std::vector<Object> objects_;
   const ObjectTypeMap object_map_;
 
-  const std::set<Action> actions_;
+  const std::vector<Action> actions_;
+  const std::vector<Action> axioms_;
 
   const std::set<Proposition> initial_state_;
   const Formula goal_;

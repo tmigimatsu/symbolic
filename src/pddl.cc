@@ -89,10 +89,10 @@ std::set<std::string> StringifyState(const std::set<Proposition>& state) {
   return str_state;
 }
 
-std::set<std::string> StringifyActions(const std::set<Action>& actions) {
-  std::set<std::string> str_actions;
+std::vector<std::string> StringifyActions(const std::vector<Action>& actions) {
+  std::vector<std::string> str_actions;
   for (const Action& action : actions) {
-    str_actions.emplace(action.name());
+    str_actions.emplace_back(action.name());
   }
   return str_actions;
 }
@@ -129,12 +129,24 @@ std::map<std::string, std::vector<Object>> CreateObjectTypeMap(const std::vector
   return object_map;
 }
 
-std::set<Action> GetActions(const Pddl& pddl, const VAL::domain& domain) {
-  std::set<Action> actions;
+std::vector<Action> GetActions(const Pddl& pddl, const VAL::domain& domain) {
+  std::vector<Action> actions;
   for (const VAL::operator_* op : *domain.ops) {
-    actions.emplace(pddl, op);
+    const VAL::action* a = dynamic_cast<const VAL::action*>(op);
+    if (a == nullptr) continue;
+    actions.emplace_back(pddl, op);
   }
   return actions;
+}
+
+std::vector<Action> GetAxioms(const Pddl& pddl, const VAL::domain& domain) {
+  std::vector<Action> axioms;
+  for (const VAL::operator_* op : *domain.ops) {
+    const VAL::axiom* a = dynamic_cast<const VAL::axiom*>(op);
+    if (a == nullptr) continue;
+    axioms.emplace_back(pddl, op);
+  }
+  return axioms;
 }
 
 std::set<Proposition> GetInitialState(const VAL::problem& problem, const std::vector<Object>& objects) {
@@ -164,6 +176,7 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
       objects_(GetObjects(domain_, problem_)),
       object_map_(CreateObjectTypeMap(objects_)),
       actions_(GetActions(*this, domain_)),
+      axioms_(GetAxioms(*this, domain_)),
       initial_state_(GetInitialState(problem_, objects_)),
       goal_(*this, problem_.the_goal) {}
 
@@ -280,7 +293,7 @@ std::set<std::string> Pddl::initial_state_str() const {
   return StringifyState(initial_state_);
 }
 
-std::set<std::string> Pddl::actions_str() const {
+std::vector<std::string> Pddl::actions_str() const {
   return StringifyActions(actions_);
 }
 

@@ -96,7 +96,7 @@ class Planner::Node::iterator {
   const Node& parent_;
   Node child_;
 
-  std::set<Action>::const_iterator it_action_;
+  std::vector<Action>::const_iterator it_action_;
   ParameterGenerator::const_iterator it_param_;
 
   friend class Node;
