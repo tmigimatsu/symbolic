@@ -43,10 +43,16 @@ class CombinationGenerator {
   CombinationGenerator() {}
 
   CombinationGenerator(const std::vector<ContainerT*>& options)
-      : options_(options), end_(iterator::end(&options_)) {}
+      : options_(options), end_(iterator::end(&options_)) {
+    for (size_t i = 0; i < options.size(); i++) {
+      if (options[i]->begin() == options[i]->end())
+        throw std::invalid_argument("CombinationGenerator(): Empty option at position " +
+                                    std::to_string(i) + ".");
+    }
+  }
 
   CombinationGenerator(const CombinationGenerator& other)
-      : options_(other.options_), end_(iterator::end(&other.options_)) {}
+      : options_(other.options_), end_(iterator::end(&options_)) {}
 
   CombinationGenerator(CombinationGenerator&& other)
       : options_(std::move(other.options_)), end_(iterator::end(&options_)) {}
@@ -249,7 +255,8 @@ template<bool Const>
 typename CombinationGenerator<ContainerT>::template Iterator<Const>::reference
 CombinationGenerator<ContainerT>::Iterator<Const>::operator*() {
   if (options_->empty()) return combination_;
-  if (it_options_.front() == options_->front()->end()) {
+  const bool is_end = it_options_.front() == options_->front()->end();
+  if (is_end) {
     throw std::out_of_range("ParameterGenerator::iterator::operator*(): Cannot dereference.");
   }
   return combination_;

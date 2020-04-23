@@ -72,6 +72,11 @@ Planner::Node::iterator Planner::Node::begin() const {
   iterator it(*this);
   if (it == end()) return it;
 
+  if (it.it_param_ == it.it_action_->parameter_generator().end()) {
+    ++it;
+    return it;
+  }
+
   // Check action preconditions
   const Action& action = *it.it_action_;
   const std::vector<Object>& arguments = *it.it_param_;
@@ -141,6 +146,7 @@ Planner::Node::iterator& Planner::Node::iterator::operator++() {
 
       // Generate new parameters
       it_param_ = it_action_->parameter_generator().begin();
+      if (it_param_ == it_action_->parameter_generator().end()) continue;
     } else {
       // Move onto next parameters
       ++it_param_;
