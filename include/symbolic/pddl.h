@@ -16,8 +16,6 @@
 #include <string>    // std::string
 #include <vector>    // std::vector
 
-#include "ptree.h"
-
 #include "symbolic/action.h"
 #include "symbolic/formula.h"
 #include "symbolic/object.h"

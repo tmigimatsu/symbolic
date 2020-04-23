@@ -16,7 +16,7 @@
 #include <tuple>    // std::tie
 #include <ostream>  // std::ostream
 
-#include "ptree.h"
+#include <VAL/ptree.h>
 
 namespace symbolic {
 
@@ -53,6 +53,7 @@ class Object {
 
   Object() {}
 
+  // TODO: Set default type to "object"
   // Object(const VAL::pddl_typed_symbol* symbol) : symbol_(symbol), name_(symbol_->getName()) {}
   Object(const VAL::pddl_typed_symbol* symbol)
       : symbol_(symbol), name_(symbol->getName()), type_(symbol->type) {}

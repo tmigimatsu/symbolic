@@ -14,8 +14,6 @@
 #include <set>         // std::set
 #include <vector>      // std::vector
 
-#include "ptree.h"
-
 #include "symbolic/object.h"
 #include "symbolic/proposition.h"
 #include "symbolic/utils/parameter_generator.h"

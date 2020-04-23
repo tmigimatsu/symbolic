@@ -16,8 +16,6 @@
 #include <vector>   // std::vector
 #include <utility>  // std::tie
 
-#include "ptree.h"
-
 #include "symbolic/object.h"
 
 namespace symbolic {

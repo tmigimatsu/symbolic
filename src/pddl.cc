@@ -13,8 +13,8 @@
 #include <string>   // std::string
 #include <utility>  // std::move
 
-#include "FlexLexer.h"
-#include "typecheck.h"
+#include <VAL/FlexLexer.h>
+#include <VAL/typecheck.h>
 
 #include "symbolic/utils/parameter_generator.h"
 

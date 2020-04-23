@@ -16,8 +16,6 @@
 #include <vector>      // std::vector
 #include <utility>     // std::pair
 
-#include "ptree.h"
-
 #include "symbolic/action.h"
 #include "symbolic/formula.h"
 

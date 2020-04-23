@@ -13,8 +13,6 @@
 #include <memory>    // std::shared_ptr
 #include <iostream>  // std::ostream
 
-#include "ptree.h"
-
 #include "symbolic/pddl.h"
 
 namespace symbolic {

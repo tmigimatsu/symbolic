@@ -18,8 +18,6 @@
 #include <string>      // std::string
 #include <utility>     // std::pair
 
-#include "ptree.h"
-
 #include "symbolic/object.h"
 #include "symbolic/proposition.h"
 #include "symbolic/formula.h"

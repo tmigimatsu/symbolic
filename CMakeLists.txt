@@ -46,28 +46,32 @@ function(download_package PACKAGE_NAME)
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/${PACKAGE_NAME})
 endfunction()
 
-download_package(VAL)
+find_package(VAL 1.0.0 QUIET)
+if(NOT VAL_FOUND)
+    download_package(VAL 1.0.0)
+    find_package(VAL 1.0.0 REQUIRED)
+endif()
 
-set(VAL_LIB VAL)
-set(VAL_LIB_DIR ${CMAKE_BINARY_DIR}/VAL/build)
-set(VAL_SRC_DIR ${VAL_LIB_DIR}/src)
-set(VAL_INCLUDE_DIR ${VAL_LIB_DIR}/include)
-add_library(${VAL_LIB} STATIC)
+# set(VAL_LIB VAL)
+# set(VAL_LIB_DIR ${CMAKE_BINARY_DIR}/VAL/build)
+# set(VAL_SRC_DIR ${VAL_LIB_DIR}/src)
+# set(VAL_INCLUDE_DIR ${VAL_LIB_DIR}/include)
+# add_library(${VAL_LIB} STATIC)
 
-# Set include directories
-target_include_directories(${VAL_LIB}
-    PUBLIC
-        $<INSTALL_INTERFACE:include>
-        $<BUILD_INTERFACE:${VAL_INCLUDE_DIR}>
-)
+# # Set include directories
+# target_include_directories(${VAL_LIB}
+#     PUBLIC
+#         $<INSTALL_INTERFACE:include>
+#         $<BUILD_INTERFACE:${VAL_INCLUDE_DIR}>
+# )
 
-# Attach sources
-target_sources(${VAL_LIB} PRIVATE
-    ${VAL_SRC_DIR}/DebugWriteController.cpp
-    ${VAL_SRC_DIR}/pddl+.cpp
-    ${VAL_SRC_DIR}/ptree.cpp
-    ${VAL_SRC_DIR}/typecheck.cpp
-)
+# # Attach sources
+# target_sources(${VAL_LIB} PRIVATE
+#     ${VAL_SRC_DIR}/DebugWriteController.cpp
+#     ${VAL_SRC_DIR}/pddl+.cpp
+#     ${VAL_SRC_DIR}/ptree.cpp
+#     ${VAL_SRC_DIR}/typecheck.cpp
+# )
 
 set(LIB_SRC
     ${LIB_SRC_DIR}/action.cc
@@ -100,11 +104,10 @@ target_include_directories(${SYMBOLIC_LIB}
     PUBLIC
         $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${LIB_INCLUDE_DIR}>
-        $<BUILD_INTERFACE:${VAL_INCLUDE_DIR}>
 )
 target_sources(${SYMBOLIC_LIB} PRIVATE ${LIB_SRC})
-target_link_libraries(${SYMBOLIC_LIB} PRIVATE
-    ${VAL_LIB}
+target_link_libraries(${SYMBOLIC_LIB} PUBLIC
+    VAL::VAL
 )
 # configure_file(${CMAKE_BINARY_DIR}/VAL/build/parser ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COPYONLY)
 # configure_file(${CMAKE_BINARY_DIR}/VAL/build/validate ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COPYONLY)
