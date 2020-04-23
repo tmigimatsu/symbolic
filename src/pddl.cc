@@ -111,8 +111,8 @@ std::vector<Action> GetActions(const Pddl& pddl, const VAL::domain& domain) {
   return actions;
 }
 
-std::vector<Action> GetAxioms(const Pddl& pddl, const VAL::domain& domain) {
-  std::vector<Action> axioms;
+std::vector<Axiom> GetAxioms(const Pddl& pddl, const VAL::domain& domain) {
+  std::vector<Axiom> axioms;
   for (const VAL::operator_* op : *domain.ops) {
     const VAL::axiom* a = dynamic_cast<const VAL::axiom*>(op);
     if (a == nullptr) continue;

@@ -17,6 +17,7 @@
 #include <vector>    // std::vector
 
 #include "symbolic/action.h"
+#include "symbolic/axiom.h"
 #include "symbolic/formula.h"
 #include "symbolic/object.h"
 #include "symbolic/proposition.h"
@@ -76,7 +77,7 @@ class Pddl {
   const std::vector<Action>& actions() const { return actions_; }
   // std::vector<std::string> actions_str() const;
 
-  const std::vector<Action>& axioms() const { return axioms_; }
+  const std::vector<Axiom>& axioms() const { return axioms_; }
 
   const Formula& goal() const { return goal_; }
 
@@ -90,7 +91,7 @@ class Pddl {
   const ObjectTypeMap object_map_;
 
   const std::vector<Action> actions_;
-  const std::vector<Action> axioms_;
+  const std::vector<Axiom> axioms_;
 
   const State initial_state_;
   const Formula goal_;

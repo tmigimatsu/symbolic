@@ -96,7 +96,7 @@ bool TryInsertSubset(const DisjunctiveFormula::Conjunction& conj,
 
 namespace symbolic {
 
-std::optional<bool> Evaluate(const DisjunctiveFormula::Conjunction& conj) {
+std::optional<bool> Evaluate(const Pddl& pddl, const DisjunctiveFormula::Conjunction& conj) {
   // Evaluate =()
   if (conj.size() == 1) {
     return conj.neg.empty() ? EvaluateEquals(*conj.pos.begin())
@@ -107,6 +107,11 @@ std::optional<bool> Evaluate(const DisjunctiveFormula::Conjunction& conj) {
   for (const Proposition& prop : conj.pos) {
     if (conj.neg.contains(prop)) return false;
   }
+
+  // Ensure axioms are satisfied
+  for (const Axiom& axiom : pddl.axioms()) {
+    if (!axiom.IsConsistent(conj.pos)) return false;
+  }
   return {};
 }
 
@@ -114,9 +119,8 @@ std::optional<DisjunctiveFormula> Simplify(const Pddl& pddl, DisjunctiveFormula&
   DisjunctiveFormula ret;
   ret.conjunctions.reserve(dnf.conjunctions.size());
   for (DisjunctiveFormula::Conjunction& conj : dnf.conjunctions) {
-    // Sort conjunction
 
-    const std::optional<bool> is_true = Evaluate(conj);
+    const std::optional<bool> is_true = Evaluate(pddl, conj);
     if (!is_true.has_value()) {
       if (!TryInsertSubset(conj, &ret.conjunctions)) {
         // Current conjunction is not a subset or superset: append it
@@ -139,17 +143,17 @@ std::optional<DisjunctiveFormula> Simplify(const Pddl& pddl, DisjunctiveFormula&
   return ret;
 }
 
-std::optional<DisjunctiveFormula> Disjoin(std::vector<DisjunctiveFormula>&& dnfs) {
+std::optional<DisjunctiveFormula> Disjoin(const Pddl& pddl, std::vector<DisjunctiveFormula>&& dnfs) {
   DisjunctiveFormula disj;
   for (DisjunctiveFormula& dnf : dnfs) {
     disj.conjunctions.insert(disj.conjunctions.end(),
                              std::make_move_iterator(dnf.conjunctions.begin()),
                              std::make_move_iterator(dnf.conjunctions.end()));
   }
-  return Simplify(std::move(disj));
+  return Simplify(pddl, std::move(disj));
 }
 
-std::optional<DisjunctiveFormula> Conjoin(const std::vector<DisjunctiveFormula>& dnfs) {
+std::optional<DisjunctiveFormula> Conjoin(const Pddl& pddl, const std::vector<DisjunctiveFormula>& dnfs) {
   // ((a | b) & (c | d) & (e | f))
   // ((a & c & e) | ...)
   DisjunctiveFormula conj;
@@ -173,7 +177,7 @@ std::optional<DisjunctiveFormula> Conjoin(const std::vector<DisjunctiveFormula>&
     conj.conjunctions.push_back(std::move(term));
   }
 
-  return Simplify(std::move(conj));
+  return Simplify(pddl, std::move(conj));
 }
 
 ConjunctiveFormula Flip(DisjunctiveFormula&& dnf) {
@@ -201,10 +205,10 @@ std::vector<DisjunctiveFormula> Convert(ConjunctiveFormula&& cnf) {
   return dnfs;
 }
 
-DisjunctiveFormula::DisjunctiveFormula(ConjunctiveFormula&& cnf)
-    : conjunctions(Conjoin(Convert(std::move(cnf))).value().conjunctions) {}
+DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, ConjunctiveFormula&& cnf)
+    : conjunctions(Conjoin(pddl, Convert(std::move(cnf))).value().conjunctions) {}
 
-DisjunctiveFormula Negate(DisjunctiveFormula&& dnf) {
+DisjunctiveFormula Negate(const Pddl& pddl, DisjunctiveFormula&& dnf) {
   // !((a & b) | (c & d) | (e & f))
 
   // ((!a & !b) | (!c & !d) | (!e & !f))
@@ -216,7 +220,7 @@ DisjunctiveFormula Negate(DisjunctiveFormula&& dnf) {
   ConjunctiveFormula cnf = Flip(std::move(dnf));
 
   // ((!a & !c & !e) | ...)
-  return DisjunctiveFormula(std::move(cnf));
+  return DisjunctiveFormula(pddl, std::move(cnf));
 }
 
 DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::goal* symbol,
@@ -245,7 +249,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::goal* symbol
       conj_terms.emplace_back(pddl, goal, parameters, arguments);
     }
     try{
-      conjunctions = Conjoin(conj_terms)->conjunctions;
+      conjunctions = Conjoin(pddl, conj_terms)->conjunctions;
     } catch (...) {
       throw "DisjunctiveFormula(): Invalid conjunction.";
     }
@@ -262,7 +266,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::goal* symbol
       disj_terms.emplace_back(pddl, goal, parameters, arguments);
     }
     try{
-    conjunctions = Disjoin(std::move(disj_terms))->conjunctions;
+    conjunctions = Disjoin(pddl, std::move(disj_terms))->conjunctions;
     } catch (...) {
       throw "DisjunctiveFormula(): Invalid disjunction.";
     }
@@ -273,7 +277,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::goal* symbol
   const VAL::neg_goal* neg_goal = dynamic_cast<const VAL::neg_goal*>(symbol);
   if (neg_goal != nullptr) {
     const VAL::goal* goal = neg_goal->getGoal();
-    conjunctions = Negate(DisjunctiveFormula(pddl, goal, parameters, arguments)).conjunctions;
+    conjunctions = Negate(pddl, DisjunctiveFormula(pddl, goal, parameters, arguments)).conjunctions;
     return;
   }
 
@@ -301,14 +305,14 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::goal* symbol
     switch (qfied_goal->getQuantifier()) {
       case VAL::quantifier::E_FORALL:
         try{
-          conjunctions = Conjoin(qfied_terms)->conjunctions;
+          conjunctions = Conjoin(pddl, qfied_terms)->conjunctions;
         } catch (...) {
           throw "DisjunctiveFormula(): Invalid forall.";
         }
         return;
       case VAL::quantifier::E_EXISTS:
         try{
-          conjunctions = Disjoin(std::move(qfied_terms))->conjunctions;
+          conjunctions = Disjoin(pddl, std::move(qfied_terms))->conjunctions;
         } catch (...) {
           throw "DisjunctiveFormula(): Invalid exists.";
         }
@@ -383,7 +387,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::effect_lists
     }
 
     try{
-      dnfs.push_back(*Disjoin({ Negate(std::move(condition)), std::move(result) }));
+      dnfs.push_back(*Disjoin(pddl, { Negate(pddl, std::move(condition)), std::move(result) }));
     } catch (...) {
       std::cerr << condition << std::endl;
       std::cerr << result << std::endl;
@@ -392,9 +396,20 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::effect_lists
   }
 
   try{
-    conjunctions = Conjoin(dnfs)->conjunctions;
+    conjunctions = Conjoin(pddl, dnfs)->conjunctions;
   } catch (...) {
     throw "DisjunctiveFormula(): Invalid effects.";
+  }
+}
+
+std::optional<DisjunctiveFormula>
+DisjunctiveFormula::Create(const Pddl& pddl, const Formula& formula,
+                           const std::vector<Object>& parameters,
+                           const std::vector<Object>& arguments) {
+  try {
+    return Simplify(pddl, DisjunctiveFormula(pddl, formula, parameters, arguments));
+  } catch (...) {
+    return {};
   }
 }
 

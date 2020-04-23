@@ -132,15 +132,16 @@ TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
   const auto cond = symbolic::NormalizeConditions(pddl2, "goto(door_key)");
   const auto t_end = std::chrono::high_resolution_clock::now();
 
-  for (const symbolic::Action& axiom : pddl2.axioms()) {
+  for (const symbolic::Axiom& axiom : pddl2.axioms()) {
     std::cout << "Axiom: " << axiom << std::endl;
     symbolic::DisjunctiveFormula context(pddl, axiom.preconditions(), axiom.parameters(), { hook, hook });
     symbolic::DisjunctiveFormula implies(pddl, axiom.postconditions(), axiom.parameters(), { hook, hook });
     std::cout << "  Context: " << context << std::endl;
     std::cout << "  Implies: " << implies << std::endl;
+    std::cout << "  Evaluation: " << axiom.IsConsistent(pddl2.initial_state()) << std::endl;
   }
 
-  std::cout << cond.first << std::endl << cond.second << std::endl;
-  std::cout << cond.first.conjunctions.size() << " " << cond.second.conjunctions.size() << std::endl;
-  std::cout << std::chrono::duration<double>(t_end - t_start).count() << std::endl;
+  // std::cout << cond.first << std::endl << cond.second << std::endl;
+  // std::cout << cond.first.conjunctions.size() << " " << cond.second.conjunctions.size() << std::endl;
+  // std::cout << std::chrono::duration<double>(t_end - t_start).count() << std::endl;
 }

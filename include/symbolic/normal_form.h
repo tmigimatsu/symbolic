@@ -56,9 +56,13 @@ struct DisjunctiveFormula {
                      const std::vector<Object>& parameters,
                      const std::vector<Object>& arguments);
 
-  DisjunctiveFormula(ConjunctiveFormula&& cnf);
+  DisjunctiveFormula(const Pddl& pddl, ConjunctiveFormula&& cnf);
 
   bool empty() const { return conjunctions.empty(); }
+
+  static std::optional<DisjunctiveFormula>
+  Create(const Pddl& pddl, const Formula& formula,
+         const std::vector<Object>& parameters, const std::vector<Object>& arguments);
 
   std::vector<Conjunction> conjunctions;
 
@@ -93,7 +97,7 @@ NormalizeConditions(const Pddl& pddl, const std::string& action_call) {
 
 // DisjunctiveFormula Conjoin(const std::vector<DisjunctiveFormula>& dnfs);
 
-DisjunctiveFormula Negate(DisjunctiveFormula&& dnf);
+DisjunctiveFormula Negate(const Pddl& pddl, DisjunctiveFormula&& dnf);
 
 // ConjunctiveFormula Flip(DisjunctiveFormula&& cnf);
 
