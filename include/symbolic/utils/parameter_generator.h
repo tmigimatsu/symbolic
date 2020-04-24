@@ -10,7 +10,8 @@
 #ifndef SYMBOLIC_UTILS_PARAMETER_GENERATOR_H_
 #define SYMBOLIC_UTILS_PARAMETER_GENERATOR_H_
 
-#include <vector>  // std::vector
+#include <unordered_map>  // std::unordered_map
+#include <vector>         // std::vector
 
 #include "symbolic/object.h"
 #include "symbolic/utils/combination_generator.h"
@@ -20,14 +21,13 @@ namespace symbolic {
 // CombinatorGenerator class contains no mutable member variables. All state is
 // held inside the iterator, meaning multiple parallel instances can use the
 // same generator.
-class ParameterGenerator : public CombinationGenerator<const std::vector<Object>> {
-
+class ParameterGenerator
+    : public CombinationGenerator<const std::vector<Object>> {
  public:
+  using ObjectTypeMap = std::unordered_map<std::string, std::vector<Object>>;
 
-  using ObjectTypeMap = std::map<std::string, std::vector<Object>>;
-
-  ParameterGenerator(const ObjectTypeMap& object_map, const std::vector<Object>& params);
-
+  ParameterGenerator(const ObjectTypeMap& object_map,
+                     const std::vector<Object>& params);
 };
 
 }  // namespace symbolic

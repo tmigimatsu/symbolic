@@ -10,11 +10,12 @@
 #ifndef SYMBOLIC_PDDL_H_
 #define SYMBOLIC_PDDL_H_
 
-#include <iostream>  // std::cout, std::ostream
-#include <memory>    // std::unique_ptr
-#include <set>       // std::set
-#include <string>    // std::string
-#include <vector>    // std::vector
+#include <iostream>       // std::cout, std::ostream
+#include <memory>         // std::unique_ptr
+#include <set>            // std::set
+#include <string>         // std::string
+#include <unordered_map>  // std::unordered_map
+#include <vector>         // std::vector
 
 #include "symbolic/action.h"
 #include "symbolic/axiom.h"
@@ -25,10 +26,8 @@
 namespace symbolic {
 
 class Pddl {
-
  public:
-
-  using ObjectTypeMap = std::map<std::string, std::vector<Object>>;
+  using ObjectTypeMap = std::unordered_map<std::string, std::vector<Object>>;
 
   Pddl(const std::string& domain_pddl, const std::string& problem_pddl);
 
@@ -53,13 +52,14 @@ class Pddl {
 
   bool IsValidPlan(const std::vector<std::string>& action_skeleton) const;
 
-  std::vector<std::vector<Object>> ListValidArguments(const State& state,
-                                                      const Action& action) const;
-  std::vector<std::vector<std::string>> ListValidArguments(const std::set<std::string>& state,
-                                                           const std::string& action_name) const;
+  std::vector<std::vector<Object>> ListValidArguments(
+      const State& state, const Action& action) const;
+  std::vector<std::vector<std::string>> ListValidArguments(
+      const std::set<std::string>& state, const std::string& action_name) const;
 
   std::vector<std::string> ListValidActions(const State& state) const;
-  std::vector<std::string> ListValidActions(const std::set<std::string>& state) const;
+  std::vector<std::string> ListValidActions(
+      const std::set<std::string>& state) const;
 
   const VAL::analysis& analysis() const { return *analysis_; }
 
@@ -82,7 +82,6 @@ class Pddl {
   const Formula& goal() const { return goal_; }
 
  private:
-
   const std::unique_ptr<VAL::analysis> analysis_;
   const VAL::domain& domain_;
   const VAL::problem& problem_;
@@ -95,12 +94,12 @@ class Pddl {
 
   const State initial_state_;
   const Formula goal_;
-
 };
 
 std::set<std::string> Stringify(const State& state);
 std::vector<std::string> Stringify(const std::vector<Action>& actions);
-std::vector<std::vector<std::string>> Stringify(const std::vector<std::vector<Object>>& arguments);
+std::vector<std::vector<std::string>> Stringify(
+    const std::vector<std::vector<Object>>& arguments);
 
 std::ostream& operator<<(std::ostream& os, const Pddl& pddl);
 
@@ -116,7 +115,8 @@ std::ostream& operator<<(std::ostream& os, const VAL::simple_effect& effect);
 
 std::ostream& operator<<(std::ostream& os, const VAL::var_symbol_list& args);
 
-std::ostream& operator<<(std::ostream& os, const VAL::parameter_symbol_list& args);
+std::ostream& operator<<(std::ostream& os,
+                         const VAL::parameter_symbol_list& args);
 
 }  // namespace VAL
 

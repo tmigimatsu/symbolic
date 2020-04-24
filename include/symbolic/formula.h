@@ -26,27 +26,27 @@ class Pddl;
 class Action;
 
 class Formula {
-
  public:
+  Formula(const Pddl& pddl, const VAL::goal* symbol)
+      : Formula(pddl, symbol, {}) {}
 
-  Formula(const Pddl& pddl, const VAL::goal* symbol) : Formula(pddl, symbol, {}) {}
-
-  Formula(const Pddl& pddl, const VAL::goal* symbol, const std::vector<Object>& parameters);
+  Formula(const Pddl& pddl, const VAL::goal* symbol,
+          const std::vector<Object>& parameters);
 
   const VAL::goal* symbol() const { return symbol_; }
 
-  bool operator()(const State& state, const std::vector<Object>& arguments) const {
+  bool operator()(const State& state,
+                  const std::vector<Object>& arguments) const {
     return P_(state, arguments);
   };
 
   bool operator()(const State& state) const { return P_(state, {}); };
 
  private:
-
   const VAL::goal* symbol_;
 
-  std::function<bool(const State& state, const std::vector<Object>& arguments)> P_;
-
+  std::function<bool(const State& state, const std::vector<Object>& arguments)>
+      P_;
 };
 
 /**

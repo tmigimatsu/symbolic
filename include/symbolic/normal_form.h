@@ -13,8 +13,8 @@
 #include <functional>  // std::function
 #include <ostream>     // std::ostream
 #include <set>         // std::set
-#include <vector>      // std::vector
 #include <utility>     // std::pair
+#include <vector>      // std::vector
 
 #include "symbolic/action.h"
 #include "symbolic/formula.h"
@@ -25,17 +25,14 @@ namespace symbolic {
 struct ConjunctiveFormula;
 
 struct FormulaLiterals {
-
   bool empty() const { return pos.empty() && neg.empty(); }
   size_t size() const { return pos.size() + neg.size(); }
 
   State pos;
   State neg;
-
 };
 
 struct DisjunctiveFormula {
-
   using Conjunction = FormulaLiterals;
 
   DisjunctiveFormula() {}
@@ -60,16 +57,15 @@ struct DisjunctiveFormula {
 
   bool empty() const { return conjunctions.empty(); }
 
-  static std::optional<DisjunctiveFormula>
-  Create(const Pddl& pddl, const Formula& formula,
-         const std::vector<Object>& parameters, const std::vector<Object>& arguments);
+  static std::optional<DisjunctiveFormula> Create(
+      const Pddl& pddl, const Formula& formula,
+      const std::vector<Object>& parameters,
+      const std::vector<Object>& arguments);
 
   std::vector<Conjunction> conjunctions;
-
 };
 
 struct ConjunctiveFormula {
-
   using Disjunction = FormulaLiterals;
 
   ConjunctiveFormula() {}
@@ -81,14 +77,15 @@ struct ConjunctiveFormula {
   // ConjunctiveFormula(const DisjunctiveFormula& dnf);
 
   std::vector<Disjunction> disjunctions;
-
 };
 
-inline std::pair<DisjunctiveFormula, DisjunctiveFormula>
-NormalizeConditions(const Pddl& pddl, const std::string& action_call) {
+inline std::pair<DisjunctiveFormula, DisjunctiveFormula> NormalizeConditions(
+    const Pddl& pddl, const std::string& action_call) {
   const auto aa = ParseAction(pddl, action_call);
-  return { DisjunctiveFormula(pddl, aa.first.preconditions().symbol(), aa.first.parameters(), aa.second),
-           DisjunctiveFormula(pddl, aa.first.postconditions(), aa.first.parameters(), aa.second) };
+  return {DisjunctiveFormula(pddl, aa.first.preconditions().symbol(),
+                             aa.first.parameters(), aa.second),
+          DisjunctiveFormula(pddl, aa.first.postconditions(),
+                             aa.first.parameters(), aa.second)};
 }
 
 // bool Simplify(DisjunctiveFormula* dnf);
@@ -108,7 +105,8 @@ inline bool operator<(const FormulaLiterals& lhs, const FormulaLiterals& rhs) {
   return std::tie(lhs.pos, lhs.neg) < std::tie(rhs.pos, rhs.neg);
 }
 
-inline bool operator==(const DisjunctiveFormula& lhs, const DisjunctiveFormula& rhs) {
+inline bool operator==(const DisjunctiveFormula& lhs,
+                       const DisjunctiveFormula& rhs) {
   return lhs.conjunctions == rhs.conjunctions;
 }
 

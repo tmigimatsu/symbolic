@@ -9,9 +9,8 @@
 
 #include "symbolic/action.h"
 
-#include <exception>  // std::runtime_error, std::invalid_argument
 #include <cassert>    // assert
-#include <map>        // std::map
+#include <exception>  // std::runtime_error, std::invalid_argument
 #include <sstream>    // std::stringstream
 
 #include "symbolic/pddl.h"
@@ -20,36 +19,42 @@
 namespace {
 
 using ::symbolic::Object;
-using ::symbolic::Proposition;
 using ::symbolic::Pddl;
+using ::symbolic::Proposition;
 using ::symbolic::State;
 
-using ActionFunction = std::function<State(const State&, const std::vector<Object>&)>;
+using ActionFunction =
+    std::function<State(const State&, const std::vector<Object>&)>;
 
 using EffectsFunction = std::function<bool(const std::vector<Object>&, State*)>;
 
-using ApplicationFunction = std::function<std::vector<Object>(const std::vector<Object>&)>;
+using ApplicationFunction =
+    std::function<std::vector<Object>(const std::vector<Object>&)>;
 
-EffectsFunction CreateEffectsFunction(const Pddl& pddl, const VAL::effect_lists* effects,
+EffectsFunction CreateEffectsFunction(const Pddl& pddl,
+                                      const VAL::effect_lists* effects,
                                       const std::vector<Object>& parameters);
 
 EffectsFunction CreateForall(const Pddl& pddl, const VAL::forall_effect* effect,
                              const std::vector<Object>& parameters) {
   // Create forall parameters
   std::vector<Object> forall_params = parameters;
-  const std::vector<Object> types = symbolic::ConvertObjects(pddl, effect->getVarsList());
+  const std::vector<Object> types =
+      symbolic::ConvertObjects(pddl, effect->getVarsList());
   forall_params.insert(forall_params.end(), types.begin(), types.end());
-  EffectsFunction ForallEffects = CreateEffectsFunction(pddl, effect->getEffects(), forall_params);
+  EffectsFunction ForallEffects =
+      CreateEffectsFunction(pddl, effect->getEffects(), forall_params);
 
   return [&pddl, gen = symbolic::ParameterGenerator(pddl.object_map(), types),
-          ForallEffects = std::move(ForallEffects)](const std::vector<Object>& arguments,
-                                                    State* state) {
+          ForallEffects = std::move(ForallEffects)](
+             const std::vector<Object>& arguments, State* state) {
     // Loop over forall arguments
     bool is_state_changed = false;
     for (const std::vector<Object>& forall_objs : gen) {
       // Create forall arguments
       std::vector<Object> forall_args = arguments;
-      forall_args.insert(forall_args.end(), forall_objs.begin(), forall_objs.end());
+      forall_args.insert(forall_args.end(), forall_objs.begin(),
+                         forall_objs.end());
 
       is_state_changed |= ForallEffects(forall_args, state);
     }
@@ -60,11 +65,14 @@ EffectsFunction CreateForall(const Pddl& pddl, const VAL::forall_effect* effect,
 EffectsFunction CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
                           const std::vector<Object>& parameters) {
   // Prepare effect argument application functions
-  const std::vector<Object> effect_params = symbolic::ConvertObjects(pddl, effect->prop->args);
-  ApplicationFunction Apply = symbolic::CreateApplicationFunction(parameters, effect_params);
+  const std::vector<Object> effect_params =
+      symbolic::ConvertObjects(pddl, effect->prop->args);
+  ApplicationFunction Apply =
+      symbolic::CreateApplicationFunction(parameters, effect_params);
 
   return [name_predicate = effect->prop->head->getName(),
-          Apply = std::move(Apply)](const std::vector<Object>& arguments, State* state) {
+          Apply = std::move(Apply)](const std::vector<Object>& arguments,
+                                    State* state) {
     return state->emplace(name_predicate, Apply(arguments));
   };
 }
@@ -72,11 +80,14 @@ EffectsFunction CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
 EffectsFunction CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
                           const std::vector<Object>& parameters) {
   // Prepare effect argument application functions
-  const std::vector<Object> effect_params = symbolic::ConvertObjects(pddl, effect->prop->args);
-  ApplicationFunction Apply = symbolic::CreateApplicationFunction(parameters, effect_params);
+  const std::vector<Object> effect_params =
+      symbolic::ConvertObjects(pddl, effect->prop->args);
+  ApplicationFunction Apply =
+      symbolic::CreateApplicationFunction(parameters, effect_params);
 
   return [name_predicate = effect->prop->head->getName(),
-          Apply = std::move(Apply)](const std::vector<Object>& arguments, State* state) {
+          Apply = std::move(Apply)](const std::vector<Object>& arguments,
+                                    State* state) {
     return state->erase(Proposition(name_predicate, Apply(arguments)));
   };
 }
@@ -84,20 +95,22 @@ EffectsFunction CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
 EffectsFunction CreateCond(const Pddl& pddl, const VAL::cond_effect* effect,
                            const std::vector<Object>& parameters) {
   const symbolic::Formula Condition(pddl, effect->getCondition(), parameters);
-  EffectsFunction CondEffects = CreateEffectsFunction(pddl, effect->getEffects(), parameters);
-  return [Condition = std::move(Condition),
-          CondEffects = std::move(CondEffects)](const std::vector<Object>& arguments,
-                                                State* state) {
-    // TODO: Condition might return different results depending on ordering of
-    // other effects since state is modified in place.
-    if (Condition(*state, arguments)) {
-      return CondEffects(arguments, state);
-    }
-    return false;
-  };
+  EffectsFunction CondEffects =
+      CreateEffectsFunction(pddl, effect->getEffects(), parameters);
+  return
+      [Condition = std::move(Condition), CondEffects = std::move(CondEffects)](
+          const std::vector<Object>& arguments, State* state) {
+        // TODO: Condition might return different results depending on ordering
+        // of other effects since state is modified in place.
+        if (Condition(*state, arguments)) {
+          return CondEffects(arguments, state);
+        }
+        return false;
+      };
 }
 
-EffectsFunction CreateEffectsFunction(const Pddl& pddl, const VAL::effect_lists* effects,
+EffectsFunction CreateEffectsFunction(const Pddl& pddl,
+                                      const VAL::effect_lists* effects,
                                       const std::vector<Object>& parameters) {
   std::vector<EffectsFunction> effect_functions;
   // Forall effects
@@ -120,8 +133,8 @@ EffectsFunction CreateEffectsFunction(const Pddl& pddl, const VAL::effect_lists*
     effect_functions.emplace_back(CreateCond(pddl, effect, parameters));
   }
 
-  return [effect_functions = std::move(effect_functions)](const std::vector<Object>& arguments,
-                                                          State* state) {
+  return [effect_functions = std::move(effect_functions)](
+             const std::vector<Object>& arguments, State* state) {
     bool is_state_changed = false;
     for (const EffectsFunction& Effect : effect_functions) {
       is_state_changed |= Effect(arguments, state);
@@ -130,13 +143,15 @@ EffectsFunction CreateEffectsFunction(const Pddl& pddl, const VAL::effect_lists*
   };
 }
 
-const VAL::operator_* GetSymbol(const Pddl& pddl, const std::string& name_action) {
+const VAL::operator_* GetSymbol(const Pddl& pddl,
+                                const std::string& name_action) {
   assert(pddl.domain().ops != nullptr);
   for (const VAL::operator_* op : *pddl.domain().ops) {
     assert(op != nullptr && op->name != nullptr);
     if (op->name->getName() == name_action) return op;
   }
-  throw std::runtime_error("Action::Action(): Could not find action symbol " + name_action + ".");
+  throw std::runtime_error("Action::Action(): Could not find action symbol " +
+                           name_action + ".");
   return nullptr;
 }
 
@@ -160,7 +175,8 @@ Action::Action(const Pddl& pddl, const std::string& action_call)
       Preconditions_(pddl, symbol_->precondition, parameters_),
       Apply_(CreateEffectsFunction(pddl, symbol_->effects, parameters_)) {}
 
-State Action::Apply(const State& state, const std::vector<Object>& arguments) const {
+State Action::Apply(const State& state,
+                    const std::vector<Object>& arguments) const {
   State next_state(state);
   Apply_(arguments, &next_state);
   return next_state;
@@ -184,17 +200,18 @@ std::string Action::to_string(const std::vector<Object>& arguments) const {
   return ss.str();
 }
 
-std::pair<Action, std::vector<Object>> ParseAction(const Pddl& pddl, const std::string& action_call) {
-  const auto aa = std::make_pair<Action, std::vector<Object>>(Action(pddl, action_call),
-                                                              ParseArguments(pddl, action_call));
+std::pair<Action, std::vector<Object>> ParseAction(
+    const Pddl& pddl, const std::string& action_call) {
+  const auto aa = std::make_pair<Action, std::vector<Object>>(
+      Action(pddl, action_call), ParseArguments(pddl, action_call));
   const Action& action = aa.first;
   const std::vector<Object>& args = aa.second;
 
   // Check number of arguments
   if (action.parameters().size() != args.size()) {
     std::stringstream ss;
-    ss << "symbolic::ParseAction(): action " << action
-       << " requires " << action.parameters().size() << " arguments but received "
+    ss << "symbolic::ParseAction(): action " << action << " requires "
+       << action.parameters().size() << " arguments but received "
        << args.size() << ": " << action_call << ".";
     throw std::invalid_argument(ss.str());
   }
@@ -206,9 +223,9 @@ std::pair<Action, std::vector<Object>> ParseAction(const Pddl& pddl, const std::
     if (!arg.type().IsSubtype(param.type())) {
       std::stringstream ss;
       ss << "symbolic::ParseAction(): action " << action
-         << " requires parameter " << param << " to be of type "
-         << param.type() << " but received " << arg << " with type " << arg
-         << ": " << action_call << ".";
+         << " requires parameter " << param << " to be of type " << param.type()
+         << " but received " << arg << " with type " << arg << ": "
+         << action_call << ".";
       throw std::invalid_argument(ss.str());
     }
   }

@@ -10,29 +10,24 @@
 #ifndef SYMBOLIC_OBJECTS_H_
 #define SYMBOLIC_OBJECTS_H_
 
-#include <map>      // std::map
-#include <memory>   // std::shared_ptr
-#include <vector>   // std::vector
-#include <tuple>    // std::tie
-#include <ostream>  // std::ostream
-
 #include <VAL/ptree.h>
+
+#include <ostream>  // std::ostream
+#include <tuple>    // std::tie
+#include <vector>   // std::vector
 
 namespace symbolic {
 
 class Pddl;
 
 class Object {
-
  public:
-
   class Type {
-
    public:
-
     Type() {}
 
-    Type(const VAL::pddl_type* symbol) : symbol_(symbol), name_(symbol->getName()) {}
+    Type(const VAL::pddl_type* symbol)
+        : symbol_(symbol), name_(symbol->getName()) {}
 
     const VAL::pddl_type* symbol() const { return symbol_; }
 
@@ -43,19 +38,32 @@ class Object {
 
     const std::string& name() const { return name_; }
 
-   private:
+    friend bool operator<(const Object::Type& lhs, const Object::Type& rhs) {
+      return lhs.name() < rhs.name();
+    }
 
+    friend bool operator==(const Object::Type& lhs, const Object::Type& rhs) {
+      return lhs.name() == rhs.name();
+    }
+
+    friend std::ostream& operator<<(std::ostream& os,
+                                    const Object::Type& type) {
+      os << type.name();
+      return os;
+    }
+
+   private:
     const VAL::pddl_type* symbol_ = nullptr;
 
     std::string name_;
-
   };
 
   Object() {}
 
   Object(const Pddl& pddl, const VAL::pddl_typed_symbol* symbol);
 
-  Object(const VAL::pddl_type_list* types, const VAL::pddl_typed_symbol* symbol);
+  Object(const VAL::pddl_type_list* types,
+         const VAL::pddl_typed_symbol* symbol);
 
   Object(const Pddl& pddl, const std::string& name_object);
 
@@ -65,20 +73,35 @@ class Object {
 
   const Type& type() const { return type_; }
 
- private:
+  friend bool operator<(const Object& lhs, const Object& rhs) {
+    return std::tie(lhs.name(), lhs.type()) < std::tie(rhs.name(), rhs.type());
+  }
 
+  friend bool operator==(const Object& lhs, const Object& rhs) {
+    return std::tie(lhs.name(), lhs.type()) == std::tie(rhs.name(), rhs.type());
+  }
+  friend bool operator!=(const Object& lhs, const Object& rhs) {
+    return !(lhs.type() == rhs.type());
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const Object& object) {
+    os << object.name();
+    return os;
+  }
+
+ private:
   const VAL::pddl_typed_symbol* symbol_;
 
   std::string name_;
   Type type_;
-
 };
 
 // Atom is a proposition or action
 std::vector<Object> ParseArguments(const Pddl& pddl, const std::string& atom);
 
-template<typename T>
-std::vector<Object> ConvertObjects(const Pddl& pddl, const VAL::typed_symbol_list<T>* symbols) {
+template <typename T>
+std::vector<Object> ConvertObjects(const Pddl& pddl,
+                                   const VAL::typed_symbol_list<T>* symbols) {
   std::vector<Object> objects;
   objects.reserve(symbols->size());
   for (const T* symbol : *symbols) {
@@ -87,7 +110,7 @@ std::vector<Object> ConvertObjects(const Pddl& pddl, const VAL::typed_symbol_lis
   return objects;
 }
 
-template<typename T>
+template <typename T>
 std::vector<Object> ConvertObjects(const VAL::pddl_type_list* types,
                                    const VAL::typed_symbol_list<T>* symbols) {
   std::vector<Object> objects;
@@ -96,35 +119,6 @@ std::vector<Object> ConvertObjects(const VAL::pddl_type_list* types,
     objects.emplace_back(types, symbol);
   }
   return objects;
-}
-
-inline std::ostream& operator<<(std::ostream& os, const Object& object) {
-  os << object.name();
-  return os;
-}
-
-inline std::ostream& operator<<(std::ostream& os, const Object::Type& type) {
-  os << type.name();
-  return os;
-}
-
-inline bool operator<(const Object::Type& lhs, const Object::Type& rhs) {
-  return lhs.name() < rhs.name();
-}
-
-inline bool operator==(const Object::Type& lhs, const Object::Type& rhs) {
-  return lhs.name() == rhs.name();
-}
-
-inline bool operator<(const Object& lhs, const Object& rhs) {
-  return std::tie(lhs.name(), lhs.type()) < std::tie(rhs.name(), rhs.type());
-}
-
-inline bool operator==(const Object& lhs, const Object& rhs) {
-  return std::tie(lhs.name(), lhs.type()) == std::tie(rhs.name(), rhs.type());
-}
-inline bool operator!=(const Object& lhs, const Object& rhs) {
-  return !(lhs.type() == rhs.type());
 }
 
 }  // namespace symbolic

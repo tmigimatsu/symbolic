@@ -9,27 +9,30 @@
 
 #include "symbolic/formula.h"
 
-#include <map>        // std::map
-#include <utility>    // std::move
+#include <exception>      // std::runtime_error
+#include <unordered_map>  // std::unordered_map
+#include <utility>        // std::move
 
 #include "symbolic/pddl.h"
 
 namespace {
 
 using ::symbolic::Object;
-using ::symbolic::Proposition;
 using ::symbolic::Pddl;
+using ::symbolic::Proposition;
 using ::symbolic::State;
 
-using FormulaFunction =
-std::function<bool(const State& state, const std::vector<Object>& arguments)>;
+using FormulaFunction = std::function<bool(
+    const State& state, const std::vector<Object>& arguments)>;
 
-using ApplicationFunction = std::function<std::vector<Object>(const std::vector<Object>&)>;
+using ApplicationFunction =
+    std::function<std::vector<Object>(const std::vector<Object>&)>;
 
 FormulaFunction CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
                               const std::vector<Object>& parameters);
 
-FormulaFunction CreateProposition(const Pddl& pddl, const VAL::simple_goal* symbol,
+FormulaFunction CreateProposition(const Pddl& pddl,
+                                  const VAL::simple_goal* symbol,
                                   const std::vector<Object>& parameters) {
   const VAL::proposition* prop = symbol->getProp();
   const std::string name_predicate = prop->head->getName();
@@ -39,16 +42,19 @@ FormulaFunction CreateProposition(const Pddl& pddl, const VAL::simple_goal* symb
     };
   }
 
-  const std::vector<Object> prop_params = symbolic::ConvertObjects(pddl, prop->args);
-  ApplicationFunction Apply = CreateApplicationFunction(parameters, prop_params);
-  return [name_predicate, Apply = std::move(Apply)](const State& state,
-                                                    const std::vector<Object>& arguments) {
+  const std::vector<Object> prop_params =
+      symbolic::ConvertObjects(pddl, prop->args);
+  ApplicationFunction Apply =
+      CreateApplicationFunction(parameters, prop_params);
+  return [name_predicate, Apply = std::move(Apply)](
+             const State& state, const std::vector<Object>& arguments) {
     Proposition P(name_predicate, Apply(arguments));
     return state.contains(P);
   };
 }
 
-FormulaFunction CreateConjunction(const Pddl& pddl, const VAL::conj_goal* symbol,
+FormulaFunction CreateConjunction(const Pddl& pddl,
+                                  const VAL::conj_goal* symbol,
                                   const std::vector<Object>& parameters) {
   std::vector<FormulaFunction> subformulas;
   const VAL::goal_list* goals = symbol->getGoals();
@@ -57,8 +63,8 @@ FormulaFunction CreateConjunction(const Pddl& pddl, const VAL::conj_goal* symbol
     subformulas.push_back(CreateFormula(pddl, goal, parameters));
   }
 
-  return [subformulas = std::move(subformulas)](const State& state,
-                                                const std::vector<Object>& arguments) -> bool {
+  return [subformulas = std::move(subformulas)](
+             const State& state, const std::vector<Object>& arguments) -> bool {
     for (const FormulaFunction& P : subformulas) {
       if (!P(state, arguments)) return false;
     }
@@ -66,7 +72,8 @@ FormulaFunction CreateConjunction(const Pddl& pddl, const VAL::conj_goal* symbol
   };
 }
 
-FormulaFunction CreateDisjunction(const Pddl& pddl, const VAL::disj_goal* symbol,
+FormulaFunction CreateDisjunction(const Pddl& pddl,
+                                  const VAL::disj_goal* symbol,
                                   const std::vector<Object>& parameters) {
   std::vector<FormulaFunction> subformulas;
   const VAL::goal_list* goals = symbol->getGoals();
@@ -75,8 +82,8 @@ FormulaFunction CreateDisjunction(const Pddl& pddl, const VAL::disj_goal* symbol
     subformulas.push_back(CreateFormula(pddl, goal, parameters));
   }
 
-  return [subformulas = std::move(subformulas)](const State& state,
-                                                const std::vector<Object>& arguments) -> bool {
+  return [subformulas = std::move(subformulas)](
+             const State& state, const std::vector<Object>& arguments) -> bool {
     for (const FormulaFunction& P : subformulas) {
       if (P(state, arguments)) return true;
     }
@@ -105,14 +112,15 @@ FormulaFunction CreateForall(const Pddl& pddl, const VAL::qfied_goal* symbol,
   const VAL::goal* goal = symbol->getGoal();
   FormulaFunction P = CreateFormula(pddl, goal, forall_params);
 
-  return [&pddl, types = std::move(types), P = std::move(P)](const State& state,
-                                                             const std::vector<Object>& arguments) -> bool {
+  return [&pddl, types = std::move(types), P = std::move(P)](
+             const State& state, const std::vector<Object>& arguments) -> bool {
     // Loop over forall arguments
     symbolic::ParameterGenerator gen(pddl.object_map(), types);
     for (const std::vector<Object>& forall_objs : gen) {
       // Create forall arguments
       std::vector<Object> forall_args = arguments;
-      forall_args.insert(forall_args.end(), forall_objs.begin(), forall_objs.end());
+      forall_args.insert(forall_args.end(), forall_objs.begin(),
+                         forall_objs.end());
 
       if (!P(state, forall_args)) return false;
     }
@@ -130,14 +138,15 @@ FormulaFunction CreateExists(const Pddl& pddl, const VAL::qfied_goal* symbol,
   const VAL::goal* goal = symbol->getGoal();
   FormulaFunction P = CreateFormula(pddl, goal, exists_params);
 
-  return [&pddl, types = std::move(types), P = std::move(P)](const State& state,
-                                                             const std::vector<Object>& arguments) -> bool {
+  return [&pddl, types = std::move(types), P = std::move(P)](
+             const State& state, const std::vector<Object>& arguments) -> bool {
     // Loop over exists arguments
     symbolic::ParameterGenerator gen(pddl.object_map(), types);
     for (const std::vector<Object>& exists_objs : gen) {
       // Create exists arguments
       std::vector<Object> exists_args = arguments;
-      exists_args.insert(exists_args.end(), exists_objs.begin(), exists_objs.end());
+      exists_args.insert(exists_args.end(), exists_objs.begin(),
+                         exists_objs.end());
 
       if (P(state, exists_args)) return true;
     }
@@ -148,7 +157,8 @@ FormulaFunction CreateExists(const Pddl& pddl, const VAL::qfied_goal* symbol,
 FormulaFunction CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
                               const std::vector<Object>& parameters) {
   // Proposition
-  const VAL::simple_goal* simple_goal = dynamic_cast<const VAL::simple_goal*>(symbol);
+  const VAL::simple_goal* simple_goal =
+      dynamic_cast<const VAL::simple_goal*>(symbol);
   if (simple_goal != nullptr) {
     return CreateProposition(pddl, simple_goal, parameters);
   }
@@ -172,7 +182,8 @@ FormulaFunction CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
   }
 
   // Forall
-  const VAL::qfied_goal* qfied_goal = dynamic_cast<const VAL::qfied_goal*>(symbol);
+  const VAL::qfied_goal* qfied_goal =
+      dynamic_cast<const VAL::qfied_goal*>(symbol);
   if (qfied_goal != nullptr) {
     switch (qfied_goal->getQuantifier()) {
       case VAL::quantifier::E_FORALL:
@@ -189,14 +200,15 @@ FormulaFunction CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
 
 namespace symbolic {
 
-Formula::Formula(const Pddl& pddl, const VAL::goal* symbol, const std::vector<Object>& parameters)
-    : symbol_(symbol),
-      P_(CreateFormula(pddl, symbol, parameters)) {}
+Formula::Formula(const Pddl& pddl, const VAL::goal* symbol,
+                 const std::vector<Object>& parameters)
+    : symbol_(symbol), P_(CreateFormula(pddl, symbol, parameters)) {}
 
-ApplicationFunction CreateApplicationFunction(const std::vector<Object>& action_params,
-                                              const std::vector<Object>& prop_params) {
+ApplicationFunction CreateApplicationFunction(
+    const std::vector<Object>& action_params,
+    const std::vector<Object>& prop_params) {
   // Map action parameter index to vector of proposition parameter indices
-  std::map<size_t, std::vector<size_t>> idx_params;
+  std::unordered_map<size_t, std::vector<size_t>> idx_params;
   for (size_t i = 0; i < prop_params.size(); i++) {
     for (size_t j = 0; j < action_params.size(); j++) {
       if (prop_params[i] == action_params[j]) {
@@ -205,9 +217,8 @@ ApplicationFunction CreateApplicationFunction(const std::vector<Object>& action_
       }
     }
   }
-  return [prop_params,
-          idx_params = std::move(idx_params)](const std::vector<Object>& action_args) {
-
+  return [prop_params, idx_params = std::move(idx_params)](
+             const std::vector<Object>& action_args) {
     // Replace proposition parameters with corresponding action arguments
     std::vector<Object> prop_args = prop_params;
     for (const auto& key_val : idx_params) {

@@ -10,15 +10,11 @@
 #include "symbolic/proposition.h"
 
 #include <sstream>  // std::stringstream
-#include <utility>  // std::rel_ops
 
 namespace symbolic {
 
-using namespace std::rel_ops;
-
 Proposition::Proposition(const Pddl& pddl, const std::string& str_prop)
-  : name_(ParseHead(str_prop)),
-    arguments_(ParseArguments(pddl, str_prop)) {}
+    : name_(ParseHead(str_prop)), arguments_(ParseArguments(pddl, str_prop)) {}
 
 std::string Proposition::to_string() const {
   std::stringstream ss;
@@ -43,7 +39,8 @@ std::ostream& operator<<(std::ostream& os, const symbolic::Proposition& P) {
 //     return lhs.arguments().size() < rhs.arguments().size();
 //   }
 //   for (size_t i = 0; i < lhs.arguments().size(); i++) {
-//     if (lhs.arguments()[i] != rhs.arguments()[i]) return lhs.arguments()[i] < rhs.arguments()[i];
+//     if (lhs.arguments()[i] != rhs.arguments()[i]) return lhs.arguments()[i] <
+//     rhs.arguments()[i];
 //   }
 //   return false;
 // }

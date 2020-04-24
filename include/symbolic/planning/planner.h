@@ -10,23 +10,19 @@
 #ifndef SYMBOLIC_PLANNING_PLANNER_H_
 #define SYMBOLIC_PLANNING_PLANNER_H_
 
-#include <memory>    // std::shared_ptr
 #include <iostream>  // std::ostream
+#include <memory>    // std::shared_ptr
 
 #include "symbolic/pddl.h"
 
 namespace symbolic {
 
 class Planner {
-
  public:
-
   class Node {
-
     struct NodeImpl;
 
    public:
-
     class iterator;
     class reverse_iterator;
 
@@ -50,13 +46,14 @@ class Planner {
     bool operator<(const Node& rhs) const;
     bool operator==(const Node& rhs) const;
 
-   private:
+    friend std::ostream& operator<<(std::ostream& os,
+                                    const symbolic::Planner::Node& node);
 
+   private:
     NodeImpl* operator->() { return impl_.get(); }
     const NodeImpl* operator->() const { return impl_.get(); }
 
     std::shared_ptr<NodeImpl> impl_;
-
   };
 
   Planner(const Pddl& pddl);
@@ -64,17 +61,11 @@ class Planner {
   const Node& root() const { return root_; }
 
  private:
-
   const Node root_;
-
 };
 
-std::ostream& operator<<(std::ostream& os, const symbolic::Planner::Node& node);
-
 class Planner::Node::iterator {
-
  public:
-
   using iterator_category = std::input_iterator_tag;
   using value_type = Node;
   using difference_type = ptrdiff_t;
@@ -90,7 +81,6 @@ class Planner::Node::iterator {
   reference operator*() const { return child_; }
 
  private:
-
   const Pddl& pddl_;
 
   const Node& parent_;
@@ -100,7 +90,6 @@ class Planner::Node::iterator {
   ParameterGenerator::const_iterator it_param_;
 
   friend class Node;
-
 };
 
 }  // namespace symbolic

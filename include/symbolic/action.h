@@ -11,12 +11,10 @@
 #define SYMBOLIC_ACTION_H_
 
 #include <functional>  // std::function
-#include <memory>      // std::shared_ptr
 #include <ostream>     // std::ostream
-#include <vector>      // std::vector
-#include <set>         // std::set
 #include <string>      // std::string
 #include <utility>     // std::pair
+#include <vector>      // std::vector
 
 #include "symbolic/formula.h"
 #include "symbolic/object.h"
@@ -29,12 +27,10 @@ namespace symbolic {
 class Pddl;
 
 class Action {
-
  public:
-
   Action(const Pddl& pddl, const VAL::operator_* symbol);
 
-   // action_call can be action(params) or action name
+  // action_call can be action(params) or action name
   Action(const Pddl& pddl, const std::string& action_call);
 
   bool IsValid(const State& state, const std::vector<Object>& arguments) const {
@@ -63,8 +59,17 @@ class Action {
 
   std::string to_string(const std::vector<Object>& arguments) const;
 
- private:
+  friend bool operator<(const Action& lhs, const Action& rhs) {
+    return lhs.name() < rhs.name();
+  }
 
+  friend bool operator==(const Action& lhs, const Action& rhs) {
+    return lhs.name() == rhs.name();
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const Action& action);
+
+ private:
   const VAL::operator_* symbol_;
   std::string name_;
   std::vector<Object> parameters_;
@@ -72,20 +77,10 @@ class Action {
 
   Formula Preconditions_;
   std::function<bool(const std::vector<Object>&, State*)> Apply_;
-
 };
 
-std::pair<Action, std::vector<Object>> ParseAction(const Pddl& pddl, const std::string& action_call);
-
-std::ostream& operator<<(std::ostream& os, const Action& action);
-
-inline bool operator<(const Action& lhs, const Action& rhs) {
-  return lhs.name() < rhs.name();
-}
-
-inline bool operator==(const Action& lhs, const Action& rhs) {
-  return lhs.name() == rhs.name();
-}
+std::pair<Action, std::vector<Object>> ParseAction(
+    const Pddl& pddl, const std::string& action_call);
 
 }  // namespace symbolic
 

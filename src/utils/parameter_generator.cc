@@ -13,19 +13,20 @@
 
 namespace {
 
-using ::symbolic::ParameterGenerator;
 using ::symbolic::Object;
+using ::symbolic::ParameterGenerator;
 
-std::vector<const std::vector<Object>*>
-ParamTypes(const ParameterGenerator::ObjectTypeMap& object_map,
-           const std::vector<Object>& params) {
+std::vector<const std::vector<Object>*> ParamTypes(
+    const ParameterGenerator::ObjectTypeMap& object_map,
+    const std::vector<Object>& params) {
   std::vector<const std::vector<Object>*> types;
   types.reserve(params.size());
   for (const Object& param : params) {
     try {
       types.push_back(&object_map.at(param.type().name()));
     } catch (...) {
-      throw std::runtime_error("ParameterGenerator(): parameter type '" + param.type().name() +
+      throw std::runtime_error("ParameterGenerator(): parameter type '" +
+                               param.type().name() +
                                "' not found in object map.");
     }
   }

@@ -9,12 +9,12 @@
 
 #include "symbolic/pddl.h"
 
+#include <VAL/FlexLexer.h>
+#include <VAL/typecheck.h>
+
 #include <fstream>  // std::ifstream
 #include <string>   // std::string
 #include <utility>  // std::move
-
-#include <VAL/FlexLexer.h>
-#include <VAL/typecheck.h>
 
 #include "symbolic/utils/parameter_generator.h"
 
@@ -53,7 +53,8 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
   yfl.switch_streams(&pddl_domain, &std::cout);
   yyparse();
   if (analysis->the_domain == nullptr) {
-    throw std::runtime_error("ParsePddl(): Unable to parse domain from file: " + std::string(filename_domain));
+    throw std::runtime_error("ParsePddl(): Unable to parse domain from file: " +
+                             std::string(filename_domain));
   }
 
   // Parse problem
@@ -62,7 +63,9 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
   yfl.switch_streams(&pddl_problem, &std::cout);
   yyparse();
   if (analysis->the_domain == nullptr) {
-    throw std::runtime_error("ParsePddl(): Unable to parse problem from file: " + std::string(filename_problem));
+    throw std::runtime_error(
+        "ParsePddl(): Unable to parse problem from file: " +
+        std::string(filename_problem));
   }
 
   return analysis;
@@ -83,15 +86,19 @@ State ParseState(const Pddl& pddl, const std::set<std::string>& str_state) {
   return state;
 }
 
-std::vector<Object> GetObjects(const VAL::domain& domain, const VAL::problem& problem) {
-  std::vector<Object> objects = symbolic::ConvertObjects(domain.types, domain.constants);
-  const std::vector<Object> objects_2 = symbolic::ConvertObjects(domain.types, problem.objects);
+std::vector<Object> GetObjects(const VAL::domain& domain,
+                               const VAL::problem& problem) {
+  std::vector<Object> objects =
+      symbolic::ConvertObjects(domain.types, domain.constants);
+  const std::vector<Object> objects_2 =
+      symbolic::ConvertObjects(domain.types, problem.objects);
   objects.insert(objects.end(), objects_2.begin(), objects_2.end());
   return objects;
 }
 
-std::map<std::string, std::vector<Object>> CreateObjectTypeMap(const std::vector<Object>& objects) {
-  std::map<std::string, std::vector<Object>> object_map;
+std::unordered_map<std::string, std::vector<Object>> CreateObjectTypeMap(
+    const std::vector<Object>& objects) {
+  std::unordered_map<std::string, std::vector<Object>> object_map;
   for (const Object& object : objects) {
     std::vector<std::string> types = object.type().ListTypes();
     for (const std::string& type : types) {
@@ -169,9 +176,11 @@ bool Pddl::IsValid(bool verbose, std::ostream& os) const {
   return is_domain_valid && is_problem_valid;
 }
 
-State Pddl::NextState(const State& state, const std::string& action_call) const {
+State Pddl::NextState(const State& state,
+                      const std::string& action_call) const {
   // Parse strings
-  const std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
+  const std::pair<Action, std::vector<Object>> action_args =
+      ParseAction(*this, action_call);
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
@@ -181,7 +190,8 @@ std::set<std::string> Pddl::NextState(const std::set<std::string>& str_state,
                                       const std::string& action_call) const {
   // Parse strings
   State state = ParseState(*this, str_state);
-  const std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
+  const std::pair<Action, std::vector<Object>> action_args =
+      ParseAction(*this, action_call);
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
@@ -189,9 +199,11 @@ std::set<std::string> Pddl::NextState(const std::set<std::string>& str_state,
   return Stringify(state);
 }
 
-bool Pddl::IsValidAction(const State& state, const std::string& action_call) const {
+bool Pddl::IsValidAction(const State& state,
+                         const std::string& action_call) const {
   // Parse strings
-  const std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
+  const std::pair<Action, std::vector<Object>> action_args =
+      ParseAction(*this, action_call);
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
@@ -205,11 +217,13 @@ bool Pddl::IsValidAction(const std::set<std::string>& str_state,
 bool Pddl::IsValidTuple(const State& state, const std::string& action_call,
                         const State& next_state) const {
   // Parse strings
-  const std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
+  const std::pair<Action, std::vector<Object>> action_args =
+      ParseAction(*this, action_call);
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
-  return action.IsValid(state, arguments) && action.Apply(state, arguments) == next_state;
+  return action.IsValid(state, arguments) &&
+         action.Apply(state, arguments) == next_state;
 }
 bool Pddl::IsValidTuple(const std::set<std::string>& str_state,
                         const std::string& action_call,
@@ -231,7 +245,8 @@ bool Pddl::IsValidPlan(const std::vector<std::string>& action_skeleton) const {
   State state = initial_state_;
   for (const std::string& action_call : action_skeleton) {
     // Parse strings
-    std::pair<Action, std::vector<Object>> action_args = ParseAction(*this, action_call);
+    std::pair<Action, std::vector<Object>> action_args =
+        ParseAction(*this, action_call);
     const Action& action = action_args.first;
     const std::vector<Object>& arguments = action_args.second;
 
@@ -241,8 +256,8 @@ bool Pddl::IsValidPlan(const std::vector<std::string>& action_skeleton) const {
   return goal_(state);
 }
 
-std::vector<std::vector<Object>> Pddl::ListValidArguments(const State& state,
-                                                          const Action& action) const {
+std::vector<std::vector<Object>> Pddl::ListValidArguments(
+    const State& state, const Action& action) const {
   std::vector<std::vector<Object>> arguments;
   ParameterGenerator param_gen(object_map(), action.parameters());
   for (const std::vector<Object>& args : param_gen) {
@@ -250,12 +265,14 @@ std::vector<std::vector<Object>> Pddl::ListValidArguments(const State& state,
   }
   return arguments;
 }
-std::vector<std::vector<std::string>> Pddl::ListValidArguments(const std::set<std::string>& str_state,
-                                                               const std::string& action_name) const {
+std::vector<std::vector<std::string>> Pddl::ListValidArguments(
+    const std::set<std::string>& str_state,
+    const std::string& action_name) const {
   // Parse strings
   const State state = ParseState(*this, str_state);
   const Action action(*this, action_name);
-  const std::vector<std::vector<Object>> arguments = ListValidArguments(state, action);
+  const std::vector<std::vector<Object>> arguments =
+      ListValidArguments(state, action);
   return Stringify(arguments);
 }
 
@@ -270,7 +287,8 @@ std::vector<std::vector<std::string>> Pddl::ListValidArguments(const std::set<st
 std::vector<std::string> Pddl::ListValidActions(const State& state) const {
   std::vector<std::string> actions;
   for (const Action& action : actions_) {
-    const std::vector<std::vector<Object>> arguments = ListValidArguments(state, action);
+    const std::vector<std::vector<Object>> arguments =
+        ListValidArguments(state, action);
     for (const std::vector<Object>& args : arguments) {
       actions.emplace_back(action.to_string(args));
     }
@@ -278,7 +296,8 @@ std::vector<std::string> Pddl::ListValidActions(const State& state) const {
   return actions;
 }
 
-std::vector<std::string> Pddl::ListValidActions(const std::set<std::string>& state) const {
+std::vector<std::string> Pddl::ListValidActions(
+    const std::set<std::string>& state) const {
   return ListValidActions(ParseState(*this, state));
 }
 
@@ -298,7 +317,8 @@ std::vector<std::string> Stringify(const std::vector<Action>& actions) {
   return str_actions;
 }
 
-std::vector<std::vector<std::string>> Stringify(const std::vector<std::vector<Object>>& arguments) {
+std::vector<std::vector<std::string>> Stringify(
+    const std::vector<std::vector<Object>>& arguments) {
   std::vector<std::vector<std::string>> str_arguments;
   str_arguments.reserve(arguments.size());
   for (const std::vector<Object>& args : arguments) {
@@ -311,7 +331,6 @@ std::vector<std::vector<std::string>> Stringify(const std::vector<std::vector<Ob
   }
   return str_arguments;
 }
-
 
 std::ostream& operator<<(std::ostream& os, const Pddl& pddl) {
   os << pddl.domain() << std::endl;
@@ -327,10 +346,12 @@ void PrintGoal(std::ostream& os, const VAL::goal* goal, size_t depth) {
   std::string padding(depth, '\t');
 
   // Proposition
-  const VAL::simple_goal* simple_goal = dynamic_cast<const VAL::simple_goal*>(goal);
+  const VAL::simple_goal* simple_goal =
+      dynamic_cast<const VAL::simple_goal*>(goal);
   if (simple_goal != nullptr) {
     const VAL::proposition* prop = simple_goal->getProp();
-    os << padding << prop->head->getName() << *prop->args << " [" << prop << "]" << std::endl;
+    os << padding << prop->head->getName() << *prop->args << " [" << prop << "]"
+       << std::endl;
     return;
   }
 
@@ -396,7 +417,8 @@ void PrintGoal(std::ostream& os, const VAL::goal* goal, size_t depth) {
   throw std::runtime_error("PrintGoal(): Goal type not implemented.");
 }
 
-void PrintEffects(std::ostream& os, const VAL::effect_lists* effects, size_t depth) {
+void PrintEffects(std::ostream& os, const VAL::effect_lists* effects,
+                  size_t depth) {
   std::string padding(depth, '\t');
   for (const VAL::simple_effect* effect : effects->add_effects) {
     os << padding << "(+) " << *effect << std::endl;
@@ -417,12 +439,13 @@ void PrintEffects(std::ostream& os, const VAL::effect_lists* effects, size_t dep
   }
 }
 
-template<typename T>
+template <typename T>
 void PrintArgs(std::ostream& os, const VAL::typed_symbol_list<T>& args) {
   std::string separator;
   os << "(";
   for (const VAL::parameter_symbol* param : args) {
-    os << separator << param->getName() << " [" << param << "]: " << param->type->getName();
+    os << separator << param->getName() << " [" << param
+       << "]: " << param->type->getName();
     if (separator.empty()) separator = ", ";
   }
   os << ")";
@@ -442,21 +465,24 @@ std::ostream& operator<<(std::ostream& os, const VAL::domain& domain) {
   os << "Types: " << std::endl;
   if (domain.types != nullptr) {
     for (const VAL::pddl_type* type : *domain.types) {
-      os << "\t" << type->getName() << ": " << type->type->getName() << " [" << type << "]" << std::endl;
+      os << "\t" << type->getName() << ": " << type->type->getName() << " ["
+         << type << "]" << std::endl;
     }
   }
 
   os << "Constants: " << std::endl;
   if (domain.constants != nullptr) {
     for (const VAL::const_symbol* c : *domain.constants) {
-      os << "\t" << c->getName() << " [" << c << "]" << ": " << c->type->getName() << std::endl;
+      os << "\t" << c->getName() << " [" << c << "]"
+         << ": " << c->type->getName() << std::endl;
     }
   }
 
   os << "Predicates:" << std::endl;
   if (domain.predicates != nullptr) {
     for (const VAL::pred_decl* pred : *domain.predicates) {
-      os << "\t" << pred->getPred()->getName() << *pred->getArgs() << " [" << pred << "]" << std::endl;
+      os << "\t" << pred->getPred()->getName() << *pred->getArgs() << " ["
+         << pred << "]" << std::endl;
     }
   }
 
@@ -483,11 +509,13 @@ std::ostream& operator<<(std::ostream& os, const VAL::problem& problem) {
 
   os << "Domain: " << problem.domain_name << std::endl;
 
-  os << "Requirements: " << VAL::pddl_req_flags_string(problem.req) << std::endl;
+  os << "Requirements: " << VAL::pddl_req_flags_string(problem.req)
+     << std::endl;
 
   os << "Objects:" << std::endl;
   for (const VAL::const_symbol* object : *problem.objects) {
-    os << "\t" << object->getName() << " [" << object << "]" << ": " << object->type->getName() << std::endl;
+    os << "\t" << object->getName() << " [" << object << "]"
+       << ": " << object->type->getName() << std::endl;
   }
 
   os << "Initial State:" << std::endl;
@@ -500,7 +528,8 @@ std::ostream& operator<<(std::ostream& os, const VAL::problem& problem) {
 }
 
 std::ostream& operator<<(std::ostream& os, const VAL::simple_effect& effect) {
-  os << effect.prop->head->getName() << *effect.prop->args << " [" << effect.prop->head << "]";
+  os << effect.prop->head->getName() << *effect.prop->args << " ["
+     << effect.prop->head << "]";
   return os;
 }
 
@@ -509,7 +538,8 @@ std::ostream& operator<<(std::ostream& os, const VAL::var_symbol_list& args) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const VAL::parameter_symbol_list& args) {
+std::ostream& operator<<(std::ostream& os,
+                         const VAL::parameter_symbol_list& args) {
   PrintArgs(os, args);
   return os;
 }

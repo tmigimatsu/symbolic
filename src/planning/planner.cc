@@ -11,19 +11,22 @@
 
 namespace symbolic {
 
-Planner::Planner(const Pddl& pddl)
-    : root_(pddl, pddl.initial_state()) {}
+Planner::Planner(const Pddl& pddl) : root_(pddl, pddl.initial_state()) {}
 
 struct Planner::Node::NodeImpl {
-
   NodeImpl(const Pddl& pddl, State&& state,
            const std::shared_ptr<const std::set<Node>>& ancestors,
            std::string&& action, size_t depth)
-      : pddl_(pddl), state_(std::move(state)), ancestors_(ancestors),
-        action_(std::move(action)), depth_(depth) {}
+      : pddl_(pddl),
+        state_(std::move(state)),
+        ancestors_(ancestors),
+        action_(std::move(action)),
+        depth_(depth) {}
 
   NodeImpl(const Pddl& pddl, const State& state, size_t depth = 0)
-      : pddl_(pddl), state_(state), ancestors_(std::make_shared<const std::set<Node>>()),
+      : pddl_(pddl),
+        state_(state),
+        ancestors_(std::make_shared<const std::set<Node>>()),
         depth_(depth) {}
 
   const Pddl& pddl_;
@@ -34,7 +37,6 @@ struct Planner::Node::NodeImpl {
   // For debugging
   const std::string action_;
   const size_t depth_;
-
 };
 
 Planner::Node::Node(const Pddl& pddl, const State& state, size_t depth)
@@ -49,22 +51,17 @@ Planner::Node::Node(const Node& parent, const Node& sibling, State&& state,
                                        std::move(ancestors), std::move(action),
                                        parent.depth() + 1);
   } else {
-    impl_ = std::make_shared<NodeImpl>(sibling->pddl_, std::move(state), sibling->ancestors_,
-                                       std::move(action), sibling.depth());
+    impl_ = std::make_shared<NodeImpl>(sibling->pddl_, std::move(state),
+                                       sibling->ancestors_, std::move(action),
+                                       sibling.depth());
   }
 }
 
-const std::string& Planner::Node::action() const {
-  return impl_->action_;
-}
+const std::string& Planner::Node::action() const { return impl_->action_; }
 
-const State& Planner::Node::state() const {
-  return impl_->state_;
-}
+const State& Planner::Node::state() const { return impl_->state_; }
 
-size_t Planner::Node::depth() const {
-  return impl_->depth_;
-}
+size_t Planner::Node::depth() const { return impl_->depth_; }
 
 Planner::Node::iterator Planner::Node::begin() const {
   iterator it(*this);
@@ -82,10 +79,12 @@ Planner::Node::iterator Planner::Node::begin() const {
   if (action.IsValid(parent.state(), arguments)) {
     // Set action and apply postconditions to child
     State state = action.Apply(parent.state(), arguments);
-    it.child_ = Node(parent, it.child_, std::move(state), action.to_string(arguments));
+    it.child_ =
+        Node(parent, it.child_, std::move(state), action.to_string(arguments));
 
     // Return if state hasn't been previously visited
-    const std::shared_ptr<const std::set<Node>> ancestors = it.child_->ancestors_;
+    const std::shared_ptr<const std::set<Node>> ancestors =
+        it.child_->ancestors_;
     if (ancestors->find(it.child_) == ancestors->end()) return it;
   }
 
@@ -111,8 +110,8 @@ bool Planner::Node::operator==(const Node& rhs) const {
   return impl_->state_ == rhs->state_;
 }
 
-std::ostream& operator<<(std::ostream& os, const symbolic::Planner::Node& node) {
-
+std::ostream& operator<<(std::ostream& os,
+                         const symbolic::Planner::Node& node) {
   for (size_t i = 0; i < node.depth(); i++) {
     os << "-";
   }
@@ -134,7 +133,6 @@ Planner::Node::iterator::iterator(const Node& parent)
       it_param_(it_action_->parameter_generator().begin()) {}
 
 Planner::Node::iterator& Planner::Node::iterator::operator++() {
-
   while (it_action_ != pddl_.actions().end()) {
     const ParameterGenerator& param_gen = it_action_->parameter_generator();
     if (it_param_ == param_gen.end()) {
@@ -157,10 +155,12 @@ Planner::Node::iterator& Planner::Node::iterator::operator++() {
     if (action.IsValid(parent_.state(), arguments)) {
       // Set action and apply postconditions to child
       State state = action.Apply(parent_.state(), arguments);
-      child_ = Node(parent_, child_, std::move(state), action.to_string(arguments));
+      child_ =
+          Node(parent_, child_, std::move(state), action.to_string(arguments));
 
       // Return if state hasn't been previously visited
-      const std::shared_ptr<const std::set<Node>> ancestors = child_->ancestors_;
+      const std::shared_ptr<const std::set<Node>> ancestors =
+          child_->ancestors_;
       if (ancestors->find(child_) == ancestors->end()) break;
     }
   }
@@ -169,7 +169,6 @@ Planner::Node::iterator& Planner::Node::iterator::operator++() {
 }
 
 Planner::Node::iterator& Planner::Node::iterator::operator--() {
-
   if (it_action_ == pddl_.actions().end()) {
     --it_action_;
     const Action& action = *it_action_;
@@ -181,10 +180,12 @@ Planner::Node::iterator& Planner::Node::iterator::operator--() {
     if (action.IsValid(parent_.state(), arguments)) {
       // Set action and apply postconditions to child
       State state = action.Apply(parent_.state(), arguments);
-      child_ = Node(parent_, child_, std::move(state), action.to_string(arguments));
+      child_ =
+          Node(parent_, child_, std::move(state), action.to_string(arguments));
 
       // Return if state hasn't been previously visited
-      const std::shared_ptr<const std::set<Node>> ancestors = child_->ancestors_;
+      const std::shared_ptr<const std::set<Node>> ancestors =
+          child_->ancestors_;
       if (ancestors->find(child_) == ancestors->end()) return *this;
     }
   }
@@ -209,10 +210,12 @@ Planner::Node::iterator& Planner::Node::iterator::operator--() {
     if (action.IsValid(parent_.state(), arguments)) {
       // Set action and apply postconditions to child
       State state = action.Apply(parent_.state(), arguments);
-      child_ = Node(parent_, child_, std::move(state), action.to_string(arguments));
+      child_ =
+          Node(parent_, child_, std::move(state), action.to_string(arguments));
 
       // Return if state hasn't been previously visited
-      const std::shared_ptr<const std::set<Node>> ancestors = child_->ancestors_;
+      const std::shared_ptr<const std::set<Node>> ancestors =
+          child_->ancestors_;
       if (ancestors->find(child_) == ancestors->end()) break;
     }
   }
