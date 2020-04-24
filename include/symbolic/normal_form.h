@@ -35,10 +35,12 @@ struct FormulaLiterals {
 struct DisjunctiveFormula {
   using Conjunction = FormulaLiterals;
 
-  DisjunctiveFormula() {}
+  DisjunctiveFormula() = default;
 
-  DisjunctiveFormula(std::vector<Conjunction>&& conjunctions)
+  explicit DisjunctiveFormula(std::vector<Conjunction>&& conjunctions)
       : conjunctions(std::move(conjunctions)) {}
+
+  DisjunctiveFormula(std::initializer_list<Conjunction> l) : conjunctions(l) {}
 
   DisjunctiveFormula(const Pddl& pddl, const Formula& formula,
                      const std::vector<Object>& parameters,
@@ -68,7 +70,7 @@ struct DisjunctiveFormula {
 struct ConjunctiveFormula {
   using Disjunction = FormulaLiterals;
 
-  ConjunctiveFormula() {}
+  ConjunctiveFormula() = default;
 
   // ConjunctiveFormula(const Pddl& pddl, const Formula& formula,
   //                    const std::vector<Object>& parameters,

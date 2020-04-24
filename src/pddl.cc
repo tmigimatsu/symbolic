@@ -30,11 +30,11 @@ yyFlexLexer* yfl = nullptr;
 
 // Expected in typechecker.cpp
 bool Verbose = false;
-std::ostream* report = &std::cout;
+std::ostream* report = nullptr;
 
 }  // namespace VAL
 
-char* current_filename = nullptr;  // Expected in parse_error.h
+const char* current_filename = nullptr;  // Expected in parse_error.h
 
 namespace {
 
@@ -48,7 +48,7 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
   yydebug = 0;  // Set to 1 to output yacc trace
 
   // Parse domain
-  current_filename = const_cast<char*>(filename_domain.c_str());
+  current_filename = filename_domain.c_str();
   std::ifstream pddl_domain(filename_domain);
   yfl.switch_streams(&pddl_domain, &std::cout);
   yyparse();
@@ -58,7 +58,7 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
   }
 
   // Parse problem
-  current_filename = const_cast<char*>(filename_problem.c_str());
+  current_filename = filename_problem.c_str();
   std::ifstream pddl_problem(filename_problem);
   yfl.switch_streams(&pddl_problem, &std::cout);
   yyparse();
@@ -111,7 +111,7 @@ std::unordered_map<std::string, std::vector<Object>> CreateObjectTypeMap(
 std::vector<Action> GetActions(const Pddl& pddl, const VAL::domain& domain) {
   std::vector<Action> actions;
   for (const VAL::operator_* op : *domain.ops) {
-    const VAL::action* a = dynamic_cast<const VAL::action*>(op);
+    const auto* a = dynamic_cast<const VAL::action*>(op);
     if (a == nullptr) continue;
     actions.emplace_back(pddl, op);
   }
@@ -121,15 +121,14 @@ std::vector<Action> GetActions(const Pddl& pddl, const VAL::domain& domain) {
 std::vector<Axiom> GetAxioms(const Pddl& pddl, const VAL::domain& domain) {
   std::vector<Axiom> axioms;
   for (const VAL::operator_* op : *domain.ops) {
-    const VAL::axiom* a = dynamic_cast<const VAL::axiom*>(op);
+    const auto* a = dynamic_cast<const VAL::axiom*>(op);
     if (a == nullptr) continue;
     axioms.emplace_back(pddl, op);
   }
   return axioms;
 }
 
-State GetInitialState(const VAL::domain& domain, const VAL::problem& problem,
-                      const std::vector<Object>& objects) {
+State GetInitialState(const VAL::domain& domain, const VAL::problem& problem) {
   State initial_state;
   for (const VAL::simple_effect* effect : problem.initial_state->add_effects) {
     std::vector<Object> arguments;
@@ -157,7 +156,7 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
       object_map_(CreateObjectTypeMap(objects_)),
       actions_(GetActions(*this, domain_)),
       axioms_(GetAxioms(*this, domain_)),
-      initial_state_(GetInitialState(domain_, problem_, objects_)),
+      initial_state_(GetInitialState(domain_, problem_)),
       goal_(*this, problem_.the_goal) {}
 
 bool Pddl::IsValid(bool verbose, std::ostream& os) const {
@@ -311,6 +310,7 @@ std::set<std::string> Stringify(const State& state) {
 
 std::vector<std::string> Stringify(const std::vector<Action>& actions) {
   std::vector<std::string> str_actions;
+  str_actions.reserve(actions.size());
   for (const Action& action : actions) {
     str_actions.emplace_back(action.name());
   }
@@ -346,8 +346,7 @@ void PrintGoal(std::ostream& os, const VAL::goal* goal, size_t depth) {
   std::string padding(depth, '\t');
 
   // Proposition
-  const VAL::simple_goal* simple_goal =
-      dynamic_cast<const VAL::simple_goal*>(goal);
+  const auto* simple_goal = dynamic_cast<const VAL::simple_goal*>(goal);
   if (simple_goal != nullptr) {
     const VAL::proposition* prop = simple_goal->getProp();
     os << padding << prop->head->getName() << *prop->args << " [" << prop << "]"
@@ -356,7 +355,7 @@ void PrintGoal(std::ostream& os, const VAL::goal* goal, size_t depth) {
   }
 
   // Conjunction
-  const VAL::conj_goal* conj_goal = dynamic_cast<const VAL::conj_goal*>(goal);
+  const auto* conj_goal = dynamic_cast<const VAL::conj_goal*>(goal);
   if (conj_goal != nullptr) {
     os << padding << "and:" << std::endl;
     for (const VAL::goal* g : *conj_goal->getGoals()) {
@@ -366,7 +365,7 @@ void PrintGoal(std::ostream& os, const VAL::goal* goal, size_t depth) {
   }
 
   // Disjunction
-  const VAL::disj_goal* disj_goal = dynamic_cast<const VAL::disj_goal*>(goal);
+  const auto* disj_goal = dynamic_cast<const VAL::disj_goal*>(goal);
   if (disj_goal != nullptr) {
     os << padding << "or:" << std::endl;
     for (const VAL::goal* g : *disj_goal->getGoals()) {
@@ -376,7 +375,7 @@ void PrintGoal(std::ostream& os, const VAL::goal* goal, size_t depth) {
   }
 
   // Negation
-  const VAL::neg_goal* neg_goal = dynamic_cast<const VAL::neg_goal*>(goal);
+  const auto* neg_goal = dynamic_cast<const VAL::neg_goal*>(goal);
   if (neg_goal != nullptr) {
     os << padding << "neg:" << std::endl;
     PrintGoal(os, neg_goal->getGoal(), depth + 1);
@@ -384,7 +383,7 @@ void PrintGoal(std::ostream& os, const VAL::goal* goal, size_t depth) {
   }
 
   // Quantification
-  const auto qfied_goal = dynamic_cast<const VAL::qfied_goal*>(goal);
+  const auto* qfied_goal = dynamic_cast<const VAL::qfied_goal*>(goal);
   if (qfied_goal != nullptr) {
     std::string quantifier;
     switch (qfied_goal->getQuantifier()) {
@@ -400,12 +399,12 @@ void PrintGoal(std::ostream& os, const VAL::goal* goal, size_t depth) {
     return;
   }
 
-  const auto con_goal = dynamic_cast<const VAL::con_goal*>(goal);
-  const auto constraint_goal = dynamic_cast<const VAL::constraint_goal*>(goal);
-  const auto preference = dynamic_cast<const VAL::preference*>(goal);
-  const auto imply_goal = dynamic_cast<const VAL::imply_goal*>(goal);
-  const auto timed_goal = dynamic_cast<const VAL::timed_goal*>(goal);
-  const auto comparison = dynamic_cast<const VAL::comparison*>(goal);
+  const auto* con_goal = dynamic_cast<const VAL::con_goal*>(goal);
+  const auto* constraint_goal = dynamic_cast<const VAL::constraint_goal*>(goal);
+  const auto* preference = dynamic_cast<const VAL::preference*>(goal);
+  const auto* imply_goal = dynamic_cast<const VAL::imply_goal*>(goal);
+  const auto* timed_goal = dynamic_cast<const VAL::timed_goal*>(goal);
+  const auto* comparison = dynamic_cast<const VAL::comparison*>(goal);
   os << "con_goal: " << con_goal << std::endl;
   os << "constraint_goal: " << constraint_goal << std::endl;
   os << "preference: " << preference << std::endl;
@@ -427,7 +426,6 @@ void PrintEffects(std::ostream& os, const VAL::effect_lists* effects,
     os << padding << "(-) " << *effect << std::endl;
   }
   for (const VAL::forall_effect* effect : effects->forall_effects) {
-    const VAL::var_symbol_table* vars = effect->getVars();
     os << padding << "forall" << *effect->getVarsList() << ":" << std::endl;
     PrintEffects(os, effect->getEffects(), depth + 1);
   }

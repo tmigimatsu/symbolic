@@ -37,6 +37,7 @@ FormulaFunction CreateProposition(const Pddl& pddl,
   const VAL::proposition* prop = symbol->getProp();
   const std::string name_predicate = prop->head->getName();
   if (name_predicate == "=") {
+    // NOLINTNEXTLINE(misc-unused-parameters)
     return [](const State& state, const std::vector<Object>& arguments) {
       return arguments[0] == arguments[1];
     };
@@ -157,33 +158,31 @@ FormulaFunction CreateExists(const Pddl& pddl, const VAL::qfied_goal* symbol,
 FormulaFunction CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
                               const std::vector<Object>& parameters) {
   // Proposition
-  const VAL::simple_goal* simple_goal =
-      dynamic_cast<const VAL::simple_goal*>(symbol);
+  const auto* simple_goal = dynamic_cast<const VAL::simple_goal*>(symbol);
   if (simple_goal != nullptr) {
     return CreateProposition(pddl, simple_goal, parameters);
   }
 
   // Conjunction
-  const VAL::conj_goal* conj_goal = dynamic_cast<const VAL::conj_goal*>(symbol);
+  const auto* conj_goal = dynamic_cast<const VAL::conj_goal*>(symbol);
   if (conj_goal != nullptr) {
     return CreateConjunction(pddl, conj_goal, parameters);
   }
 
   // Disjunction
-  const VAL::disj_goal* disj_goal = dynamic_cast<const VAL::disj_goal*>(symbol);
+  const auto* disj_goal = dynamic_cast<const VAL::disj_goal*>(symbol);
   if (disj_goal != nullptr) {
     return CreateDisjunction(pddl, disj_goal, parameters);
   }
 
   // Negation
-  const VAL::neg_goal* neg_goal = dynamic_cast<const VAL::neg_goal*>(symbol);
+  const auto* neg_goal = dynamic_cast<const VAL::neg_goal*>(symbol);
   if (neg_goal != nullptr) {
     return CreateNegation(pddl, neg_goal, parameters);
   }
 
   // Forall
-  const VAL::qfied_goal* qfied_goal =
-      dynamic_cast<const VAL::qfied_goal*>(symbol);
+  const auto* qfied_goal = dynamic_cast<const VAL::qfied_goal*>(symbol);
   if (qfied_goal != nullptr) {
     switch (qfied_goal->getQuantifier()) {
       case VAL::quantifier::E_FORALL:

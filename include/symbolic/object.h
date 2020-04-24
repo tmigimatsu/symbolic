@@ -24,15 +24,17 @@ class Object {
  public:
   class Type {
    public:
-    Type() {}
+    Type() = default;
 
-    Type(const VAL::pddl_type* symbol)
+    explicit Type(const VAL::pddl_type* symbol)
         : symbol_(symbol), name_(symbol->getName()) {}
 
     const VAL::pddl_type* symbol() const { return symbol_; }
 
     bool IsSubtype(const std::string& type) const;
-    bool IsSubtype(const Type& type) const { return IsSubtype(type.name()); }
+    bool IsSubtype(const Type& type) const {
+      return IsSubtype(type.name());
+    }
 
     std::vector<std::string> ListTypes() const;
 
@@ -58,7 +60,7 @@ class Object {
     std::string name_;
   };
 
-  Object() {}
+  Object() = default;
 
   Object(const Pddl& pddl, const VAL::pddl_typed_symbol* symbol);
 
@@ -90,7 +92,7 @@ class Object {
   }
 
  private:
-  const VAL::pddl_typed_symbol* symbol_;
+  const VAL::pddl_typed_symbol* symbol_ = nullptr;
 
   std::string name_;
   Type type_;

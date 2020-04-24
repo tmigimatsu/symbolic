@@ -49,7 +49,7 @@ class DepthFirstSearch<NodeT>::iterator {
   using pointer = const value_type*;
   using reference = const value_type&;
 
-  iterator() {}
+  iterator() = default;
   iterator(const NodeT& root, size_t max_depth)
       : stack_({{root, std::vector<NodeT>()}}), kMaxDepth(max_depth) {}
 
@@ -85,7 +85,7 @@ typename DepthFirstSearch<NodeT>::iterator& DepthFirstSearch<NodeT>::iterator::o
     if (ancestors_.size() > kMaxDepth) continue;
 
     // Add node's children to stack
-    // TODO: iterate backwards so children get visited in order
+    // TODO(tmigimatsu): iterate backwards so children get visited in order
     for (const NodeT& child : node) {
       stack_.emplace(child, ancestors_);
     }

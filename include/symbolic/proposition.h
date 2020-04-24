@@ -23,7 +23,7 @@ class Pddl;
 
 class Proposition {
  public:
-  Proposition() {}
+  Proposition() = default;
 
   Proposition(const std::string& name_predicate,
               std::vector<Object>&& arguments)
@@ -38,7 +38,9 @@ class Proposition {
   // Properties
   const std::string& name() const { return name_; }
 
-  const std::vector<Object>& arguments() const { return arguments_; }
+  const std::vector<Object>& arguments() const {
+    return arguments_;
+  }
 
   std::string to_string() const;
 

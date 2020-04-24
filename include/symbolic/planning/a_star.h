@@ -11,15 +11,15 @@
 #define SYMBOLIC_PLANNING_A_STAR_H_
 
 #include <cstddef>   // ptrdiff_t
+#include <iostream>  // std::cout
 #include <iterator>  // std::input_iterator_tag
 #include <queue>     // std::priority_queue
 #include <vector>    // std::vector
 
 namespace symbolic {
 
-template<typename NodeT>
+template <typename NodeT>
 struct SearchNode {
-
   SearchNode(const NodeT& node, const std::vector<NodeT>& ancestors)
       : node(node), ancestors(ancestors) {}
 
@@ -28,62 +28,63 @@ struct SearchNode {
 
   NodeT node;
   std::vector<NodeT> ancestors;
-
 };
 
-template<typename NodeT, typename Compare>
+template <typename NodeT, typename Compare>
 class AStar {
-
  public:
-
   class iterator;
 
   AStar(const Compare& compare, const NodeT& root, size_t max_depth)
       : kMaxDepth(max_depth), compare_(compare), root_(root) {}
 
-  iterator begin() { iterator it(compare_, root_, kMaxDepth); return ++it; }
+  iterator begin() {
+    iterator it(compare_, root_, kMaxDepth);
+    return ++it;
+  }
   iterator end() { return iterator(compare_); }
 
  private:
-
   const size_t kMaxDepth;
 
   const Compare& compare_;
   const NodeT& root_;
-
 };
 
-template<typename NodeT, typename Compare>
+template <typename NodeT, typename Compare>
 class AStar<NodeT, Compare>::iterator {
-
  public:
-
   using iterator_category = std::input_iterator_tag;
   using value_type = std::vector<NodeT>;
   using difference_type = ptrdiff_t;
   using pointer = const value_type*;
   using reference = const value_type&;
 
-  iterator(const Compare& compare) : queue_(compare) {}
+  explicit iterator(const Compare& compare) : queue_(compare) {}
   iterator(const Compare& compare, const NodeT& root, size_t max_depth)
-      : queue_(compare), kMaxDepth(max_depth) { queue_.emplace(root, std::vector<NodeT>()); }
+      : queue_(compare), kMaxDepth(max_depth) {
+    queue_.emplace(root, std::vector<NodeT>());
+  }
 
   iterator& operator++();
-  bool operator==(const iterator& other) const { return queue_.empty() && other.queue_.empty(); }
+  bool operator==(const iterator& other) const {
+    return queue_.empty() && other.queue_.empty();
+  }
   bool operator!=(const iterator& other) const { return !(*this == other); }
   reference operator*() const { return ancestors_; }
 
  private:
-
   const size_t kMaxDepth = 0;
 
-  std::priority_queue<SearchNode<NodeT>, std::vector<SearchNode<NodeT>>, Compare> queue_;
+  std::priority_queue<SearchNode<NodeT>, std::vector<SearchNode<NodeT>>,
+                      Compare>
+      queue_;
   std::vector<NodeT> ancestors_;
-
 };
 
-template<typename NodeT, typename Compare>
-typename AStar<NodeT, Compare>::iterator& AStar<NodeT, Compare>::iterator::operator++() {
+template <typename NodeT, typename Compare>
+typename AStar<NodeT, Compare>::iterator&
+AStar<NodeT, Compare>::iterator::operator++() {
   while (!queue_.empty()) {
     SearchNode<NodeT> top = queue_.top();
 

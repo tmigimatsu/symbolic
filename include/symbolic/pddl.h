@@ -31,7 +31,7 @@ class Pddl {
 
   Pddl(const std::string& domain_pddl, const std::string& problem_pddl);
 
-  bool IsValid(bool verbose = false, std::ostream& output = std::cout) const;
+  bool IsValid(bool verbose = false, std::ostream& os = std::cout) const;
 
   State NextState(const State& state, const std::string& action_call) const;
   std::set<std::string> NextState(const std::set<std::string>& state,

@@ -19,7 +19,8 @@
 
 namespace {
 
-using namespace symbolic;
+using ::symbolic::DisjunctiveFormula;
+using ::symbolic::Proposition;
 
 std::optional<bool> EvaluateEquals(const Proposition& prop) {
   if (prop.name() != "=") return {};
@@ -68,20 +69,17 @@ bool IsSubset(const DisjunctiveFormula::Conjunction& sub,
 bool TryInsertSubset(
     const DisjunctiveFormula::Conjunction& conj,
     std::vector<DisjunctiveFormula::Conjunction>* conjunctions) {
-  for (auto it = conjunctions->begin(); it != conjunctions->end(); ++it) {
+  for (const DisjunctiveFormula::Conjunction& conj_i : *conjunctions) {
     // If current conjunction is a superset, don't add it
-    if (IsSubset(*it, conj)) {
-      const DisjunctiveFormula::Conjunction& conj2 = *it;
-      return true;
-    }
+    if (IsSubset(conj_i, conj)) return true;
   }
 
   bool is_subset = false;
-  for (auto it = conjunctions->begin(); it != conjunctions->end(); ++it) {
+  for (DisjunctiveFormula::Conjunction& conj_i : *conjunctions) {
     // Current conjunction is a subset: replace previous one
-    if (IsSubset(conj, *it)) {
+    if (IsSubset(conj, conj_i)) {
       is_subset = true;
-      *it = conj;
+      conj_i = conj;
     }
   }
 
@@ -234,8 +232,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl,
                                        const std::vector<Object>& parameters,
                                        const std::vector<Object>& arguments) {
   // Proposition
-  const VAL::simple_goal* simple_goal =
-      dynamic_cast<const VAL::simple_goal*>(symbol);
+  const auto* simple_goal = dynamic_cast<const VAL::simple_goal*>(symbol);
   if (simple_goal != nullptr) {
     const VAL::proposition* prop = simple_goal->getProp();
     const std::string name_predicate = prop->head->getName();
@@ -248,7 +245,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl,
   }
 
   // Conjunction
-  const VAL::conj_goal* conj_goal = dynamic_cast<const VAL::conj_goal*>(symbol);
+  const auto* conj_goal = dynamic_cast<const VAL::conj_goal*>(symbol);
   if (conj_goal != nullptr) {
     const VAL::goal_list* goals = conj_goal->getGoals();
     std::vector<DisjunctiveFormula> conj_terms;
@@ -265,7 +262,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl,
   }
 
   // Disjunction
-  const VAL::disj_goal* disj_goal = dynamic_cast<const VAL::disj_goal*>(symbol);
+  const auto* disj_goal = dynamic_cast<const VAL::disj_goal*>(symbol);
   if (disj_goal != nullptr) {
     const VAL::goal_list* goals = disj_goal->getGoals();
     std::vector<DisjunctiveFormula> disj_terms;
@@ -282,7 +279,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl,
   }
 
   // Negation
-  const VAL::neg_goal* neg_goal = dynamic_cast<const VAL::neg_goal*>(symbol);
+  const auto* neg_goal = dynamic_cast<const VAL::neg_goal*>(symbol);
   if (neg_goal != nullptr) {
     const VAL::goal* goal = neg_goal->getGoal();
     conjunctions =
@@ -292,8 +289,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl,
   }
 
   // Forall and exists
-  const VAL::qfied_goal* qfied_goal =
-      dynamic_cast<const VAL::qfied_goal*>(symbol);
+  const auto* qfied_goal = dynamic_cast<const VAL::qfied_goal*>(symbol);
   if (qfied_goal != nullptr) {
     const VAL::goal* goal = qfied_goal->getGoal();
 
@@ -334,13 +330,13 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl,
 }
 
 DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl,
-                                       const VAL::effect_lists* effects,
+                                       const VAL::effect_lists* symbol,
                                        const std::vector<Object>& parameters,
                                        const std::vector<Object>& arguments) {
   std::vector<DisjunctiveFormula> dnfs;
 
   // Forall effects
-  for (const VAL::forall_effect* effect : effects->forall_effects) {
+  for (const VAL::forall_effect* effect : symbol->forall_effects) {
     std::vector<Object> forall_params = parameters;
     const std::vector<Object> types =
         symbolic::ConvertObjects(pddl, effect->getVarsList());
@@ -360,8 +356,8 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl,
 
   // Add effects
   DisjunctiveFormula::Conjunction simple;
-  simple.pos.reserve(effects->add_effects.size());
-  for (const VAL::simple_effect* effect : effects->add_effects) {
+  simple.pos.reserve(symbol->add_effects.size());
+  for (const VAL::simple_effect* effect : symbol->add_effects) {
     const std::string name_predicate = effect->prop->head->getName();
     const std::vector<Object> effect_params =
         symbolic::ConvertObjects(pddl, effect->prop->args);
@@ -371,8 +367,8 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl,
   }
 
   // Del effects
-  simple.neg.reserve(effects->del_effects.size());
-  for (const VAL::simple_effect* effect : effects->del_effects) {
+  simple.neg.reserve(symbol->del_effects.size());
+  for (const VAL::simple_effect* effect : symbol->del_effects) {
     const std::string name_predicate = effect->prop->head->getName();
     const std::vector<Object> effect_params =
         symbolic::ConvertObjects(pddl, effect->prop->args);
@@ -386,7 +382,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl,
   }
 
   // Cond effects
-  for (const VAL::cond_effect* effect : effects->cond_effects) {
+  for (const VAL::cond_effect* effect : symbol->cond_effects) {
     DisjunctiveFormula condition;
     try {
       condition = DisjunctiveFormula(pddl, effect->getCondition(), parameters,

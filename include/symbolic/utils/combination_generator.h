@@ -11,6 +11,7 @@
 #define SYMBOLIC_UTILS_COMBINATION_GENERATOR_H_
 
 #include <cstddef>      // ptrdiff_t
+#include <exception>    // std::invalid_argument
 #include <iterator>     // std::forward_iterator_tag, std::iterator_traits
 #include <type_traits>  // std::conditional_t, std::is_const
 #include <vector>       // std::vector
@@ -37,23 +38,34 @@ class CombinationGenerator {
   using reverse_iterator = ReverseIterator<iterator>;
   using const_reverse_iterator = ReverseIterator<const_iterator>;
 
-  CombinationGenerator() {}
+  CombinationGenerator() = default;
+  virtual ~CombinationGenerator() = default;
 
-  CombinationGenerator(const std::vector<ContainerT*>& options)
+  explicit CombinationGenerator(const std::vector<ContainerT*>& options)
       : options_(options), end_(iterator::end(&options_)) {
     for (size_t i = 0; i < options.size(); i++) {
-      if (options[i]->begin() == options[i]->end())
+      if (options[i]->begin() == options[i]->end()) {
         throw std::invalid_argument(
             "CombinationGenerator(): Empty option at position " +
             std::to_string(i) + ".");
+      }
     }
   }
 
   CombinationGenerator(const CombinationGenerator& other)
       : options_(other.options_), end_(iterator::end(&options_)) {}
 
-  CombinationGenerator(CombinationGenerator&& other)
+  CombinationGenerator(CombinationGenerator&& other) noexcept
       : options_(std::move(other.options_)), end_(iterator::end(&options_)) {}
+
+  CombinationGenerator& operator=(const CombinationGenerator& other) {
+    options_ = other.options_;
+    end_ = iterator::end(&options_);
+  }
+  CombinationGenerator& operator=(CombinationGenerator&& other) noexcept {
+    options_ = std::move(other.options_);
+    end_ = iterator::end(&options_);
+  }
 
   iterator begin() { return iterator::begin(&options_); };
   const iterator& end() { return end_; };
@@ -78,8 +90,8 @@ class CombinationGenerator {
   }
 
  private:
-  const std::vector<ContainerT*> options_;
-  const const_iterator end_;
+  std::vector<ContainerT*> options_;
+  const_iterator end_;
 };
 
 template <typename ContainerT>
@@ -131,7 +143,7 @@ class CombinationGenerator<ContainerT>::ReverseIterator {
   using pointer = typename std::iterator_traits<IteratorT>::pointer;
   using reference = typename std::iterator_traits<IteratorT>::reference;
 
-  ReverseIterator(IteratorT&& it);
+  explicit ReverseIterator(IteratorT&& it);
 
   ReverseIterator& operator++();
   ReverseIterator& operator--();
@@ -155,8 +167,9 @@ CombinationGenerator<ContainerT>::Iterator<Const>::Iterator(
     : options_(options),
       it_options_(std::move(it_options)),
       combination_(options_->size()) {
-  if (options_->empty() || it_options_.front() == options_->front()->end())
+  if (options_->empty() || it_options_.front() == options_->front()->end()) {
     return;
+  }
   for (size_t i = 0; i < options_->size(); i++) {
     combination_[i] = *it_options_[i];
   }
@@ -167,8 +180,9 @@ template <bool Const>
 typename CombinationGenerator<ContainerT>::template Iterator<Const>&
 CombinationGenerator<ContainerT>::Iterator<Const>::operator++() {
   // Check for end flag
-  if (options_->empty() || it_options_.front() == options_->front()->end())
+  if (options_->empty() || it_options_.front() == options_->front()->end()) {
     return *this;
+  }
 
   for (size_t i = options_->size() - 1; i >= 0; i--) {
     ContainerT& values = *options_->at(i);

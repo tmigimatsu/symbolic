@@ -94,14 +94,14 @@ EffectsFunction CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
 
 EffectsFunction CreateCond(const Pddl& pddl, const VAL::cond_effect* effect,
                            const std::vector<Object>& parameters) {
-  const symbolic::Formula Condition(pddl, effect->getCondition(), parameters);
+  symbolic::Formula Condition(pddl, effect->getCondition(), parameters);
   EffectsFunction CondEffects =
       CreateEffectsFunction(pddl, effect->getEffects(), parameters);
   return
       [Condition = std::move(Condition), CondEffects = std::move(CondEffects)](
           const std::vector<Object>& arguments, State* state) {
-        // TODO: Condition might return different results depending on ordering
-        // of other effects since state is modified in place.
+        // TODO(tmigimatsu): Condition might return different results depending
+        // on ordering of other effects since state is modified in place.
         if (Condition(*state, arguments)) {
           return CondEffects(arguments, state);
         }
@@ -202,8 +202,8 @@ std::string Action::to_string(const std::vector<Object>& arguments) const {
 
 std::pair<Action, std::vector<Object>> ParseAction(
     const Pddl& pddl, const std::string& action_call) {
-  const auto aa = std::make_pair<Action, std::vector<Object>>(
-      Action(pddl, action_call), ParseArguments(pddl, action_call));
+  auto aa = std::make_pair(Action(pddl, action_call),
+                           ParseArguments(pddl, action_call));
   const Action& action = aa.first;
   const std::vector<Object>& args = aa.second;
 

@@ -11,72 +11,71 @@
 #define SYMBOLIC_PLANNING_BREADTH_FIRST_SEARCH_H_
 
 #include <cstddef>   // ptrdiff_t
-#include <iterator>  // std::input_iterator_tag
 #include <iostream>  // std::cout
+#include <iterator>  // std::input_iterator_tag
 #include <memory>    // std::shared_ptr
 #include <queue>     // std::queue
-#include <vector>    // std::vector
 #include <utility>   // std::pair
+#include <vector>    // std::vector
 
 namespace symbolic {
 
-template<typename NodeT>
+template <typename NodeT>
 class BreadthFirstSearch {
-
  public:
-
   class iterator;
 
   BreadthFirstSearch(const NodeT& root, size_t max_depth, bool verbose = false)
       : max_depth_(max_depth), verbose_(verbose), root_(root) {}
 
-  iterator begin() const { iterator it(this); return ++it; }
+  iterator begin() const {
+    iterator it(this);
+    return ++it;
+  }
   iterator end() const { return iterator(); }
 
  private:
-
   const size_t max_depth_;
   const bool verbose_;
 
   const NodeT& root_;
-
 };
 
-template<typename NodeT>
+template <typename NodeT>
 class BreadthFirstSearch<NodeT>::iterator {
-
  public:
-
   using iterator_category = std::input_iterator_tag;
   using value_type = std::vector<NodeT>;
   using difference_type = ptrdiff_t;
   using pointer = const value_type*;
   using reference = const value_type&;
 
-  iterator() {}
-  iterator(const BreadthFirstSearch<NodeT>* bfs)
+  iterator() = default;
+  explicit iterator(const BreadthFirstSearch<NodeT>* bfs)
       : bfs_(bfs),
         queue_({{bfs_->root_, std::make_shared<std::vector<NodeT>>()}}) {}
 
   iterator& operator++();
-  bool operator==(const iterator& other) const { return queue_.empty() && other.queue_.empty(); }
+  bool operator==(const iterator& other) const {
+    return queue_.empty() && other.queue_.empty();
+  }
   bool operator!=(const iterator& other) const { return !(*this == other); }
   reference operator*() const { return *ancestors_; }
 
  private:
-
   const BreadthFirstSearch<NodeT>* bfs_ = nullptr;
 
   std::queue<std::pair<NodeT, std::shared_ptr<std::vector<NodeT>>>> queue_;
   std::shared_ptr<std::vector<NodeT>> ancestors_;
-
 };
 
-template<typename NodeT>
-typename BreadthFirstSearch<NodeT>::iterator& BreadthFirstSearch<NodeT>::iterator::operator++() {
+template <typename NodeT>
+typename BreadthFirstSearch<NodeT>::iterator&
+BreadthFirstSearch<NodeT>::iterator::operator++() {
   size_t depth = 0;
   while (!queue_.empty()) {
-    std::pair<NodeT, std::shared_ptr<std::vector<NodeT>>>& front = queue_.front();
+    std::pair<NodeT, std::shared_ptr<std::vector<NodeT>>>& front =
+        queue_.front();
 
     // Take ancestors list and append current node
     ancestors_ = std::make_shared<std::vector<NodeT>>(*front.second);

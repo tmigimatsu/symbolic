@@ -18,9 +18,9 @@
 
 #ifndef SYMBOLIC_STATE_USE_SET
 #include <vector>  // std::vector
-#else   // SYMBOLIC_STATE_USE_SET
+#else              // SYMBOLIC_STATE_USE_SET
 #include <set>     // std::set
-#endif  // SYMBOLIC_STATE_USE_SET
+#endif             // SYMBOLIC_STATE_USE_SET
 
 namespace symbolic {
 
@@ -36,7 +36,7 @@ class State : private std::set<Proposition> {
   using iterator = Base::iterator;
   using const_iterator = Base::const_iterator;
 
-  State() {}
+  State() = default;
   State(std::initializer_list<Proposition> l);
 
   bool contains(const Proposition& prop) const;
@@ -60,7 +60,7 @@ class State : private std::set<Proposition> {
   const_iterator begin() const { return Base::begin(); }
   const_iterator end() const { return Base::end(); };
 
-  size_t empty() const { return Base::empty(); }
+  bool empty() const { return Base::empty(); }
   size_t size() const { return Base::size(); }
 
 #ifndef SYMBOLIC_STATE_USE_SET
@@ -88,10 +88,10 @@ class State : private std::set<Proposition> {
 
 template <class InputIt>
 bool State::insert(InputIt first, InputIt last) {
-  // TODO: More efficient way of inserting
+  // TODO(tmigimatsu): More efficient way of inserting
   bool is_changed = false;
   for (InputIt it = first; it != last; ++it) {
-    is_changed != insert(*it);
+    is_changed |= insert(*it);
   }
   return is_changed;
 }

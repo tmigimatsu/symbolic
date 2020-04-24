@@ -26,7 +26,7 @@ class Planner {
     class iterator;
     class reverse_iterator;
 
-    Node() {}
+    Node() = default;
     Node(const Pddl& pddl, const State& state, size_t depth = 0);
     Node(const Node& parent, const Node& sibling, State&& state,
          std::string&& action);
@@ -56,7 +56,7 @@ class Planner {
     std::shared_ptr<NodeImpl> impl_;
   };
 
-  Planner(const Pddl& pddl);
+  explicit Planner(const Pddl& pddl);
 
   const Node& root() const { return root_; }
 
@@ -72,7 +72,7 @@ class Planner::Node::iterator {
   using pointer = const value_type*;
   using reference = const value_type&;
 
-  iterator(const Node& parent);
+  explicit iterator(const Node& parent);
 
   iterator& operator++();
   iterator& operator--();
