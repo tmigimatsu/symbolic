@@ -84,8 +84,8 @@ State ParseState(const Pddl& pddl, const std::set<std::string>& str_state) {
 }
 
 std::vector<Object> GetObjects(const VAL::domain& domain, const VAL::problem& problem) {
-  std::vector<Object> objects = symbolic::ConvertObjects(domain.constants);
-  const std::vector<Object> objects_2 = symbolic::ConvertObjects(problem.objects);
+  std::vector<Object> objects = symbolic::ConvertObjects(domain.types, domain.constants);
+  const std::vector<Object> objects_2 = symbolic::ConvertObjects(domain.types, problem.objects);
   objects.insert(objects.end(), objects_2.begin(), objects_2.end());
   return objects;
 }
@@ -121,19 +121,20 @@ std::vector<Axiom> GetAxioms(const Pddl& pddl, const VAL::domain& domain) {
   return axioms;
 }
 
-State GetInitialState(const VAL::problem& problem, const std::vector<Object>& objects) {
+State GetInitialState(const VAL::domain& domain, const VAL::problem& problem,
+                      const std::vector<Object>& objects) {
   State initial_state;
   for (const VAL::simple_effect* effect : problem.initial_state->add_effects) {
     std::vector<Object> arguments;
     arguments.reserve(effect->prop->args->size());
     for (const VAL::parameter_symbol* arg : *effect->prop->args) {
-      arguments.emplace_back(arg);
+      arguments.emplace_back(domain.types, arg);
     }
     initial_state.emplace(effect->prop->head->getName(), std::move(arguments));
   }
-  for (const Object& object : objects) {
-    initial_state.emplace("=", std::vector<Object>{object, object});
-  }
+  // for (const Object& object : objects) {
+  //   initial_state.emplace("=", std::vector<Object>{object, object});
+  // }
   return initial_state;
 }
 
@@ -149,7 +150,7 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
       object_map_(CreateObjectTypeMap(objects_)),
       actions_(GetActions(*this, domain_)),
       axioms_(GetAxioms(*this, domain_)),
-      initial_state_(GetInitialState(problem_, objects_)),
+      initial_state_(GetInitialState(domain_, problem_, objects_)),
       goal_(*this, problem_.the_goal) {}
 
 bool Pddl::IsValid(bool verbose, std::ostream& os) const {

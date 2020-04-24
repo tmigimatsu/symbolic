@@ -53,15 +53,11 @@ class Object {
 
   Object() {}
 
-  // TODO: Set default type to "object"
-  // Object(const VAL::pddl_typed_symbol* symbol) : symbol_(symbol), name_(symbol_->getName()) {}
-  Object(const VAL::pddl_typed_symbol* symbol)
-      : symbol_(symbol), name_(symbol->getName()), type_(symbol->type) {}
+  Object(const Pddl& pddl, const VAL::pddl_typed_symbol* symbol);
+
+  Object(const VAL::pddl_type_list* types, const VAL::pddl_typed_symbol* symbol);
 
   Object(const Pddl& pddl, const std::string& name_object);
-
-  // Object(const std::string& name_object, const std::string& type)
-  //     : name_(name_object), type_(type) {}
 
   const VAL::pddl_typed_symbol* symbol() const { return symbol_; }
 
@@ -82,11 +78,22 @@ class Object {
 std::vector<Object> ParseArguments(const Pddl& pddl, const std::string& atom);
 
 template<typename T>
-std::vector<Object> ConvertObjects(const VAL::typed_symbol_list<T>* symbols) {
+std::vector<Object> ConvertObjects(const Pddl& pddl, const VAL::typed_symbol_list<T>* symbols) {
   std::vector<Object> objects;
   objects.reserve(symbols->size());
   for (const T* symbol : *symbols) {
-    objects.emplace_back(symbol);
+    objects.emplace_back(pddl, symbol);
+  }
+  return objects;
+}
+
+template<typename T>
+std::vector<Object> ConvertObjects(const VAL::pddl_type_list* types,
+                                   const VAL::typed_symbol_list<T>* symbols) {
+  std::vector<Object> objects;
+  objects.reserve(symbols->size());
+  for (const T* symbol : *symbols) {
+    objects.emplace_back(types, symbol);
   }
   return objects;
 }

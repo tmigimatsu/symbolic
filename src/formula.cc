@@ -29,11 +29,17 @@ using ApplicationFunction = std::function<std::vector<Object>(const std::vector<
 FormulaFunction CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
                               const std::vector<Object>& parameters);
 
-FormulaFunction CreateProposition(const VAL::simple_goal* symbol,
+FormulaFunction CreateProposition(const Pddl& pddl, const VAL::simple_goal* symbol,
                                   const std::vector<Object>& parameters) {
   const VAL::proposition* prop = symbol->getProp();
   const std::string name_predicate = prop->head->getName();
-  const std::vector<Object> prop_params = symbolic::ConvertObjects(prop->args);
+  if (name_predicate == "=") {
+    return [](const State& state, const std::vector<Object>& arguments) {
+      return arguments[0] == arguments[1];
+    };
+  }
+
+  const std::vector<Object> prop_params = symbolic::ConvertObjects(pddl, prop->args);
   ApplicationFunction Apply = CreateApplicationFunction(parameters, prop_params);
   return [name_predicate, Apply = std::move(Apply)](const State& state,
                                                     const std::vector<Object>& arguments) {
@@ -93,7 +99,7 @@ FormulaFunction CreateForall(const Pddl& pddl, const VAL::qfied_goal* symbol,
                              const std::vector<Object>& parameters) {
   // Create forall parameters
   std::vector<Object> forall_params = parameters;
-  std::vector<Object> types = symbolic::ConvertObjects(symbol->getVars());
+  std::vector<Object> types = symbolic::ConvertObjects(pddl, symbol->getVars());
   forall_params.insert(forall_params.end(), types.begin(), types.end());
 
   const VAL::goal* goal = symbol->getGoal();
@@ -118,7 +124,7 @@ FormulaFunction CreateExists(const Pddl& pddl, const VAL::qfied_goal* symbol,
                              const std::vector<Object>& parameters) {
   // Create exists parameters
   std::vector<Object> exists_params = parameters;
-  std::vector<Object> types = symbolic::ConvertObjects(symbol->getVars());
+  std::vector<Object> types = symbolic::ConvertObjects(pddl, symbol->getVars());
   exists_params.insert(exists_params.end(), types.begin(), types.end());
 
   const VAL::goal* goal = symbol->getGoal();
@@ -144,7 +150,7 @@ FormulaFunction CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
   // Proposition
   const VAL::simple_goal* simple_goal = dynamic_cast<const VAL::simple_goal*>(symbol);
   if (simple_goal != nullptr) {
-    return CreateProposition(simple_goal, parameters);
+    return CreateProposition(pddl, simple_goal, parameters);
   }
 
   // Conjunction

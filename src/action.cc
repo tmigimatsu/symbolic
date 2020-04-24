@@ -37,7 +37,7 @@ EffectsFunction CreateForall(const Pddl& pddl, const VAL::forall_effect* effect,
                              const std::vector<Object>& parameters) {
   // Create forall parameters
   std::vector<Object> forall_params = parameters;
-  const std::vector<Object> types = symbolic::ConvertObjects(effect->getVarsList());
+  const std::vector<Object> types = symbolic::ConvertObjects(pddl, effect->getVarsList());
   forall_params.insert(forall_params.end(), types.begin(), types.end());
   EffectsFunction ForallEffects = CreateEffectsFunction(pddl, effect->getEffects(), forall_params);
 
@@ -60,7 +60,7 @@ EffectsFunction CreateForall(const Pddl& pddl, const VAL::forall_effect* effect,
 EffectsFunction CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
                           const std::vector<Object>& parameters) {
   // Prepare effect argument application functions
-  const std::vector<Object> effect_params = symbolic::ConvertObjects(effect->prop->args);
+  const std::vector<Object> effect_params = symbolic::ConvertObjects(pddl, effect->prop->args);
   ApplicationFunction Apply = symbolic::CreateApplicationFunction(parameters, effect_params);
 
   return [name_predicate = effect->prop->head->getName(),
@@ -72,7 +72,7 @@ EffectsFunction CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
 EffectsFunction CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
                           const std::vector<Object>& parameters) {
   // Prepare effect argument application functions
-  const std::vector<Object> effect_params = symbolic::ConvertObjects(effect->prop->args);
+  const std::vector<Object> effect_params = symbolic::ConvertObjects(pddl, effect->prop->args);
   ApplicationFunction Apply = symbolic::CreateApplicationFunction(parameters, effect_params);
 
   return [name_predicate = effect->prop->head->getName(),
@@ -147,7 +147,7 @@ namespace symbolic {
 Action::Action(const Pddl& pddl, const VAL::operator_* symbol)
     : symbol_(symbol),
       name_(symbol_->name->getName()),
-      parameters_(ConvertObjects(symbol_->parameters)),
+      parameters_(ConvertObjects(pddl, symbol_->parameters)),
       param_gen_(pddl.object_map(), parameters_),
       Preconditions_(pddl, symbol_->precondition, parameters_),
       Apply_(CreateEffectsFunction(pddl, symbol_->effects, parameters_)) {}
@@ -155,7 +155,7 @@ Action::Action(const Pddl& pddl, const VAL::operator_* symbol)
 Action::Action(const Pddl& pddl, const std::string& action_call)
     : symbol_(GetSymbol(pddl, ParseHead(action_call))),
       name_(symbol_->name->getName()),
-      parameters_(ConvertObjects(symbol_->parameters)),
+      parameters_(ConvertObjects(pddl, symbol_->parameters)),
       param_gen_(pddl.object_map(), parameters_),
       Preconditions_(pddl, symbol_->precondition, parameters_),
       Apply_(CreateEffectsFunction(pddl, symbol_->effects, parameters_)) {}

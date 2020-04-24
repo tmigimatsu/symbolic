@@ -119,7 +119,7 @@ std::ostream& operator<<(std::ostream& os, const symbolic::Planner::Node& node) 
   os << (node.depth() > 0 ? " " : "") << node.action() << " -> ";
   std::string separator;
   for (const Proposition& P : node.state()) {
-    if (P.name() == "=") continue;
+    // if (P.name() == "=") continue;
     os << separator << P;
     if (separator.empty()) separator = ", ";
   }

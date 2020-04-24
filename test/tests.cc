@@ -141,7 +141,7 @@ TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
     std::cout << "  Evaluation: " << axiom.IsConsistent(pddl2.initial_state()) << std::endl;
   }
 
-  // std::cout << cond.first << std::endl << cond.second << std::endl;
-  // std::cout << cond.first.conjunctions.size() << " " << cond.second.conjunctions.size() << std::endl;
-  // std::cout << std::chrono::duration<double>(t_end - t_start).count() << std::endl;
+  std::cout << cond.first << std::endl << cond.second << std::endl;
+  std::cout << cond.first.conjunctions.size() << " " << cond.second.conjunctions.size() << std::endl;
+  std::cout << std::chrono::duration<double>(t_end - t_start).count() << std::endl;
 }

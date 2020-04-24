@@ -12,43 +12,19 @@
 #include <algorithm>  // std::min, std::replace
 #include <cassert>    // assert
 #include <sstream>    // std::stringstream
+#include <iostream>
 
 #include "symbolic/pddl.h"
 
-/**
- * Create a map from object types to member objects.
- */
-  /*
-std::shared_ptr<const ObjectTypeMap> CreateObjectsMap(const VAL::const_symbol_list* constants,
-                                                      const VAL::const_symbol_list* objects) {
-  auto map_objects = std::make_shared<ObjectTypeMap>();
-
-  // Iterate over constants
-  for (const VAL::const_symbol* object : *constants) {
-    const VAL::parameter_symbol* param = dynamic_cast<const VAL::parameter_symbol*>(object);
-
-    // Iterate over this object's type superclasses
-    for (const VAL::pddl_type* type = param->type; type != nullptr; type = type->type) {
-      // Add object to the type's member vector'
-      (*map_objects)[type].push_back(param);
-    }
-  }
-
-  // Iterate over objects
-  for (const VAL::const_symbol* object : *objects) {
-    const VAL::parameter_symbol* param = dynamic_cast<const VAL::parameter_symbol*>(object);
-
-    // Iterate over this object's type superclasses
-    for (const VAL::pddl_type* type = param->type; type != nullptr; type = type->type) {
-      // Add object to the type's member vector'
-      (*map_objects)[type].push_back(param);
-    }
-  }
-  return map_objects;
-}
-*/
-
 namespace {
+
+const VAL::pddl_type* GetTypeSymbol(const VAL::pddl_type_list* types, const VAL::pddl_type* symbol = nullptr) {
+  if (symbol != nullptr) return symbol;
+  for (const VAL::pddl_type* type = types->front(); type != nullptr; type = type->type) {
+    if (type->type == nullptr) return type;
+  }
+  return nullptr;
+}
 
 const VAL::const_symbol* GetSymbol(const symbolic::Pddl& pddl, const std::string& name_object) {
   assert(pddl.domain().constants != nullptr);
@@ -99,10 +75,20 @@ std::vector<std::string> Object::Type::ListTypes() const {
   return types;
 }
 
+Object::Object(const Pddl& pddl, const VAL::pddl_typed_symbol* symbol)
+    : symbol_(symbol),
+      name_(symbol->getName()),
+      type_(GetTypeSymbol(pddl.domain().types, symbol->type)) {}
+
+Object::Object(const VAL::pddl_type_list* types, const VAL::pddl_typed_symbol* symbol)
+    : symbol_(symbol),
+      name_(symbol->getName()),
+      type_(GetTypeSymbol(types, symbol->type)) {}
+
 Object::Object(const Pddl& pddl, const std::string& name_object)
     : symbol_(GetSymbol(pddl, name_object)),
       name_(name_object),
-      type_(symbol_->type) {}
+      type_(GetTypeSymbol(pddl.domain().types, symbol_->type)) {}
 
 std::vector<Object> ParseArguments(const Pddl& pddl, const std::string& atom) {
   // std::cout << "ParseArguments: " << atom << " -> ";

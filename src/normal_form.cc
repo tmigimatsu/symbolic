@@ -97,7 +97,7 @@ bool TryInsertSubset(const DisjunctiveFormula::Conjunction& conj,
 namespace symbolic {
 
 std::optional<bool> Evaluate(const Pddl& pddl, const DisjunctiveFormula::Conjunction& conj) {
-  // Evaluate =()
+  // Evaluate =
   if (conj.size() == 1) {
     return conj.neg.empty() ? EvaluateEquals(*conj.pos.begin())
                             : ::Negate(EvaluateEquals(*conj.neg.begin()));
@@ -232,7 +232,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::goal* symbol
   if (simple_goal != nullptr) {
     const VAL::proposition* prop = simple_goal->getProp();
     const std::string name_predicate = prop->head->getName();
-    const std::vector<Object> prop_params = symbolic::ConvertObjects(prop->args);
+    const std::vector<Object> prop_params = symbolic::ConvertObjects(pddl, prop->args);
     const auto Apply = CreateApplicationFunction(parameters, prop_params);
 
     conjunctions = {{{ Proposition(name_predicate, Apply(arguments)) }, {}}};
@@ -288,7 +288,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::goal* symbol
 
     // Create qfied parameters
     std::vector<Object> qfied_params = parameters;
-    std::vector<Object> types = symbolic::ConvertObjects(qfied_goal->getVars());
+    std::vector<Object> types = symbolic::ConvertObjects(pddl, qfied_goal->getVars());
     qfied_params.insert(qfied_params.end(), types.begin(), types.end());
 
     // Loop over qfied arguments
@@ -329,7 +329,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::effect_lists
   // Forall effects
   for (const VAL::forall_effect* effect : effects->forall_effects) {
     std::vector<Object> forall_params = parameters;
-    const std::vector<Object> types = symbolic::ConvertObjects(effect->getVarsList());
+    const std::vector<Object> types = symbolic::ConvertObjects(pddl, effect->getVarsList());
     forall_params.insert(forall_params.end(), types.begin(), types.end());
 
     // Loop over forall arguments
@@ -348,7 +348,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::effect_lists
   simple.pos.reserve(effects->add_effects.size());
   for (const VAL::simple_effect* effect : effects->add_effects) {
     const std::string name_predicate = effect->prop->head->getName();
-    const std::vector<Object> effect_params = symbolic::ConvertObjects(effect->prop->args);
+    const std::vector<Object> effect_params = symbolic::ConvertObjects(pddl, effect->prop->args);
     const auto Apply = CreateApplicationFunction(parameters, effect_params);
 
     simple.pos.emplace(name_predicate, Apply(arguments));
@@ -358,7 +358,7 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl, const VAL::effect_lists
   simple.neg.reserve(effects->del_effects.size());
   for (const VAL::simple_effect* effect : effects->del_effects) {
     const std::string name_predicate = effect->prop->head->getName();
-    const std::vector<Object> effect_params = symbolic::ConvertObjects(effect->prop->args);
+    const std::vector<Object> effect_params = symbolic::ConvertObjects(pddl, effect->prop->args);
     const auto Apply = CreateApplicationFunction(parameters, effect_params);
 
     simple.neg.emplace(name_predicate, Apply(arguments));
