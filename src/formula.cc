@@ -9,6 +9,7 @@
 
 #include "symbolic/formula.h"
 
+#include <cassert>        // assert
 #include <exception>      // std::runtime_error
 #include <unordered_map>  // std::unordered_map
 #include <utility>        // std::move
@@ -35,18 +36,34 @@ FormulaFunction CreateProposition(const Pddl& pddl,
                                   const VAL::simple_goal* symbol,
                                   const std::vector<Object>& parameters) {
   const VAL::proposition* prop = symbol->getProp();
-  const std::string name_predicate = prop->head->getName();
-  if (name_predicate == "=") {
-    // NOLINTNEXTLINE(misc-unused-parameters)
-    return [](const State& state, const std::vector<Object>& arguments) {
-      return arguments[0] == arguments[1];
-    };
-  }
-
+  std::string name_predicate = prop->head->getName();
   const std::vector<Object> prop_params =
       symbolic::ConvertObjects(pddl, prop->args);
   ApplicationFunction Apply =
       CreateApplicationFunction(parameters, prop_params);
+
+  if (name_predicate == "=") {
+    // NOLINTNEXTLINE(misc-unused-parameters)
+    return [Apply = std::move(Apply)](const State& state,
+                                      const std::vector<Object>& arguments) {
+      const std::vector<Object> prop_args = Apply(arguments);
+      assert(prop_args.size() == 2);
+      return prop_args[0] == prop_args[1];
+    };
+  }
+  if (pddl.object_map().find(name_predicate) != pddl.object_map().end()) {
+    // Predicate is a type. If it isn't in the object map, then no objects of
+    // that type exist, and the proposition will be treated as a normal one
+    // (and will always be false since the state will never contain it).
+    return [name_predicate, Apply = std::move(Apply)](
+               // NOLINTNEXTLINE(misc-unused-parameters)
+               const State& state, const std::vector<Object>& arguments) {
+      const std::vector<Object> prop_args = Apply(arguments);
+      assert(prop_args.size() == 1);
+      return prop_args[0].type().IsSubtype(name_predicate);
+    };
+  }
+
   return [name_predicate, Apply = std::move(Apply)](
              const State& state, const std::vector<Object>& arguments) {
     Proposition P(name_predicate, Apply(arguments));

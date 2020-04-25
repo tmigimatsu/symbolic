@@ -20,9 +20,12 @@ namespace {
 const VAL::pddl_type* GetTypeSymbol(const VAL::pddl_type_list* types,
                                     const VAL::pddl_type* symbol = nullptr) {
   if (symbol != nullptr) return symbol;
-  for (const VAL::pddl_type* type = types->front(); type != nullptr;
-       type = type->type) {
-    if (type->type == nullptr) return type;
+  // Iterate over domain types
+  for (const VAL::pddl_type* type : *types) {
+    // Iterate over ancestors of current type
+    for (; type != nullptr; type = type->type) {
+      if (type->type == nullptr && type->getName() == "object") return type;
+    }
   }
   return nullptr;
 }

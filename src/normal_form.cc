@@ -20,7 +20,13 @@
 namespace {
 
 using ::symbolic::DisjunctiveFormula;
+using ::symbolic::FormulaLiterals;
+using ::symbolic::Pddl;
 using ::symbolic::Proposition;
+
+std::optional<bool> Negate(const std::optional<bool>& x) {
+  return x.has_value() ? !*x : std::optional<bool>{};
+}
 
 std::optional<bool> EvaluateEquals(const Proposition& prop) {
   if (prop.name() != "=") return {};
@@ -28,8 +34,23 @@ std::optional<bool> EvaluateEquals(const Proposition& prop) {
   return prop.arguments()[0] == prop.arguments()[1];
 }
 
-std::optional<bool> Negate(const std::optional<bool>& x) {
-  return x.has_value() ? !*x : std::optional<bool>{};
+std::optional<bool> EvaluateEquals(const FormulaLiterals& formula) {
+  assert(formula.size() == 1);
+  return formula.neg.empty() ? EvaluateEquals(*formula.pos.begin())
+                             : Negate(EvaluateEquals(*formula.neg.begin()));
+}
+
+std::optional<bool> EvaluateType(const Pddl& pddl, const Proposition& prop) {
+  if (pddl.object_map().find(prop.name()) == pddl.object_map().end()) return {};
+  assert(prop.arguments().size() == 1);
+  return prop.arguments()[0].type().IsSubtype(prop.name());
+}
+
+std::optional<bool> EvaluateType(const Pddl& pddl,
+                                 const FormulaLiterals& formula) {
+  assert(formula.size() == 1);
+  return formula.neg.empty() ? EvaluateType(pddl, *formula.pos.begin())
+                             : Negate(EvaluateType(pddl, *formula.neg.begin()));
 }
 
 template <typename T>
@@ -96,10 +117,12 @@ namespace symbolic {
 
 std::optional<bool> Evaluate(const Pddl& pddl,
                              const DisjunctiveFormula::Conjunction& conj) {
-  // Evaluate =
+  // Evaluate =, type
   if (conj.size() == 1) {
-    return conj.neg.empty() ? EvaluateEquals(*conj.pos.begin())
-                            : ::Negate(EvaluateEquals(*conj.neg.begin()));
+    std::optional<bool> eval = EvaluateEquals(conj);
+    if (eval.has_value()) return eval;
+    eval = EvaluateType(pddl, conj);
+    if (eval.has_value()) return eval;
   }
 
   // Ensure pos and neg sets don't overlap
@@ -116,7 +139,12 @@ std::optional<bool> Evaluate(const Pddl& pddl,
 
 std::optional<DisjunctiveFormula> Simplify(const Pddl& pddl,
                                            DisjunctiveFormula&& dnf) {
+  if (dnf.empty()) return std::move(dnf);
+
   DisjunctiveFormula ret;
+  ret.conjunctions.reserve(dnf.conjunctions.size());
+
+  ret = DisjunctiveFormula();
   ret.conjunctions.reserve(dnf.conjunctions.size());
   for (DisjunctiveFormula::Conjunction& conj : dnf.conjunctions) {
     const std::optional<bool> is_true = Evaluate(pddl, conj);
@@ -134,12 +162,12 @@ std::optional<DisjunctiveFormula> Simplify(const Pddl& pddl,
   }
 
   // If all conjunctions were false, return null
-  if (ret.conjunctions.empty()) return {};
+  if (ret.empty()) return {};
 
   // Sort conjunctions
   SortUnique(&ret.conjunctions);
 
-  return ret;
+  return std::move(ret);
 }
 
 std::optional<DisjunctiveFormula> Disjoin(
@@ -385,8 +413,9 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl,
   for (const VAL::cond_effect* effect : symbol->cond_effects) {
     DisjunctiveFormula condition;
     try {
-      condition = DisjunctiveFormula(pddl, effect->getCondition(), parameters,
-                                     arguments);
+      condition =
+          *Simplify(pddl, DisjunctiveFormula(pddl, effect->getCondition(),
+                                             parameters, arguments));
     } catch (...) {
       // Condition always false
       continue;
@@ -402,11 +431,15 @@ DisjunctiveFormula::DisjunctiveFormula(const Pddl& pddl,
     }
 
     try {
-      dnfs.push_back(*Disjoin(
-          pddl, {Negate(pddl, std::move(condition)), std::move(result)}));
+      condition = Negate(pddl, std::move(condition));
     } catch (...) {
-      std::cerr << condition << std::endl;
-      std::cerr << result << std::endl;
+      // Axiom violated
+      continue;
+    }
+
+    try {
+      dnfs.push_back(*Disjoin(pddl, {std::move(condition), std::move(result)}));
+    } catch (...) {
       throw "DisjunctiveFormula(): Invalid condition.";
     }
   }
