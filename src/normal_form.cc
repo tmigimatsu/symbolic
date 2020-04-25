@@ -430,12 +430,12 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   }
 }
 
-ostream& operator<<(ostream& os, const DisjunctiveFormula::Conjunction& conj) {
+ostream& operator<<(ostream& os, const FormulaLiterals& lits) {
   os << "(and" << std::endl;
-  for (const Proposition& prop : conj.pos) {
+  for (const Proposition& prop : lits.pos) {
     os << "\t" << prop << std::endl;
   }
-  for (const Proposition& prop : conj.neg) {
+  for (const Proposition& prop : lits.neg) {
     os << "\tnot " << prop << std::endl;
   }
   os << ")" << std::endl;
@@ -449,6 +449,21 @@ ostream& operator<<(ostream& os, const DisjunctiveFormula& dnf) {
       os << "\t\t" << prop << std::endl;
     }
     for (const Proposition& prop : conj.neg) {
+      os << "\t\tnot " << prop << std::endl;
+    }
+    os << "\t)" << std::endl;
+  }
+  os << ")" << std::endl;
+  return os;
+}
+ostream& operator<<(ostream& os, const ConjunctiveFormula& cnf) {
+  os << "(and" << std::endl;
+  for (const ConjunctiveFormula::Disjunction& disj : cnf.disjunctions) {
+    os << "\t(or" << std::endl;
+    for (const Proposition& prop : disj.pos) {
+      os << "\t\t" << prop << std::endl;
+    }
+    for (const Proposition& prop : disj.neg) {
       os << "\t\tnot " << prop << std::endl;
     }
     os << "\t)" << std::endl;

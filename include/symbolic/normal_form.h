@@ -28,6 +28,18 @@ struct FormulaLiterals {
   bool empty() const { return pos.empty() && neg.empty(); }
   size_t size() const { return pos.size() + neg.size(); }
 
+  friend bool operator==(const FormulaLiterals& lhs,
+                         const FormulaLiterals& rhs) {
+    return lhs.pos == rhs.pos && lhs.neg == rhs.neg;
+  }
+
+  friend bool operator<(const FormulaLiterals& lhs,
+                        const FormulaLiterals& rhs) {
+    return std::tie(lhs.pos, lhs.neg) < std::tie(rhs.pos, rhs.neg);
+  }
+
+  friend ostream& operator<<(ostream& os, const FormulaLiterals& lits);
+
   State pos;
   State neg;
 };
@@ -64,6 +76,13 @@ struct DisjunctiveFormula {
       const std::vector<Object>& parameters,
       const std::vector<Object>& arguments);
 
+  friend bool operator==(const DisjunctiveFormula& lhs,
+                         const DisjunctiveFormula& rhs) {
+    return lhs.conjunctions == rhs.conjunctions;
+  }
+
+  friend ostream& operator<<(ostream& os, const DisjunctiveFormula& dnf);
+
   std::vector<Conjunction> conjunctions;
 };
 
@@ -77,6 +96,8 @@ struct ConjunctiveFormula {
   //                    const std::vector<Object>& arguments);
 
   // ConjunctiveFormula(const DisjunctiveFormula& dnf);
+
+  friend ostream& operator<<(ostream& os, const ConjunctiveFormula& cnf);
 
   std::vector<Disjunction> disjunctions;
 };
@@ -99,21 +120,6 @@ inline std::pair<DisjunctiveFormula, DisjunctiveFormula> NormalizeConditions(
 DisjunctiveFormula Negate(const Pddl& pddl, DisjunctiveFormula&& dnf);
 
 // ConjunctiveFormula Flip(DisjunctiveFormula&& cnf);
-
-inline bool operator==(const FormulaLiterals& lhs, const FormulaLiterals& rhs) {
-  return lhs.pos == rhs.pos && lhs.neg == rhs.neg;
-}
-inline bool operator<(const FormulaLiterals& lhs, const FormulaLiterals& rhs) {
-  return std::tie(lhs.pos, lhs.neg) < std::tie(rhs.pos, rhs.neg);
-}
-
-inline bool operator==(const DisjunctiveFormula& lhs,
-                       const DisjunctiveFormula& rhs) {
-  return lhs.conjunctions == rhs.conjunctions;
-}
-
-ostream& operator<<(ostream& os, const DisjunctiveFormula::Conjunction& conj);
-ostream& operator<<(ostream& os, const DisjunctiveFormula& dnf);
 
 }  // namespace symbolic
 
