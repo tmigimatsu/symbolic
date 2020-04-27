@@ -70,9 +70,44 @@ EffectsFunction CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
   ApplicationFunction Apply =
       symbolic::CreateApplicationFunction(parameters, effect_params);
 
-  return [name_predicate = effect->prop->head->getName(),
-          Apply = std::move(Apply)](const std::vector<Object>& arguments,
-                                    State* state) {
+  std::string name_predicate = effect->prop->head->getName();
+  if (name_predicate == "=") {
+    // Equality predicate
+    return [Apply = std::move(Apply)](const std::vector<Object>& arguments,
+                                      // NOLINTNEXTLINE(misc-unused-parameters)
+                                      State* state) {
+      std::vector<Object> prop_args = Apply(arguments);
+      assert(prop_args.size() == 2);
+      if (prop_args[0] != prop_args[1]) {
+        std::stringstream ss;
+        ss << "Action::Apply(): Cannot add effect: "
+           << Proposition("=", std::move(prop_args)) << ".";
+        throw std::runtime_error(ss.str());
+      }
+      return false;
+    };
+  }
+  if (pddl.object_map().find(name_predicate) != pddl.object_map().end()) {
+    // Type predicate
+    return
+        [name_predicate = std::move(name_predicate), Apply = std::move(Apply)](
+            // NOLINTNEXTLINE(misc-unused-parameters)
+            const std::vector<Object>& arguments, State* state) {
+          std::vector<Object> prop_args = Apply(arguments);
+          assert(prop_args.size() == 1);
+          if (!prop_args[0].type().IsSubtype(name_predicate)) {
+            std::stringstream ss;
+            ss << "Action::Apply(): Cannot add effect: "
+               << Proposition(name_predicate, std::move(prop_args)) << ".";
+            throw std::runtime_error(ss.str());
+          }
+          return false;
+        };
+  }
+
+  // Add normal predicate
+  return [name_predicate = std::move(name_predicate), Apply = std::move(Apply)](
+             const std::vector<Object>& arguments, State* state) {
     return state->emplace(name_predicate, Apply(arguments));
   };
 }
@@ -85,6 +120,42 @@ EffectsFunction CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
   ApplicationFunction Apply =
       symbolic::CreateApplicationFunction(parameters, effect_params);
 
+  std::string name_predicate = effect->prop->head->getName();
+  if (name_predicate == "=") {
+    // Equality predicate
+    return [Apply = std::move(Apply)](const std::vector<Object>& arguments,
+                                      // NOLINTNEXTLINE(misc-unused-parameters)
+                                      State* state) {
+      std::vector<Object> prop_args = Apply(arguments);
+      assert(prop_args.size() == 2);
+      if (prop_args[0] == prop_args[1]) {
+        std::stringstream ss;
+        ss << "Action::Apply(): Cannot add effect: "
+           << Proposition("=", std::move(prop_args)) << ".";
+        throw std::runtime_error(ss.str());
+      }
+      return false;
+    };
+  }
+  if (pddl.object_map().find(name_predicate) != pddl.object_map().end()) {
+    // Type predicate
+    return
+        [name_predicate = std::move(name_predicate), Apply = std::move(Apply)](
+            // NOLINTNEXTLINE(misc-unused-parameters)
+            const std::vector<Object>& arguments, State* state) {
+          std::vector<Object> prop_args = Apply(arguments);
+          assert(prop_args.size() == 1);
+          if (prop_args[0].type().IsSubtype(name_predicate)) {
+            std::stringstream ss;
+            ss << "Action::Apply(): Cannot delete effect: "
+               << Proposition(name_predicate, std::move(prop_args)) << ".";
+            throw std::runtime_error(ss.str());
+          }
+          return false;
+        };
+  }
+
+  // Remove normal predicate
   return [name_predicate = effect->prop->head->getName(),
           Apply = std::move(Apply)](const std::vector<Object>& arguments,
                                     State* state) {

@@ -463,6 +463,18 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   }
 }
 
+std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
+    const Pddl& pddl, const VAL::effect_lists* symbol,
+    const std::vector<Object>& parameters,
+    const std::vector<Object>& arguments) {
+  try {
+    return Simplify(pddl,
+                    DisjunctiveFormula(pddl, symbol, parameters, arguments));
+  } catch (...) {
+    return {};
+  }
+}
+
 ostream& operator<<(ostream& os, const FormulaLiterals& lits) {
   os << "(and" << std::endl;
   for (const Proposition& prop : lits.pos) {

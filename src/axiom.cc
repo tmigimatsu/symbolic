@@ -9,6 +9,8 @@
 
 #include "symbolic/axiom.h"
 
+#include <sstream>  // std::stringstream
+
 #include "symbolic/normal_form.h"
 
 namespace symbolic {
@@ -21,6 +23,19 @@ Axiom::Axiom(const Pddl& pddl, const VAL::operator_* symbol)
     if (!dnf.has_value()) continue;
     arguments_.push_back(arguments);
   }
+  std::stringstream ss;
+  try {
+    ss << *DisjunctiveFormula::Create(pddl, preconditions(), parameters(), parameters());
+  } catch (...) {
+    ss << "false";
+  }
+  ss << " => ";
+  try {
+    ss << *DisjunctiveFormula::Create(pddl, postconditions(), parameters(), parameters());
+  } catch (...) {
+    ss << "false";
+  }
+  formula_ = ss.str();
 }
 
 bool Axiom::IsConsistent(const State& state) const {
@@ -30,9 +45,25 @@ bool Axiom::IsConsistent(const State& state) const {
     if (!IsValid(state, args)) continue;
 
     // Test if implies is valid (state shouldn't change)
-    if (Apply(args, &test_state)) return false;
+    try {
+      if (Apply(args, &test_state)) return false;
+    } catch (const std::exception& e) {
+      // std::cerr << e.what() << std::endl;
+      return false;
+    }
   }
   return true;
+}
+
+std::ostream& operator<<(std::ostream& os, const Axiom& axiom) {
+  os << "axiom(";
+  std::string separator;
+  for (const Object& param : axiom.parameters()) {
+    os << separator << param;
+    if (separator.empty()) separator = ", ";
+  }
+  os << "): " << axiom.formula_;
+  return os;
 }
 
 }  // namespace symbolic

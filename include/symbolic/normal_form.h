@@ -76,6 +76,11 @@ struct DisjunctiveFormula {
       const std::vector<Object>& parameters,
       const std::vector<Object>& arguments);
 
+  static std::optional<DisjunctiveFormula> Create(
+      const Pddl& pddl, const VAL::effect_lists* symbol,
+      const std::vector<Object>& parameters,
+      const std::vector<Object>& arguments);
+
   friend bool operator==(const DisjunctiveFormula& lhs,
                          const DisjunctiveFormula& rhs) {
     return lhs.conjunctions == rhs.conjunctions;

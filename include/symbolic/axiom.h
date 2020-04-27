@@ -20,8 +20,11 @@ class Axiom : public Action {
 
   bool IsConsistent(const State& state) const;
 
+  friend std::ostream& operator<<(std::ostream& os, const Axiom& axiom);
+
  private:
   std::vector<std::vector<Object>> arguments_;
+  std::string formula_;
 };
 
 }  // namespace symbolic
