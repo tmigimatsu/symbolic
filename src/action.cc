@@ -18,6 +18,7 @@
 
 namespace {
 
+using ::symbolic::Formula;
 using ::symbolic::Object;
 using ::symbolic::Pddl;
 using ::symbolic::Proposition;
@@ -40,7 +41,7 @@ EffectsFunction CreateForall(const Pddl& pddl, const VAL::forall_effect* effect,
   // Create forall parameters
   std::vector<Object> forall_params = parameters;
   const std::vector<Object> types =
-      symbolic::ConvertObjects(pddl, effect->getVarsList());
+      symbolic::Object::CreateList(pddl, effect->getVarsList());
   forall_params.insert(forall_params.end(), types.begin(), types.end());
   EffectsFunction ForallEffects =
       CreateEffectsFunction(pddl, effect->getEffects(), forall_params);
@@ -66,9 +67,9 @@ EffectsFunction CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
                           const std::vector<Object>& parameters) {
   // Prepare effect argument application functions
   const std::vector<Object> effect_params =
-      symbolic::ConvertObjects(pddl, effect->prop->args);
+      symbolic::Object::CreateList(pddl, effect->prop->args);
   ApplicationFunction Apply =
-      symbolic::CreateApplicationFunction(parameters, effect_params);
+      Formula::CreateApplicationFunction(parameters, effect_params);
 
   std::string name_predicate = effect->prop->head->getName();
   if (name_predicate == "=") {
@@ -116,9 +117,9 @@ EffectsFunction CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
                           const std::vector<Object>& parameters) {
   // Prepare effect argument application functions
   const std::vector<Object> effect_params =
-      symbolic::ConvertObjects(pddl, effect->prop->args);
+      symbolic::Object::CreateList(pddl, effect->prop->args);
   ApplicationFunction Apply =
-      symbolic::CreateApplicationFunction(parameters, effect_params);
+      Formula::CreateApplicationFunction(parameters, effect_params);
 
   std::string name_predicate = effect->prop->head->getName();
   if (name_predicate == "=") {
@@ -233,15 +234,15 @@ namespace symbolic {
 Action::Action(const Pddl& pddl, const VAL::operator_* symbol)
     : symbol_(symbol),
       name_(symbol_->name->getName()),
-      parameters_(ConvertObjects(pddl, symbol_->parameters)),
+      parameters_(Object::CreateList(pddl, symbol_->parameters)),
       param_gen_(pddl.object_map(), parameters_),
       Preconditions_(pddl, symbol_->precondition, parameters_),
       Apply_(CreateEffectsFunction(pddl, symbol_->effects, parameters_)) {}
 
 Action::Action(const Pddl& pddl, const std::string& action_call)
-    : symbol_(GetSymbol(pddl, ParseHead(action_call))),
+    : symbol_(GetSymbol(pddl, Proposition::ParseHead(action_call))),
       name_(symbol_->name->getName()),
-      parameters_(ConvertObjects(pddl, symbol_->parameters)),
+      parameters_(Object::CreateList(pddl, symbol_->parameters)),
       param_gen_(pddl.object_map(), parameters_),
       Preconditions_(pddl, symbol_->precondition, parameters_),
       Apply_(CreateEffectsFunction(pddl, symbol_->effects, parameters_)) {}
@@ -271,10 +272,10 @@ std::string Action::to_string(const std::vector<Object>& arguments) const {
   return ss.str();
 }
 
-std::pair<Action, std::vector<Object>> ParseAction(
+std::pair<Action, std::vector<Object>> Action::Parse(
     const Pddl& pddl, const std::string& action_call) {
   auto aa = std::make_pair(Action(pddl, action_call),
-                           ParseArguments(pddl, action_call));
+                           Object::ParseArguments(pddl, action_call));
   const Action& action = aa.first;
   const std::vector<Object>& args = aa.second;
 

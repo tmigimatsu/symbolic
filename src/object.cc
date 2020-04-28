@@ -100,7 +100,7 @@ Object::Object(const Pddl& pddl, const std::string& name_object)
       name_(name_object),
       type_(GetTypeSymbol(pddl.domain().types, symbol_->type)) {}
 
-std::vector<Object> ParseArguments(const Pddl& pddl, const std::string& atom) {
+std::vector<Object> Object::ParseArguments(const Pddl& pddl, const std::string& atom) {
   const std::vector<std::string> name_args = TokenizeArguments(atom);
   std::vector<Object> args;
   args.reserve(name_args.size());

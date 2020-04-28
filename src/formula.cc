@@ -18,6 +18,7 @@
 
 namespace {
 
+using ::symbolic::Formula;
 using ::symbolic::Object;
 using ::symbolic::Pddl;
 using ::symbolic::Proposition;
@@ -38,9 +39,9 @@ FormulaFunction CreateProposition(const Pddl& pddl,
   const VAL::proposition* prop = symbol->getProp();
   std::string name_predicate = prop->head->getName();
   const std::vector<Object> prop_params =
-      symbolic::ConvertObjects(pddl, prop->args);
+      symbolic::Object::CreateList(pddl, prop->args);
   ApplicationFunction Apply =
-      CreateApplicationFunction(parameters, prop_params);
+      Formula::CreateApplicationFunction(parameters, prop_params);
 
   if (name_predicate == "=") {
     // NOLINTNEXTLINE(misc-unused-parameters)
@@ -124,7 +125,8 @@ FormulaFunction CreateForall(const Pddl& pddl, const VAL::qfied_goal* symbol,
                              const std::vector<Object>& parameters) {
   // Create forall parameters
   std::vector<Object> forall_params = parameters;
-  std::vector<Object> types = symbolic::ConvertObjects(pddl, symbol->getVars());
+  std::vector<Object> types =
+      symbolic::Object::CreateList(pddl, symbol->getVars());
   forall_params.insert(forall_params.end(), types.begin(), types.end());
 
   const VAL::goal* goal = symbol->getGoal();
@@ -150,7 +152,8 @@ FormulaFunction CreateExists(const Pddl& pddl, const VAL::qfied_goal* symbol,
                              const std::vector<Object>& parameters) {
   // Create exists parameters
   std::vector<Object> exists_params = parameters;
-  std::vector<Object> types = symbolic::ConvertObjects(pddl, symbol->getVars());
+  std::vector<Object> types =
+      symbolic::Object::CreateList(pddl, symbol->getVars());
   exists_params.insert(exists_params.end(), types.begin(), types.end());
 
   const VAL::goal* goal = symbol->getGoal();
@@ -220,7 +223,7 @@ Formula::Formula(const Pddl& pddl, const VAL::goal* symbol,
                  const std::vector<Object>& parameters)
     : symbol_(symbol), P_(CreateFormula(pddl, symbol, parameters)) {}
 
-ApplicationFunction CreateApplicationFunction(
+ApplicationFunction Formula::CreateApplicationFunction(
     const std::vector<Object>& action_params,
     const std::vector<Object>& prop_params) {
   // Map action parameter index to vector of proposition parameter indices

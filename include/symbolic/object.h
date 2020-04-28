@@ -32,9 +32,7 @@ class Object {
     const VAL::pddl_type* symbol() const { return symbol_; }
 
     bool IsSubtype(const std::string& type) const;
-    bool IsSubtype(const Type& type) const {
-      return IsSubtype(type.name());
-    }
+    bool IsSubtype(const Type& type) const { return IsSubtype(type.name()); }
 
     std::vector<std::string> ListTypes() const;
 
@@ -75,6 +73,19 @@ class Object {
 
   const Type& type() const { return type_; }
 
+  // Atom is a proposition or action
+  static std::vector<Object> ParseArguments(const Pddl& pddl,
+                                            const std::string& atom);
+
+  template <typename T>
+  static std::vector<Object> CreateList(
+      const Pddl& pddl, const VAL::typed_symbol_list<T>* symbols);
+
+  template <typename T>
+  static std::vector<Object> CreateList(
+      const VAL::pddl_type_list* types,
+      const VAL::typed_symbol_list<T>* symbols);
+
   friend bool operator<(const Object& lhs, const Object& rhs) {
     return std::tie(lhs.name(), lhs.type()) < std::tie(rhs.name(), rhs.type());
   }
@@ -98,12 +109,9 @@ class Object {
   Type type_;
 };
 
-// Atom is a proposition or action
-std::vector<Object> ParseArguments(const Pddl& pddl, const std::string& atom);
-
 template <typename T>
-std::vector<Object> ConvertObjects(const Pddl& pddl,
-                                   const VAL::typed_symbol_list<T>* symbols) {
+std::vector<Object> Object::CreateList(
+    const Pddl& pddl, const VAL::typed_symbol_list<T>* symbols) {
   std::vector<Object> objects;
   objects.reserve(symbols->size());
   for (const T* symbol : *symbols) {
@@ -113,8 +121,9 @@ std::vector<Object> ConvertObjects(const Pddl& pddl,
 }
 
 template <typename T>
-std::vector<Object> ConvertObjects(const VAL::pddl_type_list* types,
-                                   const VAL::typed_symbol_list<T>* symbols) {
+std::vector<Object> Object::CreateList(
+    const VAL::pddl_type_list* types,
+    const VAL::typed_symbol_list<T>* symbols) {
   std::vector<Object> objects;
   objects.reserve(symbols->size());
   for (const T* symbol : *symbols) {

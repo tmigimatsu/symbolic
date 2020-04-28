@@ -14,7 +14,7 @@
 namespace symbolic {
 
 Proposition::Proposition(const Pddl& pddl, const std::string& str_prop)
-    : name_(ParseHead(str_prop)), arguments_(ParseArguments(pddl, str_prop)) {}
+    : name_(ParseHead(str_prop)), arguments_(Object::ParseArguments(pddl, str_prop)) {}
 
 std::string Proposition::to_string() const {
   std::stringstream ss;

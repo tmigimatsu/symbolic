@@ -90,9 +90,9 @@ State ParseState(const Pddl& pddl, const std::set<std::string>& str_state) {
 std::vector<Object> GetObjects(const VAL::domain& domain,
                                const VAL::problem& problem) {
   std::vector<Object> objects =
-      symbolic::ConvertObjects(domain.types, domain.constants);
+      symbolic::Object::CreateList(domain.types, domain.constants);
   const std::vector<Object> objects_2 =
-      symbolic::ConvertObjects(domain.types, problem.objects);
+      symbolic::Object::CreateList(domain.types, problem.objects);
   objects.insert(objects.end(), objects_2.begin(), objects_2.end());
   return objects;
 }
@@ -206,7 +206,7 @@ State Pddl::NextState(const State& state,
                       const std::string& action_call) const {
   // Parse strings
   const std::pair<Action, std::vector<Object>> action_args =
-      ParseAction(*this, action_call);
+      Action::Parse(*this, action_call);
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
@@ -217,7 +217,7 @@ std::set<std::string> Pddl::NextState(const std::set<std::string>& str_state,
   // Parse strings
   State state = ParseState(*this, str_state);
   const std::pair<Action, std::vector<Object>> action_args =
-      ParseAction(*this, action_call);
+      Action::Parse(*this, action_call);
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
@@ -229,7 +229,7 @@ bool Pddl::IsValidAction(const State& state,
                          const std::string& action_call) const {
   // Parse strings
   const std::pair<Action, std::vector<Object>> action_args =
-      ParseAction(*this, action_call);
+      Action::Parse(*this, action_call);
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
@@ -244,7 +244,7 @@ bool Pddl::IsValidTuple(const State& state, const std::string& action_call,
                         const State& next_state) const {
   // Parse strings
   const std::pair<Action, std::vector<Object>> action_args =
-      ParseAction(*this, action_call);
+      Action::Parse(*this, action_call);
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
@@ -272,7 +272,7 @@ bool Pddl::IsValidPlan(const std::vector<std::string>& action_skeleton) const {
   for (const std::string& action_call : action_skeleton) {
     // Parse strings
     std::pair<Action, std::vector<Object>> action_args =
-        ParseAction(*this, action_call);
+        Action::Parse(*this, action_call);
     const Action& action = action_args.first;
     const std::vector<Object>& arguments = action_args.second;
 

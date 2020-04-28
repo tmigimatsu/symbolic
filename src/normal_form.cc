@@ -270,8 +270,9 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
     const VAL::proposition* prop = simple_goal->getProp();
     const std::string name_predicate = prop->head->getName();
     const std::vector<Object> prop_params =
-        symbolic::ConvertObjects(pddl, prop->args);
-    const auto Apply = CreateApplicationFunction(parameters, prop_params);
+        symbolic::Object::CreateList(pddl, prop->args);
+    const auto Apply =
+        Formula::CreateApplicationFunction(parameters, prop_params);
     return {{{{Proposition(name_predicate, Apply(arguments))}, {}}}};
     // return Simplify(pddl,
     //                 {{{Proposition(name_predicate, Apply(arguments))}, {}}});
@@ -325,7 +326,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
     // Create qfied parameters
     std::vector<Object> qfied_params = parameters;
     std::vector<Object> types =
-        symbolic::ConvertObjects(pddl, qfied_goal->getVars());
+        symbolic::Object::CreateList(pddl, qfied_goal->getVars());
     qfied_params.insert(qfied_params.end(), types.begin(), types.end());
 
     // Loop over qfied arguments
@@ -370,7 +371,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   for (const VAL::forall_effect* effect : symbol->forall_effects) {
     std::vector<Object> forall_params = parameters;
     const std::vector<Object> types =
-        symbolic::ConvertObjects(pddl, effect->getVarsList());
+        symbolic::Object::CreateList(pddl, effect->getVarsList());
     forall_params.insert(forall_params.end(), types.begin(), types.end());
 
     // Loop over forall arguments
@@ -394,8 +395,9 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   for (const VAL::simple_effect* effect : symbol->add_effects) {
     const std::string name_predicate = effect->prop->head->getName();
     const std::vector<Object> effect_params =
-        symbolic::ConvertObjects(pddl, effect->prop->args);
-    const auto Apply = CreateApplicationFunction(parameters, effect_params);
+        symbolic::Object::CreateList(pddl, effect->prop->args);
+    const auto Apply =
+        Formula::CreateApplicationFunction(parameters, effect_params);
 
     simple.pos.emplace(name_predicate, Apply(arguments));
   }
@@ -405,8 +407,9 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   for (const VAL::simple_effect* effect : symbol->del_effects) {
     const std::string name_predicate = effect->prop->head->getName();
     const std::vector<Object> effect_params =
-        symbolic::ConvertObjects(pddl, effect->prop->args);
-    const auto Apply = CreateApplicationFunction(parameters, effect_params);
+        symbolic::Object::CreateList(pddl, effect->prop->args);
+    const auto Apply =
+        Formula::CreateApplicationFunction(parameters, effect_params);
 
     simple.neg.emplace(name_predicate, Apply(arguments));
   }
@@ -448,12 +451,27 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
 
     condition = Disjoin(pddl, {std::move(*condition), std::move(*result)});
     if (!condition.has_value()) {
-      throw std::runtime_error("DisjunctiveFormula::Create(): Invalid condition.");
+      throw std::runtime_error(
+          "DisjunctiveFormula::Create(): Invalid condition.");
     }
     dnfs.push_back(std::move(*condition));
   }
 
   return Conjoin(pddl, dnfs);
+}
+
+std::optional<std::pair<DisjunctiveFormula, DisjunctiveFormula>>
+DisjunctiveFormula::NormalizeConditions(const Pddl& pddl,
+                                        const std::string& action_call) {
+  const auto aa = Action::Parse(pddl, action_call);
+  std::optional<DisjunctiveFormula> pre =
+      DisjunctiveFormula::Create(pddl, aa.first.preconditions().symbol(),
+                                 aa.first.parameters(), aa.second);
+  if (!pre.has_value()) return {};
+  std::optional<DisjunctiveFormula> post = DisjunctiveFormula::Create(
+      pddl, aa.first.postconditions(), aa.first.parameters(), aa.second);
+  if (!post.has_value()) return {};
+  return std::make_pair(std::move(*pre), std::move(*post));
 }
 
 ostream& operator<<(ostream& os, const FormulaLiterals& lits) {

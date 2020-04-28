@@ -61,6 +61,9 @@ class Action {
 
   std::string to_string(const std::vector<Object>& arguments) const;
 
+  static std::pair<Action, std::vector<Object>> Parse(
+      const Pddl& pddl, const std::string& action_call);
+
   friend bool operator<(const Action& lhs, const Action& rhs) {
     return lhs.name() < rhs.name();
   }
@@ -80,9 +83,6 @@ class Action {
   Formula Preconditions_;
   std::function<bool(const std::vector<Object>&, State*)> Apply_;
 };
-
-std::pair<Action, std::vector<Object>> ParseAction(
-    const Pddl& pddl, const std::string& action_call);
 
 }  // namespace symbolic
 

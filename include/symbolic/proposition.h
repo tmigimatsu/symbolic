@@ -38,11 +38,13 @@ class Proposition {
   // Properties
   const std::string& name() const { return name_; }
 
-  const std::vector<Object>& arguments() const {
-    return arguments_;
-  }
+  const std::vector<Object>& arguments() const { return arguments_; }
 
   std::string to_string() const;
+
+  static std::string ParseHead(const std::string& atom) {
+    return atom.substr(0, atom.find_first_of('('));
+  }
 
   friend bool operator<(const Proposition& lhs, const Proposition& rhs) {
     return std::tie(lhs.name(), lhs.arguments()) <
@@ -62,10 +64,6 @@ class Proposition {
   std::string name_;
   std::vector<Object> arguments_;
 };
-
-inline std::string ParseHead(const std::string& atom) {
-  return atom.substr(0, atom.find_first_of('('));
-}
 
 }  // namespace symbolic
 

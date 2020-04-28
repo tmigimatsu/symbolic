@@ -44,20 +44,20 @@ class Formula {
 
   bool operator()(const State& state) const { return P_(state, {}); };
 
+  /**
+   * Create a function that takes action_args and returns prop_args based on the
+   * mapping (action_params -> prop_params).
+   */
+  static std::function<std::vector<Object>(const std::vector<Object>&)>
+  CreateApplicationFunction(const std::vector<Object>& action_params,
+                            const std::vector<Object>& prop_params);
+
  private:
   const VAL::goal* symbol_ = nullptr;
 
   std::function<bool(const State& state, const std::vector<Object>& arguments)>
       P_;
 };
-
-/**
- * Create a function that takes action_args and returns prop_args based on the
- * mapping (action_params -> prop_params).
- */
-std::function<std::vector<Object>(const std::vector<Object>&)>
-CreateApplicationFunction(const std::vector<Object>& action_params,
-                          const std::vector<Object>& prop_params);
 
 }  // namespace symbolic
 

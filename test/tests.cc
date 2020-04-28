@@ -132,7 +132,7 @@ TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
   // std::cout << next_state << std::endl;
 
   const auto t_start = std::chrono::high_resolution_clock::now();
-  const auto cond = symbolic::NormalizeConditions(pddl2, "goto(door_key)");
+  const auto cond = symbolic::DisjunctiveFormula::NormalizeConditions(pddl2, "goto(door_key)");
   const auto t_end = std::chrono::high_resolution_clock::now();
 
   // for (const symbolic::Axiom& axiom : pddl2.axioms()) {
