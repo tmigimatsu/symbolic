@@ -108,15 +108,12 @@ TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
   const symbolic::Action action(pddl, "pick");
   const symbolic::Object hook(pddl, "hook");
 
-  // const std::vector<symbolic::Proposition> pos = ;
-  // const std::vector<symbolic::Proposition> neg = ;
-;
   symbolic::DisjunctiveFormula precond(pddl, action.preconditions(), action.parameters(), { hook });
   REQUIRE(precond == symbolic::DisjunctiveFormula({{{ symbolic::Proposition(pddl, "inworkspace(hook)") },
                                                     { symbolic::Proposition(pddl, "inhand(box)"),
                                                        symbolic::Proposition(pddl, "inhand(hook)") }}}));
 
-  symbolic::DisjunctiveFormula neg_precond = symbolic::Negate(pddl, std::move(precond));
+  symbolic::DisjunctiveFormula neg_precond = symbolic::Negate(pddl, std::move(precond)).value();
   REQUIRE(neg_precond == symbolic::DisjunctiveFormula({{{}, { symbolic::Proposition(pddl, "inworkspace(hook)") }},
                                                        {{ symbolic::Proposition(pddl, "inhand(box)") }, {}},
                                                        {{ symbolic::Proposition(pddl, "inhand(hook)") }, {}}}));
@@ -141,7 +138,7 @@ TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
   //   std::cout << "  Evaluation: " << axiom.IsConsistent(pddl2.initial_state()) << std::endl;
   // }
 
-  std::cout << cond.first << std::endl << cond.second << std::endl;
-  std::cout << cond.first.conjunctions.size() << " " << cond.second.conjunctions.size() << std::endl;
+  std::cout << cond->first << std::endl << cond->second << std::endl;
+  std::cout << cond->first.conjunctions.size() << " " << cond->second.conjunctions.size() << std::endl;
   std::cout << std::chrono::duration<double>(t_end - t_start).count() << std::endl;
 }
