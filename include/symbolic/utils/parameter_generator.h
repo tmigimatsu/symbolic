@@ -26,6 +26,8 @@ class ParameterGenerator
  public:
   using ObjectTypeMap = std::unordered_map<std::string, std::vector<Object>>;
 
+  ParameterGenerator() = default;
+
   ParameterGenerator(const ObjectTypeMap& object_map,
                      const std::vector<Object>& params);
 };

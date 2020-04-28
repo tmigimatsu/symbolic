@@ -27,6 +27,8 @@ class Action;
 
 class Formula {
  public:
+  Formula() = default;
+
   Formula(const Pddl& pddl, const VAL::goal* symbol)
       : Formula(pddl, symbol, {}) {}
 
@@ -43,7 +45,7 @@ class Formula {
   bool operator()(const State& state) const { return P_(state, {}); };
 
  private:
-  const VAL::goal* symbol_;
+  const VAL::goal* symbol_ = nullptr;
 
   std::function<bool(const State& state, const std::vector<Object>& arguments)>
       P_;

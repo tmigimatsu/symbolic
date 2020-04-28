@@ -125,6 +125,12 @@ TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
                                                        symbolic::Proposition(pddl, "on(hook, shelf)"),
                                                        symbolic::Proposition(pddl, "on(hook, table)") }}}));
 
+  // symbolic::State state = pddl2.initial_state();
+  // REQUIRE(pddl2.IsValidAction(state, "goto(door_key)"));
+  // symbolic::State next_state = pddl2.NextState(state, "goto(door_key)");
+  // std::cout << state << std::endl;
+  // std::cout << next_state << std::endl;
+
   const auto t_start = std::chrono::high_resolution_clock::now();
   const auto cond = symbolic::NormalizeConditions(pddl2, "goto(door_key)");
   const auto t_end = std::chrono::high_resolution_clock::now();

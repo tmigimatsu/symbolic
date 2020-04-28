@@ -144,6 +144,13 @@ std::optional<DisjunctiveFormula> Simplify(const Pddl& pddl,
   DisjunctiveFormula ret;
   ret.conjunctions.reserve(dnf.conjunctions.size());
   for (DisjunctiveFormula::Conjunction& conj : dnf.conjunctions) {
+    // Apply derived predicates to conjunction
+    // TODO(tmigimatsu): Need to generate all combinations of unspecified
+    // predicates (ones not in conj.pos nor conj.neg) to satisfy all possible
+    // derived predicate conditions.
+    // DerivedPredicate::Apply(pddl.derived_predicates(), &conj.pos);
+
+    // Evaluate conjunction
     const std::optional<bool> is_true = Evaluate(pddl, conj);
     if (!is_true.has_value()) {
       if (!TryInsertSubset(conj, &ret.conjunctions)) {

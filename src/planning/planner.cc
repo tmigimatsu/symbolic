@@ -79,6 +79,7 @@ Planner::Node::iterator Planner::Node::begin() const {
   if (action.IsValid(parent.state(), arguments)) {
     // Set action and apply postconditions to child
     State state = action.Apply(parent.state(), arguments);
+    DerivedPredicate::Apply(impl_->pddl_.derived_predicates(), &state);
     it.child_ =
         Node(parent, it.child_, std::move(state), action.to_string(arguments));
 

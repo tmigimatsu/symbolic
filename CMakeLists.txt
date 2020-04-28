@@ -76,6 +76,7 @@ endif()
 set(LIB_SRC
     ${LIB_SRC_DIR}/action.cc
     ${LIB_SRC_DIR}/axiom.cc
+    ${LIB_SRC_DIR}/derived_predicate.cc
     ${LIB_SRC_DIR}/formula.cc
     ${LIB_SRC_DIR}/normal_form.cc
     ${LIB_SRC_DIR}/object.cc

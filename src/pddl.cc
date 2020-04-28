@@ -73,6 +73,7 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
 
 using ::symbolic::Action;
 using ::symbolic::Axiom;
+using ::symbolic::DerivedPredicate;
 using ::symbolic::Object;
 using ::symbolic::Pddl;
 using ::symbolic::Proposition;
@@ -128,6 +129,16 @@ std::vector<Axiom> GetAxioms(const Pddl& pddl, const VAL::domain& domain) {
   return axioms;
 }
 
+std::vector<DerivedPredicate> GetDerivedPredicates(const Pddl& pddl,
+                                                   const VAL::domain& domain) {
+  std::vector<DerivedPredicate> predicates;
+  predicates.reserve(domain.drvs->size());
+  for (const VAL::derivation_rule* drv : *domain.drvs) {
+    predicates.emplace_back(pddl, drv);
+  }
+  return predicates;
+}
+
 State GetInitialState(const VAL::domain& domain, const VAL::problem& problem) {
   State initial_state;
   for (const VAL::simple_effect* effect : problem.initial_state->add_effects) {
@@ -144,6 +155,21 @@ State GetInitialState(const VAL::domain& domain, const VAL::problem& problem) {
   return initial_state;
 }
 
+State Apply(const State& state, const Action& action,
+            const std::vector<Object>& arguments,
+            const std::vector<DerivedPredicate>& predicates) {
+  State next_state = action.Apply(state, arguments);
+  DerivedPredicate::Apply(predicates, &next_state);
+  return next_state;
+}
+
+bool Apply(const Action& action, const std::vector<Object>& arguments,
+           const std::vector<DerivedPredicate>& predicates, State* state) {
+  bool is_changed = action.Apply(arguments, state);
+  is_changed |= DerivedPredicate::Apply(predicates, state);
+  return is_changed;
+}
+
 }  // namespace
 
 namespace symbolic {
@@ -156,6 +182,7 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
       object_map_(CreateObjectTypeMap(objects_)),
       actions_(GetActions(*this, domain_)),
       axioms_(GetAxioms(*this, domain_)),
+      derived_predicates_(GetDerivedPredicates(*this, domain_)),
       initial_state_(GetInitialState(domain_, problem_)),
       goal_(*this, problem_.the_goal) {}
 
@@ -183,7 +210,7 @@ State Pddl::NextState(const State& state,
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
-  return action.Apply(state, arguments);
+  return Apply(state, action, arguments, derived_predicates());
 }
 std::set<std::string> Pddl::NextState(const std::set<std::string>& str_state,
                                       const std::string& action_call) const {
@@ -194,7 +221,7 @@ std::set<std::string> Pddl::NextState(const std::set<std::string>& str_state,
   const Action& action = action_args.first;
   const std::vector<Object>& arguments = action_args.second;
 
-  action.Apply(arguments, &state);
+  Apply(action, arguments, derived_predicates(), &state);
   return Stringify(state);
 }
 
@@ -222,7 +249,7 @@ bool Pddl::IsValidTuple(const State& state, const std::string& action_call,
   const std::vector<Object>& arguments = action_args.second;
 
   return action.IsValid(state, arguments) &&
-         action.Apply(state, arguments) == next_state;
+         Apply(state, action, arguments, derived_predicates()) == next_state;
 }
 bool Pddl::IsValidTuple(const std::set<std::string>& str_state,
                         const std::string& action_call,
@@ -250,7 +277,7 @@ bool Pddl::IsValidPlan(const std::vector<std::string>& action_skeleton) const {
     const std::vector<Object>& arguments = action_args.second;
 
     if (!action.IsValid(state, arguments)) return false;
-    action.Apply(arguments, &state);
+    Apply(action, arguments, derived_predicates(), &state);
   }
   return goal_(state);
 }

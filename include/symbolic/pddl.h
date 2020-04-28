@@ -19,6 +19,7 @@
 
 #include "symbolic/action.h"
 #include "symbolic/axiom.h"
+#include "symbolic/derived_predicate.h"
 #include "symbolic/formula.h"
 #include "symbolic/object.h"
 #include "symbolic/proposition.h"
@@ -79,6 +80,10 @@ class Pddl {
 
   const std::vector<Axiom>& axioms() const { return axioms_; }
 
+  const std::vector<DerivedPredicate>& derived_predicates() const {
+    return derived_predicates_;
+  }
+
   const Formula& goal() const { return goal_; }
 
  private:
@@ -91,6 +96,7 @@ class Pddl {
 
   const std::vector<Action> actions_;
   const std::vector<Axiom> axioms_;
+  const std::vector<DerivedPredicate> derived_predicates_;
 
   const State initial_state_;
   const Formula goal_;

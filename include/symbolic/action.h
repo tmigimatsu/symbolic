@@ -28,6 +28,8 @@ class Pddl;
 
 class Action {
  public:
+  Action() = default;
+
   Action(const Pddl& pddl, const VAL::operator_* symbol);
 
   // action_call can be action(params) or action name
@@ -69,8 +71,8 @@ class Action {
 
   friend std::ostream& operator<<(std::ostream& os, const Action& action);
 
- private:
-  const VAL::operator_* symbol_;
+ protected:
+  const VAL::operator_* symbol_ = nullptr;
   std::string name_;
   std::vector<Object> parameters_;
   ParameterGenerator param_gen_;

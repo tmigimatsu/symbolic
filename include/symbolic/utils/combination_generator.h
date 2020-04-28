@@ -61,10 +61,12 @@ class CombinationGenerator {
   CombinationGenerator& operator=(const CombinationGenerator& other) {
     options_ = other.options_;
     end_ = iterator::end(&options_);
+    return *this;
   }
   CombinationGenerator& operator=(CombinationGenerator&& other) noexcept {
     options_ = std::move(other.options_);
     end_ = iterator::end(&options_);
+    return *this;
   }
 
   iterator begin() { return iterator::begin(&options_); };
@@ -110,6 +112,8 @@ class CombinationGenerator<ContainerT>::Iterator {
       typename std::conditional_t<Const, const value_type*, value_type*>;
   using reference =
       typename std::conditional_t<Const, const value_type&, value_type&>;
+
+  Iterator() = default;
 
   Iterator(const std::vector<ContainerT*>* options,
            std::vector<IteratorT>&& it_options);
