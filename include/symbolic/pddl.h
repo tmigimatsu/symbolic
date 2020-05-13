@@ -106,6 +106,7 @@ std::set<std::string> Stringify(const State& state);
 std::vector<std::string> Stringify(const std::vector<Action>& actions);
 std::vector<std::vector<std::string>> Stringify(
     const std::vector<std::vector<Object>>& arguments);
+std::vector<std::string> Stringify(const std::vector<Object>& objects);
 
 std::ostream& operator<<(std::ostream& os, const Pddl& pddl);
 

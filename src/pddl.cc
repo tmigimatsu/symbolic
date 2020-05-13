@@ -359,6 +359,15 @@ std::vector<std::vector<std::string>> Stringify(
   return str_arguments;
 }
 
+std::vector<std::string> Stringify(const std::vector<Object>& objects) {
+  std::vector<std::string> str_objects;
+  str_objects.reserve(objects.size());
+  for (const Object& object : objects) {
+    str_objects.emplace_back(object.name());
+  }
+  return str_objects;
+}
+
 std::ostream& operator<<(std::ostream& os, const Pddl& pddl) {
   os << pddl.domain() << std::endl;
   os << pddl.problem() << std::endl;

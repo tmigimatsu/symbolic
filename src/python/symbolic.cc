@@ -30,6 +30,7 @@ PYBIND11_MODULE(symbolic, m) {
       .def_property_readonly(
           "initial_state",
           [](const Pddl& pddl) { return Stringify(pddl.initial_state()); })
+      .def_property_readonly("objects", &Pddl::objects)
       .def_property_readonly(
           "actions", [](const Pddl& pddl) { return Stringify(pddl.actions()); })
       .def(
@@ -59,6 +60,20 @@ PYBIND11_MODULE(symbolic, m) {
       .def("list_valid_actions",
            static_cast<std::vector<std::string> (Pddl::*)(
                const std::set<std::string>&) const>(&Pddl::ListValidActions));
+
+  // Object::Type
+  py::class_<Object::Type>(m, "ObjectType")
+      .def("is_subtype",
+           static_cast<bool (Object::Type::*)(const std::string&) const>(
+               &Object::Type::IsSubtype))
+      .def_property_readonly("name", &Object::Type::name)
+      .def("__repr__", &Object::Type::name);
+
+  // Object
+  py::class_<Object>(m, "Object")
+      .def_property_readonly("name", &Object::name)
+      .def_property_readonly("type", &Object::type)
+      .def("__repr__", &Object::name);
 
   // Planner::Node
   py::class_<Planner::Node>(m, "PlannerNode")
