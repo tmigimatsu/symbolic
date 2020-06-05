@@ -7,7 +7,8 @@
  * Authors: Toki Migimatsu
  */
 
-#include <pybind11/eigen.h>
+#include <sstream>  // std::stringstream
+
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
