@@ -22,7 +22,20 @@ namespace symbolic {
 namespace py = pybind11;
 using namespace pybind11::literals;  // NOLINT(google-build-using-namespace)
 
-PYBIND11_MODULE(symbolic, m) {
+PYBIND11_MODULE(pysymbolic, m) {
+  m.doc() = R"pbdoc(
+    symbolic Python API
+    ===================
+
+    .. currentmodule:: symbolic
+
+    .. autosummary::
+       :toctree: _autosummary
+
+       Pddl
+       Object
+  )pbdoc";
+
   // Pddl
   py::class_<Pddl>(m, "Pddl")
       .def(py::init<const std::string&, const std::string&>(), "domain"_a,

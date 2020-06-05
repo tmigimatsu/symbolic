@@ -1,1 +1,3 @@
-from .symbolic import *
+from .pysymbolic import *
+
+__doc__ = pysymbolic.__doc__

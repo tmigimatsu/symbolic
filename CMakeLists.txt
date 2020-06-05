@@ -93,13 +93,13 @@ set(LIB_SRC
 #         $<BUILD_INTERFACE:${LIB_INCLUDE_DIR}>
 # )
 
-find_package(ctrl_utils 1.2.0 REQUIRED)
+find_package(ctrl_utils 1.2.0 QUIET)
 if(NOT ctrl_utils_FOUND)
     download_package(ctrl_utils 1.2.0)
     find_package(ctrl_utils 1.2.0 REQUIRED)
 endif()
 
-set(SYMBOLIC_LIB lib${LIB_NAME})
+set(SYMBOLIC_LIB ${LIB_NAME})
 add_library(${SYMBOLIC_LIB} SHARED)
 set_target_properties(${SYMBOLIC_LIB} PROPERTIES OUTPUT_NAME ${LIB_NAME})
 add_library(${LIB_NAME}::${LIB_NAME} ALIAS ${SYMBOLIC_LIB})
