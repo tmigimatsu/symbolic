@@ -22,6 +22,7 @@
 #include "symbolic/derived_predicate.h"
 #include "symbolic/formula.h"
 #include "symbolic/object.h"
+#include "symbolic/predicate.h"
 #include "symbolic/proposition.h"
 
 namespace symbolic {
@@ -78,6 +79,8 @@ class Pddl {
   const std::vector<Action>& actions() const { return actions_; }
   // std::vector<std::string> actions_str() const;
 
+  const std::vector<Predicate>& predicates() const { return predicates_; }
+
   const std::vector<Axiom>& axioms() const { return axioms_; }
 
   const std::vector<DerivedPredicate>& derived_predicates() const {
@@ -95,6 +98,7 @@ class Pddl {
   const ObjectTypeMap object_map_;
 
   const std::vector<Action> actions_;
+  const std::vector<Predicate> predicates_;
   const std::vector<Axiom> axioms_;
   const std::vector<DerivedPredicate> derived_predicates_;
 

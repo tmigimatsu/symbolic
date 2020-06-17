@@ -25,7 +25,7 @@ endif()
 set(LIB_NAME symbolic)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(LIB_CMAKE_DIR ${PROJECT_SOURCE_DIR}/cmake)
-set(LIB_EXT_DIR ${PROJECT_SOURCE_DIR}/external)
+set(LIB_EXTERNAL_DIR ${PROJECT_SOURCE_DIR}/external)
 set(LIB_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(LIB_SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 
@@ -82,6 +82,7 @@ set(LIB_SRC
     ${LIB_SRC_DIR}/object.cc
     ${LIB_SRC_DIR}/pddl.cc
     ${LIB_SRC_DIR}/proposition.cc
+    ${LIB_SRC_DIR}/predicate.cc
     ${LIB_SRC_DIR}/state.cc
     ${LIB_SRC_DIR}/planning/planner.cc
     ${LIB_SRC_DIR}/utils/parameter_generator.cc
@@ -93,11 +94,11 @@ set(LIB_SRC
 #         $<BUILD_INTERFACE:${LIB_INCLUDE_DIR}>
 # )
 
-find_package(ctrl_utils 1.2.0 QUIET)
-if(NOT ctrl_utils_FOUND)
-    download_package(ctrl_utils 1.2.0)
-    find_package(ctrl_utils 1.2.0 REQUIRED)
-endif()
+find_package(ctrl_utils 1.2.0 REQUIRED)
+# if(NOT ctrl_utils_FOUND)
+#     download_package(ctrl_utils 1.2.0)
+#     find_package(ctrl_utils 1.2.0 REQUIRED)
+# endif()
 
 set(SYMBOLIC_LIB ${LIB_NAME})
 add_library(${SYMBOLIC_LIB} SHARED)

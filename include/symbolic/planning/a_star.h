@@ -11,7 +11,6 @@
 #define SYMBOLIC_PLANNING_A_STAR_H_
 
 #include <cstddef>   // ptrdiff_t
-#include <iostream>  // std::cout
 #include <iterator>  // std::input_iterator_tag
 #include <queue>     // std::priority_queue
 #include <vector>    // std::vector
@@ -95,7 +94,6 @@ AStar<NodeT, Compare>::iterator::operator++() {
 
     // Return if node evaluates to true
     const NodeT& node = ancestors_.back();
-    std::cout << node << std::endl;
     if (node) break;
 
     // Skip children if max depth has been reached

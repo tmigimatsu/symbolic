@@ -7,11 +7,11 @@
  * Authors: Toki Migimatsu
  */
 
-#include <sstream>  // std::stringstream
-
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+
+#include <sstream>  // std::stringstream
 
 #include "symbolic/normal_form.h"
 #include "symbolic/pddl.h"
@@ -35,6 +35,8 @@ PYBIND11_MODULE(pysymbolic, m) {
 
        Pddl
        Object
+       Action
+       DisjunctiveFormula
   )pbdoc";
 
   // Pddl
@@ -45,8 +47,8 @@ PYBIND11_MODULE(pysymbolic, m) {
           "initial_state",
           [](const Pddl& pddl) { return Stringify(pddl.initial_state()); })
       .def_property_readonly("objects", &Pddl::objects)
-      .def_property_readonly(
-          "actions", [](const Pddl& pddl) { return Stringify(pddl.actions()); })
+      .def_property_readonly("actions", &Pddl::actions)
+      .def_property_readonly("predicates", &Pddl::predicates)
       .def(
           "is_valid",
           [](const Pddl& pddl, bool verbose) { return pddl.IsValid(verbose); },
@@ -89,6 +91,41 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def_property_readonly("type", &Object::type)
       .def("__repr__", &Object::name);
 
+  // Action
+  py::class_<Action>(m, "Action")
+      .def_property_readonly("name", &Action::name)
+      .def_property_readonly("parameters", &Action::parameters)
+      .def_property_readonly("parameter_generator",
+                             &Action::parameter_generator)
+      .def("to_string",
+           static_cast<std::string (Action::*)(
+               const std::vector<Object>& arguments) const>(&Action::to_string))
+      .def("__repr__",
+           static_cast<std::string (Action::*)() const>(&Action::to_string));
+
+  // Predicate
+  py::class_<Predicate>(m, "Predicate")
+      .def_property_readonly("name", &Predicate::name)
+      .def_property_readonly("parameters", &Predicate::parameters)
+      .def_property_readonly("parameter_generator",
+                             &Predicate::parameter_generator)
+      .def("to_string", static_cast<std::string (Predicate::*)(
+                            const std::vector<Object>& arguments) const>(
+                            &Predicate::to_string))
+      .def("__repr__", static_cast<std::string (Predicate::*)() const>(
+                           &Predicate::to_string));
+
+  // ParameterGenerator
+  py::class_<ParameterGenerator>(m, "ParameterGenerator")
+      .def("__len__", &ParameterGenerator::size)
+      .def("__getitem__", &ParameterGenerator::at)
+      .def(
+          "__iter__",
+          [](ParameterGenerator& param_gen) {
+            return py::make_iterator(param_gen.begin(), param_gen.end());
+          },
+          py::keep_alive<0, 1>());  // Keep vector alive while iterator is used
+
   // Planner::Node
   py::class_<Planner::Node>(m, "PlannerNode")
       .def_property_readonly("action", &Planner::Node::action)
@@ -119,7 +156,9 @@ PYBIND11_MODULE(pysymbolic, m) {
           py::keep_alive<0, 1>());
 
   py::class_<DisjunctiveFormula>(m, "DisjunctiveFormula")
-      .def_readwrite("conjunctions", &DisjunctiveFormula::conjunctions)
+      .def_readonly("conjunctions", &DisjunctiveFormula::conjunctions)
+      .def_static("normalize_conditions",
+                  &DisjunctiveFormula::NormalizeConditions)
       .def("__repr__", [](const DisjunctiveFormula& dnf) {
         std::stringstream ss;
         ss << dnf;
@@ -127,8 +166,10 @@ PYBIND11_MODULE(pysymbolic, m) {
       });
 
   py::class_<FormulaLiterals>(m, "FormulaLiterals")
-      .def_readwrite("pos", &FormulaLiterals::pos)
-      .def_readwrite("neg", &FormulaLiterals::neg);
+      .def_property_readonly(
+          "pos", [](const FormulaLiterals& f) { return Stringify(f.pos); })
+      .def_property_readonly(
+          "neg", [](const FormulaLiterals& f) { return Stringify(f.neg); });
 
   m.def("NormalizeConditions", &DisjunctiveFormula::NormalizeConditions,
         "pddl"_a, "action"_a);

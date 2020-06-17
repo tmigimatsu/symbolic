@@ -76,6 +76,7 @@ using ::symbolic::Axiom;
 using ::symbolic::DerivedPredicate;
 using ::symbolic::Object;
 using ::symbolic::Pddl;
+using ::symbolic::Predicate;
 using ::symbolic::Proposition;
 using ::symbolic::State;
 
@@ -117,6 +118,15 @@ std::vector<Action> GetActions(const Pddl& pddl, const VAL::domain& domain) {
     actions.emplace_back(pddl, op);
   }
   return actions;
+}
+
+std::vector<Predicate> GetPredicates(const Pddl& pddl,
+                                     const VAL::domain& domain) {
+  std::vector<Predicate> predicates;
+  for (const VAL::pred_decl* pred : *domain.predicates) {
+    predicates.emplace_back(pddl, pred);
+  }
+  return predicates;
 }
 
 std::vector<Axiom> GetAxioms(const Pddl& pddl, const VAL::domain& domain) {
@@ -181,6 +191,7 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
       objects_(GetObjects(domain_, problem_)),
       object_map_(CreateObjectTypeMap(objects_)),
       actions_(GetActions(*this, domain_)),
+      predicates_(GetPredicates(*this, domain_)),
       axioms_(GetAxioms(*this, domain_)),
       derived_predicates_(GetDerivedPredicates(*this, domain_)),
       initial_state_(GetInitialState(domain_, problem_)),

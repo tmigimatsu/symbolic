@@ -96,6 +96,16 @@ struct DisjunctiveFormula {
   static std::optional<DisjunctiveFormula> Create(const Pddl& pddl,
                                                   ConjunctiveFormula&& cnf);
 
+  /**
+   * Normalize the pre/post conditions of the given action.
+   *
+   * If either of the conditions are invalid, this function will return an empty
+   * optional.
+   *
+   * @param pddl Pddl object.
+   * @param action_call Action call string.
+   * @return Pair of normalized pre/post conditions.
+   */
   static std::optional<std::pair<DisjunctiveFormula, DisjunctiveFormula>>
   NormalizeConditions(const Pddl& pddl, const std::string& action_call);
 
