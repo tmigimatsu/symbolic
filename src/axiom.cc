@@ -46,13 +46,31 @@ bool Axiom::IsConsistent(const State& state) const {
 
     // Test if implies is valid (state shouldn't change)
     try {
-      if (Apply(args, &test_state)) return false;
+      if (Action::Apply(args, &test_state)) return false;
     } catch (const std::exception& e) {
       // std::cerr << e.what() << std::endl;
       return false;
     }
   }
   return true;
+}
+
+State Axiom::Apply(const State& state) const {
+  State state_next = state;
+  Apply(&state_next);
+  return state_next;
+}
+
+bool Axiom::Apply(State* state) const {
+  bool changed = false;
+  for (const std::vector<Object>& args : arguments_) {
+    // Test if context is valid
+    if (!IsValid(*state, args)) continue;
+
+    // Apply implies
+    changed |= Action::Apply(args, state);
+  }
+  return changed;
 }
 
 std::ostream& operator<<(std::ostream& os, const Axiom& axiom) {

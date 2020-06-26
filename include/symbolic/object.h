@@ -67,6 +67,8 @@ class Object {
 
   Object(const Pddl& pddl, const std::string& name_object);
 
+  explicit Object(const std::string& name_object) : name_(name_object){};
+
   const VAL::pddl_typed_symbol* symbol() const { return symbol_; }
 
   const std::string& name() const { return name_; }
@@ -76,6 +78,8 @@ class Object {
   // Atom is a proposition or action
   static std::vector<Object> ParseArguments(const Pddl& pddl,
                                             const std::string& atom);
+
+  static std::vector<Object> ParseArguments(const std::string& atom);
 
   template <typename T>
   static std::vector<Object> CreateList(

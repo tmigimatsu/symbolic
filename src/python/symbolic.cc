@@ -18,6 +18,21 @@
 #include "symbolic/planning/breadth_first_search.h"
 #include "symbolic/planning/planner.h"
 
+namespace {
+
+using ::symbolic::Pddl;
+using ::symbolic::State;
+
+State ParseState(const std::set<std::string>& str_state) {
+  State state;
+  for (const std::string& str_prop : str_state) {
+    state.emplace(str_prop);
+  }
+  return state;
+}
+
+}  // namespace
+
 namespace symbolic {
 
 namespace py = pybind11;
@@ -49,6 +64,8 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def_property_readonly("objects", &Pddl::objects)
       .def_property_readonly("actions", &Pddl::actions)
       .def_property_readonly("predicates", &Pddl::predicates)
+      .def_property_readonly("axioms", &Pddl::axioms)
+      .def_property_readonly("derived_predicates", &Pddl::derived_predicates)
       .def(
           "is_valid",
           [](const Pddl& pddl, bool verbose) { return pddl.IsValid(verbose); },
@@ -57,10 +74,19 @@ PYBIND11_MODULE(pysymbolic, m) {
            static_cast<std::set<std::string> (Pddl::*)(
                const std::set<std::string>&, const std::string&) const>(
                &Pddl::NextState))
+      .def("derived_state",
+           static_cast<std::set<std::string> (Pddl::*)(
+               const std::set<std::string>&) const>(&Pddl::DerivedState))
+      .def("consistent_state",
+           static_cast<std::set<std::string> (Pddl::*)(
+               const std::set<std::string>&) const>(&Pddl::ConsistentState))
       .def("is_valid_action",
            static_cast<bool (Pddl::*)(const std::set<std::string>&,
                                       const std::string&) const>(
                &Pddl::IsValidAction))
+      .def("is_valid_state",
+           static_cast<bool (Pddl::*)(const std::set<std::string>&) const>(
+               &Pddl::IsValidState))
       .def("is_valid_tuple",
            static_cast<bool (Pddl::*)(
                const std::set<std::string>&, const std::string&,
@@ -75,7 +101,16 @@ PYBIND11_MODULE(pysymbolic, m) {
                &Pddl::ListValidArguments))
       .def("list_valid_actions",
            static_cast<std::vector<std::string> (Pddl::*)(
-               const std::set<std::string>&) const>(&Pddl::ListValidActions));
+               const std::set<std::string>&) const>(&Pddl::ListValidActions))
+      .def(py::pickle(
+          [](const Pddl& pddl) {
+            return py::make_tuple(pddl.domain_pddl(), pddl.problem_pddl());
+          },
+          [](const py::tuple& domain_problem) {
+            const auto domain = domain_problem[0].cast<std::string>();
+            const auto problem = domain_problem[1].cast<std::string>();
+            return Pddl(domain, problem);
+          }));
 
   // Object::Type
   py::class_<Object::Type>(m, "ObjectType")
@@ -115,10 +150,32 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def("__repr__", static_cast<std::string (Predicate::*)() const>(
                            &Predicate::to_string));
 
+  // Axiom
+  py::class_<Axiom>(m, "Axiom")
+      .def("is_consistent", &Axiom::IsConsistent)
+      .def("__repr__", [](const Axiom& axiom) {
+        std::stringstream ss;
+        ss << axiom;
+        return ss.str();
+      });
+
+  // DerivedPredicate
+  py::class_<DerivedPredicate>(m, "DerivedPredicate")
+      .def_static("apply",
+                  [](const DerivedPredicate& pred) {
+
+                  })
+      .def("__repr__", [](const Axiom& axiom) {
+        std::stringstream ss;
+        ss << axiom;
+        return ss.str();
+      });
+
   // ParameterGenerator
   py::class_<ParameterGenerator>(m, "ParameterGenerator")
-      .def("__len__", &ParameterGenerator::size)
       .def("__getitem__", &ParameterGenerator::at)
+      .def("__len__", &ParameterGenerator::size)
+      .def("__nonzero__", &ParameterGenerator::empty)
       .def(
           "__iter__",
           [](ParameterGenerator& param_gen) {
@@ -169,7 +226,16 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def_property_readonly(
           "pos", [](const FormulaLiterals& f) { return Stringify(f.pos); })
       .def_property_readonly(
-          "neg", [](const FormulaLiterals& f) { return Stringify(f.neg); });
+          "neg", [](const FormulaLiterals& f) { return Stringify(f.neg); })
+      .def(py::pickle(
+          [](const FormulaLiterals& f) {
+            return py::make_tuple(Stringify(f.pos), Stringify(f.neg));
+          },
+          [](const py::tuple& pos_neg) {
+            return FormulaLiterals{
+                ParseState(pos_neg[0].cast<std::set<std::string>>()),
+                ParseState(pos_neg[1].cast<std::set<std::string>>())};
+          }));
 
   m.def("NormalizeConditions", &DisjunctiveFormula::NormalizeConditions,
         "pddl"_a, "action"_a);

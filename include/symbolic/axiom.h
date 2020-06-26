@@ -18,7 +18,17 @@ class Axiom : public Action {
  public:
   Axiom(const Pddl& pddl, const VAL::operator_* symbol);
 
+  /**
+   * Determine whether the axiom is satisfied.
+   */
   bool IsConsistent(const State& state) const;
+
+  /**
+   * Iterate over all argument combinations and apply the implication whenever
+   * the context is valid.
+   */
+  State Apply(const State& state) const;
+  bool Apply(State* state) const;
 
   friend std::ostream& operator<<(std::ostream& os, const Axiom& axiom);
 

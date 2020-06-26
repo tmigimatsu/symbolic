@@ -35,6 +35,8 @@ class Proposition {
 
   Proposition(const Pddl& pddl, const std::string& str_prop);
 
+  explicit Proposition(const std::string& str_prop);
+
   // Properties
   const std::string& name() const { return name_; }
 

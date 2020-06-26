@@ -133,6 +133,28 @@ TEST_CASE("combination_generator", "[CombinationGenerator]") {
     REQUIRE(gen.at(gen.size() - 1) == std::vector<std::string>{"d", "E", "3"});
     REQUIRE(gen[1] == std::vector<std::string>{"a", "A", "2"});
   }
+
+  SECTION("reverse iterator") {
+    REQUIRE(*gen.rbegin() == std::vector<std::string>{"d", "E", "3"});
+    REQUIRE(*++gen.rbegin() == std::vector<std::string>{"d", "E", "2"});
+    REQUIRE(*--gen.rend() == std::vector<std::string>{"a", "A", "1"});
+    REQUIRE(*gen_const.rbegin() == std::vector<std::string>{"d", "E", "3"});
+    REQUIRE(*++gen_const.rbegin() == std::vector<std::string>{"d", "E", "2"});
+    REQUIRE(*--gen_const.rend() == std::vector<std::string>{"a", "A", "1"});
+
+    // Check mutability
+    std::array<int, 6> a = {0, 1, 2, 3, 4, 5};
+    std::array<int*, 3> a_ref = {&a[0], &a[1], &a[2]};
+    std::array<int*, 3> b_ref = {&a[3], &a[4], &a[5]};
+    symbolic::CombinationGenerator<std::array<int*, 3>> gen_mut({&a_ref, &b_ref});
+    for (auto rit = gen_mut.rbegin(); rit != gen_mut.rend(); ++rit) {
+      std::vector<int*> ab = *rit;
+      int& a = *ab[0];
+      int& b = *ab[1];
+      b++;
+    }
+    REQUIRE(a == std::array<int, 6>{0, 1, 2, 6, 7, 8});
+  }
 };
 
 TEST_CASE("pddl", "[Pddl]") {

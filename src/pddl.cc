@@ -186,16 +186,16 @@ namespace symbolic {
 
 Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
     : analysis_(ParsePddl(domain_pddl, problem_pddl)),
-      domain_(*analysis_->the_domain),
-      problem_(*analysis_->the_problem),
-      objects_(GetObjects(domain_, problem_)),
+      domain_pddl_(domain_pddl),
+      problem_pddl_(problem_pddl),
+      objects_(GetObjects(*analysis_->the_domain, *analysis_->the_problem)),
       object_map_(CreateObjectTypeMap(objects_)),
-      actions_(GetActions(*this, domain_)),
-      predicates_(GetPredicates(*this, domain_)),
-      axioms_(GetAxioms(*this, domain_)),
-      derived_predicates_(GetDerivedPredicates(*this, domain_)),
-      initial_state_(GetInitialState(domain_, problem_)),
-      goal_(*this, problem_.the_goal) {}
+      actions_(GetActions(*this, *analysis_->the_domain)),
+      predicates_(GetPredicates(*this, *analysis_->the_domain)),
+      axioms_(GetAxioms(*this, *analysis_->the_domain)),
+      derived_predicates_(GetDerivedPredicates(*this, *analysis_->the_domain)),
+      initial_state_(GetInitialState(*analysis_->the_domain, *analysis_->the_problem)),
+      goal_(*this, analysis_->the_problem->the_goal) {}
 
 bool Pddl::IsValid(bool verbose, std::ostream& os) const {
   VAL::Verbose = verbose;
@@ -225,15 +225,27 @@ State Pddl::NextState(const State& state,
 }
 std::set<std::string> Pddl::NextState(const std::set<std::string>& str_state,
                                       const std::string& action_call) const {
-  // Parse strings
-  State state = ParseState(*this, str_state);
-  const std::pair<Action, std::vector<Object>> action_args =
-      Action::Parse(*this, action_call);
-  const Action& action = action_args.first;
-  const std::vector<Object>& arguments = action_args.second;
+  return Stringify(NextState(ParseState(*this, str_state), action_call));
+}
 
-  Apply(action, arguments, derived_predicates(), &state);
-  return Stringify(state);
+State Pddl::DerivedState(const State& state) const {
+  return DerivedPredicate::Apply(state, derived_predicates());
+}
+std::set<std::string> Pddl::DerivedState(
+    const std::set<std::string>& str_state) const {
+  return Stringify(DerivedState(ParseState(*this, str_state)));
+}
+
+State Pddl::ConsistentState(const State& state) const {
+  State next_state = state;
+  for (const Axiom& axiom : axioms()) {
+    axiom.Apply(&next_state);
+  }
+  return next_state;
+}
+std::set<std::string> Pddl::ConsistentState(
+    const std::set<std::string>& str_state) const {
+  return Stringify(ConsistentState(ParseState(*this, str_state)));
 }
 
 bool Pddl::IsValidAction(const State& state,
@@ -249,6 +261,16 @@ bool Pddl::IsValidAction(const State& state,
 bool Pddl::IsValidAction(const std::set<std::string>& str_state,
                          const std::string& action_call) const {
   return IsValidAction(ParseState(*this, str_state), action_call);
+}
+
+bool Pddl::IsValidState(const State& state) const {
+  for (const Axiom& axiom : axioms()) {
+    if (!axiom.IsConsistent(state)) return false;
+  }
+  return true;
+}
+bool Pddl::IsValidState(const std::set<std::string>& str_state) const {
+  return IsValidState(ParseState(*this, str_state));
 }
 
 bool Pddl::IsValidTuple(const State& state, const std::string& action_call,

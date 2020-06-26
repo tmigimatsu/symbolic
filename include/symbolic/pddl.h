@@ -31,53 +31,103 @@ class Pddl {
  public:
   using ObjectTypeMap = std::unordered_map<std::string, std::vector<Object>>;
 
+  /**
+   * Parse the pddl specification from the domain and problem files.
+   */
   Pddl(const std::string& domain_pddl, const std::string& problem_pddl);
 
+  /**
+   * Evaluate whether the pddl specification is valid using VAL.
+   */
   bool IsValid(bool verbose = false, std::ostream& os = std::cout) const;
 
+  /**
+   * Apply an action to the given state.
+   *
+   * The action's preconditions are not checked. The resulting state includes
+   * derived predicates.
+   */
   State NextState(const State& state, const std::string& action_call) const;
   std::set<std::string> NextState(const std::set<std::string>& state,
                                   const std::string& action_call) const;
 
+  /**
+   * Apply the derived predicates to the given state.
+   */
+  State DerivedState(const State& state) const;
+  std::set<std::string> DerivedState(const std::set<std::string>& state) const;
+
+  /**
+   * Apply the axioms to the given state.
+   */
+  State ConsistentState(const State& state) const;
+  std::set<std::string> ConsistentState(const std::set<std::string>& state) const;
+
+  /**
+   * Evaluate whether the action's preconditions are satisfied.
+   */
   bool IsValidAction(const State& state, const std::string& action_call) const;
   bool IsValidAction(const std::set<std::string>& state,
                      const std::string& action_call) const;
 
+  /**
+   * Evaluate whether the state satisfies the axioms.
+   */
+  bool IsValidState(const State& state) const;
+  bool IsValidState(const std::set<std::string>& state) const;
+
+  /**
+   * Evaluate whether the (s, a, s') tuple is valid.
+   */
   bool IsValidTuple(const State& state, const std::string& action_call,
                     const State& next_state) const;
   bool IsValidTuple(const std::set<std::string>& state,
                     const std::string& action_call,
                     const std::set<std::string>& next_state) const;
 
+  /**
+   * Evaluate whether the goal is satisfied at the given state.
+   */
   bool IsGoalSatisfied(const State& state) const { return goal_(state); }
   bool IsGoalSatisfied(const std::set<std::string>& state) const;
 
+  /**
+   * Evaluate whether the given action skeleton is valid and satisfies the goal.
+   */
   bool IsValidPlan(const std::vector<std::string>& action_skeleton) const;
 
+  /**
+   * List the valid arguments for an action from the given state.
+   */
   std::vector<std::vector<Object>> ListValidArguments(
       const State& state, const Action& action) const;
   std::vector<std::vector<std::string>> ListValidArguments(
       const std::set<std::string>& state, const std::string& action_name) const;
 
+  /**
+   * List the valid actions from the given state.
+   */
   std::vector<std::string> ListValidActions(const State& state) const;
   std::vector<std::string> ListValidActions(
       const std::set<std::string>& state) const;
 
   const VAL::analysis& analysis() const { return *analysis_; }
 
-  const VAL::domain& domain() const { return domain_; }
+  const VAL::domain& domain() const { return *analysis().the_domain; }
 
-  const VAL::problem& problem() const { return problem_; }
+  const VAL::problem& problem() const { return *analysis().the_problem; }
+
+  const std::string& domain_pddl() const { return domain_pddl_; }
+
+  const std::string& problem_pddl() const { return problem_pddl_; }
 
   const State& initial_state() const { return initial_state_; }
-  // std::set<std::string> initial_state_str() const;
 
   const ObjectTypeMap& object_map() const { return object_map_; }
 
   const std::vector<Object>& objects() const { return objects_; }
 
   const std::vector<Action>& actions() const { return actions_; }
-  // std::vector<std::string> actions_str() const;
 
   const std::vector<Predicate>& predicates() const { return predicates_; }
 
@@ -90,20 +140,20 @@ class Pddl {
   const Formula& goal() const { return goal_; }
 
  private:
-  const std::unique_ptr<VAL::analysis> analysis_;
-  const VAL::domain& domain_;
-  const VAL::problem& problem_;
+  std::unique_ptr<VAL::analysis> analysis_;
+  std::string domain_pddl_;
+  std::string problem_pddl_;
 
-  const std::vector<Object> objects_;
-  const ObjectTypeMap object_map_;
+  std::vector<Object> objects_;
+  ObjectTypeMap object_map_;
 
-  const std::vector<Action> actions_;
-  const std::vector<Predicate> predicates_;
-  const std::vector<Axiom> axioms_;
-  const std::vector<DerivedPredicate> derived_predicates_;
+  std::vector<Action> actions_;
+  std::vector<Predicate> predicates_;
+  std::vector<Axiom> axioms_;
+  std::vector<DerivedPredicate> derived_predicates_;
 
-  const State initial_state_;
-  const Formula goal_;
+  State initial_state_;
+  Formula goal_;
 };
 
 std::set<std::string> Stringify(const State& state);

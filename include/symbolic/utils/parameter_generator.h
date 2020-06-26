@@ -18,18 +18,30 @@
 
 namespace symbolic {
 
-// CombinatorGenerator class contains no mutable member variables. All state is
-// held inside the iterator, meaning multiple parallel instances can use the
-// same generator.
 class ParameterGenerator
     : public CombinationGenerator<const std::vector<Object>> {
  public:
+  using Base = CombinationGenerator<const std::vector<Object>>;
   using ObjectTypeMap = std::unordered_map<std::string, std::vector<Object>>;
 
   ParameterGenerator() = default;
+  ~ParameterGenerator() override = default;
 
   ParameterGenerator(const ObjectTypeMap& object_map,
                      const std::vector<Object>& params);
+
+  ParameterGenerator(const ParameterGenerator& other);
+  ParameterGenerator(ParameterGenerator&& other) noexcept;
+  ParameterGenerator& operator=(const ParameterGenerator& rhs);
+  ParameterGenerator& operator=(ParameterGenerator&& rhs) noexcept;
+
+
+  // ParameterGenerator(ObjectTypeMap&& object_map,
+  //                    const std::vector<Object>& params);
+
+ private:
+  // Store parameter types for portability
+  std::vector<std::vector<Object>> param_types_;
 };
 
 }  // namespace symbolic

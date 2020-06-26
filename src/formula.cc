@@ -20,6 +20,7 @@ namespace {
 
 using ::symbolic::Formula;
 using ::symbolic::Object;
+using ::symbolic::ParameterGenerator;
 using ::symbolic::Pddl;
 using ::symbolic::Proposition;
 using ::symbolic::State;
@@ -38,8 +39,7 @@ FormulaFunction CreateProposition(const Pddl& pddl,
                                   const std::vector<Object>& parameters) {
   const VAL::proposition* prop = symbol->getProp();
   std::string name_predicate = prop->head->getName();
-  const std::vector<Object> prop_params =
-      symbolic::Object::CreateList(pddl, prop->args);
+  const std::vector<Object> prop_params = Object::CreateList(pddl, prop->args);
   ApplicationFunction Apply =
       Formula::CreateApplicationFunction(parameters, prop_params);
 
@@ -125,17 +125,16 @@ FormulaFunction CreateForall(const Pddl& pddl, const VAL::qfied_goal* symbol,
                              const std::vector<Object>& parameters) {
   // Create forall parameters
   std::vector<Object> forall_params = parameters;
-  std::vector<Object> types =
-      symbolic::Object::CreateList(pddl, symbol->getVars());
+  std::vector<Object> types = Object::CreateList(pddl, symbol->getVars());
   forall_params.insert(forall_params.end(), types.begin(), types.end());
 
   const VAL::goal* goal = symbol->getGoal();
   FormulaFunction P = CreateFormula(pddl, goal, forall_params);
 
-  return [&pddl, types = std::move(types), P = std::move(P)](
+  return [gen = ParameterGenerator(pddl.object_map(), types),
+          types = std::move(types), P = std::move(P)](
              const State& state, const std::vector<Object>& arguments) -> bool {
     // Loop over forall arguments
-    symbolic::ParameterGenerator gen(pddl.object_map(), types);
     for (const std::vector<Object>& forall_objs : gen) {
       // Create forall arguments
       std::vector<Object> forall_args = arguments;
@@ -152,17 +151,16 @@ FormulaFunction CreateExists(const Pddl& pddl, const VAL::qfied_goal* symbol,
                              const std::vector<Object>& parameters) {
   // Create exists parameters
   std::vector<Object> exists_params = parameters;
-  std::vector<Object> types =
-      symbolic::Object::CreateList(pddl, symbol->getVars());
+  std::vector<Object> types = Object::CreateList(pddl, symbol->getVars());
   exists_params.insert(exists_params.end(), types.begin(), types.end());
 
   const VAL::goal* goal = symbol->getGoal();
   FormulaFunction P = CreateFormula(pddl, goal, exists_params);
 
-  return [&pddl, types = std::move(types), P = std::move(P)](
+  return [gen = ParameterGenerator(pddl.object_map(), types),
+          types = std::move(types), P = std::move(P)](
              const State& state, const std::vector<Object>& arguments) -> bool {
     // Loop over exists arguments
-    symbolic::ParameterGenerator gen(pddl.object_map(), types);
     for (const std::vector<Object>& exists_objs : gen) {
       // Create exists arguments
       std::vector<Object> exists_args = arguments;

@@ -46,7 +46,7 @@ EffectsFunction CreateForall(const Pddl& pddl, const VAL::forall_effect* effect,
   EffectsFunction ForallEffects =
       CreateEffectsFunction(pddl, effect->getEffects(), forall_params);
 
-  return [&pddl, gen = symbolic::ParameterGenerator(pddl.object_map(), types),
+  return [gen = symbolic::ParameterGenerator(pddl.object_map(), types),
           ForallEffects = std::move(ForallEffects)](
              const std::vector<Object>& arguments, State* state) {
     // Loop over forall arguments

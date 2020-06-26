@@ -16,14 +16,14 @@ namespace {
 using ::symbolic::Object;
 using ::symbolic::ParameterGenerator;
 
-std::vector<const std::vector<Object>*> ParamTypes(
+std::vector<std::vector<Object>> ParamTypes(
     const ParameterGenerator::ObjectTypeMap& object_map,
     const std::vector<Object>& params) {
-  std::vector<const std::vector<Object>*> types;
+  std::vector<std::vector<Object>> types;
   types.reserve(params.size());
   for (const Object& param : params) {
     try {
-      types.push_back(&object_map.at(param.type().name()));
+      types.push_back(object_map.at(param.type().name()));
     } catch (...) {
       throw std::runtime_error("ParameterGenerator(): parameter type '" +
                                param.type().name() +
@@ -33,12 +33,47 @@ std::vector<const std::vector<Object>*> ParamTypes(
   return types;
 }
 
+std::vector<const std::vector<Object>*> Options(
+    const std::vector<std::vector<Object>>& param_types) {
+  std::vector<const std::vector<Object>*> options;
+  options.reserve(param_types.size());
+  for (const std::vector<Object>& option : param_types) {
+    options.push_back(&option);
+  }
+  return options;
+}
+
 }  // namespace
 
 namespace symbolic {
 
 ParameterGenerator::ParameterGenerator(const ObjectTypeMap& object_map,
                                        const std::vector<Object>& params)
-    : CombinationGenerator(ParamTypes(object_map, params)) {}
+    : param_types_(ParamTypes(object_map, params)) {
+  Base::operator=(Base(Options(param_types_)));
+}
+
+// NOLINTNEXTLINE(bugprone-copy-constructor-init)
+ParameterGenerator::ParameterGenerator(const ParameterGenerator& other)
+  : param_types_(other.param_types_) {
+  Base::operator=(Base(Options(param_types_)));
+}
+
+ParameterGenerator::ParameterGenerator(ParameterGenerator&& other) noexcept
+  : param_types_(std::move(other.param_types_)) {
+  Base::operator=(Base(Options(param_types_)));
+}
+
+ParameterGenerator& ParameterGenerator::operator=(const ParameterGenerator& rhs) {
+  param_types_ = rhs.param_types_;
+  Base::operator=(Base(Options(param_types_)));
+  return *this;
+}
+
+ParameterGenerator& ParameterGenerator::operator=(ParameterGenerator&& rhs) noexcept {
+  param_types_ = std::move(rhs.param_types_);
+  Base::operator=(Base(Options(param_types_)));
+  return *this;
+}
 
 }  // namespace symbolic

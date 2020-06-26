@@ -110,4 +110,14 @@ std::vector<Object> Object::ParseArguments(const Pddl& pddl, const std::string& 
   return args;
 }
 
+std::vector<Object> Object::ParseArguments(const std::string& atom) {
+  const std::vector<std::string> name_args = TokenizeArguments(atom);
+  std::vector<Object> args;
+  args.reserve(name_args.size());
+  for (const std::string& name_arg : name_args) {
+    args.emplace_back(name_arg);
+  }
+  return args;
+}
+
 }  // namespace symbolic
