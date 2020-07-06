@@ -112,6 +112,7 @@ target_include_directories(${SYMBOLIC_LIB}
 target_sources(${SYMBOLIC_LIB} PRIVATE ${LIB_SRC})
 target_link_libraries(${SYMBOLIC_LIB} PUBLIC
     VAL::VAL
+    ctrl_utils::ctrl_utils
 )
 # configure_file(${CMAKE_BINARY_DIR}/VAL/build/parser ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COPYONLY)
 # configure_file(${CMAKE_BINARY_DIR}/VAL/build/validate ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COPYONLY)

@@ -194,6 +194,7 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
       predicates_(GetPredicates(*this, *analysis_->the_domain)),
       axioms_(GetAxioms(*this, *analysis_->the_domain)),
       derived_predicates_(GetDerivedPredicates(*this, *analysis_->the_domain)),
+      state_index_(predicates_),
       initial_state_(GetInitialState(*analysis_->the_domain, *analysis_->the_problem)),
       goal_(*this, analysis_->the_problem->the_goal) {}
 

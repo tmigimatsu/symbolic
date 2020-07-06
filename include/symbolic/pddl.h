@@ -61,7 +61,8 @@ class Pddl {
    * Apply the axioms to the given state.
    */
   State ConsistentState(const State& state) const;
-  std::set<std::string> ConsistentState(const std::set<std::string>& state) const;
+  std::set<std::string> ConsistentState(
+      const std::set<std::string>& state) const;
 
   /**
    * Evaluate whether the action's preconditions are satisfied.
@@ -137,6 +138,8 @@ class Pddl {
     return derived_predicates_;
   }
 
+  const StateIndex& state_index() const { return state_index_; }
+
   const Formula& goal() const { return goal_; }
 
  private:
@@ -151,6 +154,8 @@ class Pddl {
   std::vector<Predicate> predicates_;
   std::vector<Axiom> axioms_;
   std::vector<DerivedPredicate> derived_predicates_;
+
+  StateIndex state_index_;
 
   State initial_state_;
   Formula goal_;

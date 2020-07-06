@@ -81,6 +81,9 @@ class Object {
 
   static std::vector<Object> ParseArguments(const std::string& atom);
 
+  static std::vector<Object> ParseArguments(
+      const std::vector<std::string>& str_args);
+
   template <typename T>
   static std::vector<Object> CreateList(
       const Pddl& pddl, const VAL::typed_symbol_list<T>* symbols);
@@ -91,14 +94,18 @@ class Object {
       const VAL::typed_symbol_list<T>* symbols);
 
   friend bool operator<(const Object& lhs, const Object& rhs) {
-    return std::tie(lhs.name(), lhs.type()) < std::tie(rhs.name(), rhs.type());
+    return lhs.name() < rhs.name();
+    // return std::tie(lhs.name(), lhs.type()) < std::tie(rhs.name(),
+    // rhs.type());
   }
 
   friend bool operator==(const Object& lhs, const Object& rhs) {
-    return std::tie(lhs.name(), lhs.type()) == std::tie(rhs.name(), rhs.type());
+    return lhs.name() == rhs.name();
+    // return std::tie(lhs.name(), lhs.type()) == std::tie(rhs.name(),
+    // rhs.type());
   }
   friend bool operator!=(const Object& lhs, const Object& rhs) {
-    return !(lhs.type() == rhs.type());
+    return !(lhs == rhs);
   }
 
   friend std::ostream& operator<<(std::ostream& os, const Object& object) {

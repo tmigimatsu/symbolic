@@ -14,15 +14,19 @@
 
 #include <ostream>  // std::ostream
 
-#include "symbolic/proposition.h"
-
 #ifndef SYMBOLIC_STATE_USE_SET
 #include <vector>  // std::vector
 #else              // SYMBOLIC_STATE_USE_SET
 #include <set>     // std::set
 #endif             // SYMBOLIC_STATE_USE_SET
 
+#include <ctrl_utils/eigen.h>
+
+#include "symbolic/proposition.h"
+
 namespace symbolic {
+
+class Predicate;
 
 #ifndef SYMBOLIC_STATE_USE_SET
 class State : private std::vector<Proposition> {
@@ -95,6 +99,177 @@ bool State::insert(InputIt first, InputIt last) {
   }
   return is_changed;
 }
+
+/**
+ * Database to convert between indexed and regular state.
+ *
+ * States are represented as Eigen boolean arrays.
+ */
+class StateIndex {
+ public:
+  class iterator;
+  using IndexedState = Eigen::Array<bool, Eigen::Dynamic, 1>;
+
+  /**
+   * Construct the index from the given predicates.
+   *
+   * @param predicates Pddl predicates.
+   * @param use_cache Cache proposition lookups.
+   */
+  explicit StateIndex(const std::vector<Predicate>& predicates, bool use_cache=true);
+
+  /**
+   * Get a proposition from the index.
+   *
+   * @param idx_proposition Index of proposition.
+   * @return Proposition at given index.
+   */
+  Proposition GetProposition(size_t idx_proposition) const;
+
+  /**
+   * Get the index of a proposition.
+   *
+   * @param prop Proposition.
+   * @return Proposition index.
+   */
+  size_t GetPropositionIndex(const Proposition& prop) const;
+
+  /**
+   * Convert the indexed state to a full state.
+   *
+   * @param indexed_state Indexed state.
+   * @return Full state.
+   */
+  State GetState(Eigen::Ref<const IndexedState> indexed_state) const;
+
+  /**
+   * Convert the state into an indexed state.
+   *
+   * @param state State.
+   * @return Indexed state.
+   */
+  IndexedState GetIndexedState(const State& state) const;
+
+  /**
+   * Size of indexed state (total number of propositions).
+   */
+  size_t size() const { return idx_predicate_group_.back(); }
+
+  // Iterators
+  iterator begin() const { return iterator(this, 0); };
+  iterator end() const { return iterator(this, size()); };
+
+ private:
+  // Predicates vector stored for portability
+  std::vector<Predicate> predicates_;
+
+  // Sorted vector of predicate group indices in indexed state (beginning of
+  // predicate group)
+  std::vector<size_t> idx_predicate_group_;
+
+  // Map from predicate to index in predicates vector
+  std::unordered_map<std::string, size_t> idx_predicates_;
+
+  // Cache
+  mutable std::unordered_map<size_t, std::string> cache_propositions_;
+  mutable std::unordered_map<std::string, size_t> cache_idx_propositions_;
+
+  bool use_cache_;
+
+ public:
+  class iterator {
+   public:
+    // Iterator traits
+    using iterator_category = std::random_access_iterator_tag;
+    using value_type = Proposition;
+    using difference_type = ptrdiff_t;
+    using pointer = const Proposition*;
+    using reference = const Proposition&;
+
+    // Constructor
+    iterator(const StateIndex* state_index, int idx)
+        : state_index_(state_index), idx_(idx) {}
+
+    // Forward iterator
+    iterator& operator++() { return operator+=(1); }
+
+    iterator operator++(int) {
+      iterator it = *this;
+      operator++();
+      return it;
+    }
+
+    reference operator*() const {
+      prop_ = state_index_->GetProposition(idx_);
+      return prop_;
+    };
+
+    pointer operator->() const {
+      prop_ = state_index_->GetProposition(idx_);
+      return &prop_;
+    }
+
+    bool operator==(const iterator& rhs) const {
+      return state_index_ == rhs.state_index_ && idx_ == rhs.idx_;
+    }
+
+    bool operator!=(const iterator& rhs) const { return !(*this == rhs); }
+
+    // Bidirectional iterator
+    iterator& operator--() { return operator+=(-1); }
+
+    iterator operator--(int) {
+      iterator it = *this;
+      operator--();
+      return it;
+    }
+
+    // Random access iterator
+    bool operator<(const iterator& rhs) const {
+      return state_index_ == rhs.state_index_ && idx_ < rhs.idx_;
+    }
+
+    bool operator>(const iterator& rhs) const { return rhs < *this; };
+
+    bool operator<=(const iterator& rhs) const {
+      return state_index_ == rhs.state_index_ && idx_ <= rhs.idx_;
+    }
+
+    bool operator>=(const iterator& rhs) const { return rhs <= *this; };
+
+    iterator& operator+=(difference_type n) {
+      idx_ += n;
+      return *this;
+    }
+
+    iterator operator+(difference_type n) const {
+      iterator temp = *this;
+      return temp += n;
+    }
+
+    friend iterator operator+(difference_type n, const iterator& it) {
+      return it + n;
+    }
+
+    iterator& operator-=(difference_type n) { return operator+=(-n); }
+
+    iterator operator-(difference_type n) const {
+      iterator temp = *this;
+      return temp -= n;
+    }
+
+    difference_type operator-(const iterator& rhs) const {
+      return idx_ - rhs.idx_;
+    }
+
+    value_type operator[](difference_type n) const { return *(operator+(n)); }
+
+   private:
+    const StateIndex* state_index_ = nullptr;
+    int idx_ = 0;
+    mutable Proposition prop_;
+  };
+};
 
 }  // namespace symbolic
 

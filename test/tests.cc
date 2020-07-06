@@ -157,6 +157,25 @@ TEST_CASE("combination_generator", "[CombinationGenerator]") {
   }
 };
 
+TEST_CASE("StateIndex", "[StateIndex]") {
+  const symbolic::Pddl pddl("../resources/domain.pddl",
+                            "../resources/problem.pddl");
+  const symbolic::StateIndex& state_index = pddl.state_index();
+
+  SECTION("Iteration") {
+    REQUIRE(state_index.size() == 16);
+    REQUIRE(*state_index.begin() == symbolic::Proposition(pddl, "inhand(hook)"));
+    REQUIRE(*--state_index.end() == symbolic::Proposition(pddl, "throwable(box)"));
+  }
+
+  SECTION("Proposition") {
+    for (size_t i = 0; i < state_index.size(); i++) {
+      const symbolic::Proposition& prop = state_index.GetProposition(i);
+      REQUIRE(i == state_index.GetPropositionIndex(prop));
+    }
+  }
+}
+
 TEST_CASE("pddl", "[Pddl]") {
   const symbolic::Pddl pddl("../resources/domain.pddl",
                             "../resources/problem.pddl");

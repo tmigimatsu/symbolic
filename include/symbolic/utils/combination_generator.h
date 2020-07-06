@@ -10,10 +10,12 @@
 #ifndef SYMBOLIC_UTILS_COMBINATION_GENERATOR_H_
 #define SYMBOLIC_UTILS_COMBINATION_GENERATOR_H_
 
+#include <algorithm>    // std::find
 #include <cassert>      // assert
 #include <cstddef>      // ptrdiff_t
 #include <exception>    // std::invalid_argument, std::out_of_range
 #include <iterator>     // std::random_access_iterator_tag, std::iterator_traits
+#include <sstream>      // std::stringstream
 #include <string>       // std::to_string
 #include <type_traits>  // std::conditional_t, std::is_const
 #include <vector>       // std::vector
@@ -128,6 +130,35 @@ class CombinationGenerator {
    */
   typename iterator::value_type operator[](int i) const {
     return *(begin() + i);
+  }
+
+  /**
+   * Get index of given combination.
+   */
+  int find(const typename iterator::value_type& combination) const {
+    assert(combination.size() == options_.size());
+    size_t idx = 0;
+
+    // Iterate over digit slots
+    for (size_t i = 0; i < combination.size(); i++) {
+      const typename iterator::ValueT& element = combination[i];
+      const ContainerT& option = *options_.at(i);
+
+      // Find element in current option
+      const auto it_element = std::find(option.begin(), option.end(), element);
+      if (it_element == option.end()) {
+        std::stringstream ss;
+        ss << "CombinationGenerator::find(): No element " << element
+           << " in slot << " << i << ".";
+        throw std::out_of_range(ss.str());
+      }
+
+      // Get index of element
+      const size_t idx_element = it_element - option.begin();
+      idx += size_groups_[i] * idx_element;
+    }
+
+    return idx;
   }
 
  private:

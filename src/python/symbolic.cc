@@ -7,11 +7,13 @@
  * Authors: Toki Migimatsu
  */
 
+#include <pybind11/eigen.h>
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include <sstream>  // std::stringstream
+#include <exception>  // std::out_of_range
+#include <sstream>    // std::stringstream
 
 #include "symbolic/normal_form.h"
 #include "symbolic/pddl.h"
@@ -20,6 +22,7 @@
 
 namespace {
 
+using ::symbolic::Object;
 using ::symbolic::Pddl;
 using ::symbolic::State;
 
@@ -29,6 +32,15 @@ State ParseState(const std::set<std::string>& str_state) {
     state.emplace(str_prop);
   }
   return state;
+}
+
+std::vector<Object> ParseObjects(const std::vector<std::string>& str_objects) {
+  std::vector<Object> objects;
+  objects.reserve(str_objects.size());
+  for (const std::string& str_object : str_objects) {
+    objects.emplace_back(str_object);
+  }
+  return objects;
 }
 
 }  // namespace
@@ -66,6 +78,7 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def_property_readonly("predicates", &Pddl::predicates)
       .def_property_readonly("axioms", &Pddl::axioms)
       .def_property_readonly("derived_predicates", &Pddl::derived_predicates)
+      .def_property_readonly("state_index", &Pddl::state_index)
       .def(
           "is_valid",
           [](const Pddl& pddl, bool verbose) { return pddl.IsValid(verbose); },
@@ -181,7 +194,39 @@ PYBIND11_MODULE(pysymbolic, m) {
           [](ParameterGenerator& param_gen) {
             return py::make_iterator(param_gen.begin(), param_gen.end());
           },
-          py::keep_alive<0, 1>());  // Keep vector alive while iterator is used
+          py::keep_alive<0, 1>())  // Keep vector alive while iterator is used
+      .def("index",
+           [](const ParameterGenerator& param_gen,
+              const std::vector<std::string>& str_args) -> size_t {
+             return param_gen.find(Object::ParseArguments(str_args));
+           });
+
+  // StateIndex
+  py::class_<StateIndex>(m, "StateIndex")
+      .def("get_proposition",
+           [](const StateIndex& state_index, int idx_proposition) {
+             if (idx_proposition < 0) idx_proposition += state_index.size();
+             return state_index.GetProposition(idx_proposition).to_string();
+           })
+      .def("get_proposition_index",
+           [](const StateIndex& state_index, const std::string& str_prop) {
+             return state_index.GetPropositionIndex(Proposition(str_prop));
+           })
+      .def("get_state",
+           [](const StateIndex& state_index,
+              // NOLINTNEXTLINE(performance-unnecessary-value-param)
+              Eigen::Ref<const StateIndex::IndexedState> indexed_state) {
+             return Stringify(state_index.GetState(indexed_state));
+           })
+      .def("get_indexed_state",
+           [](const StateIndex& state_index,
+              const std::set<std::string>& str_state) {
+             return state_index.GetIndexedState(ParseState(str_state));
+           })
+      .def("__len__", &StateIndex::size)
+      .def("__iter__", [](const StateIndex& state_index) {
+        return py::make_iterator(state_index.begin(), state_index.end());
+      });
 
   // Planner::Node
   py::class_<Planner::Node>(m, "PlannerNode")
@@ -236,9 +281,6 @@ PYBIND11_MODULE(pysymbolic, m) {
                 ParseState(pos_neg[0].cast<std::set<std::string>>()),
                 ParseState(pos_neg[1].cast<std::set<std::string>>())};
           }));
-
-  m.def("NormalizeConditions", &DisjunctiveFormula::NormalizeConditions,
-        "pddl"_a, "action"_a);
 }
 
 }  // namespace symbolic

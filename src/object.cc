@@ -100,7 +100,8 @@ Object::Object(const Pddl& pddl, const std::string& name_object)
       name_(name_object),
       type_(GetTypeSymbol(pddl.domain().types, symbol_->type)) {}
 
-std::vector<Object> Object::ParseArguments(const Pddl& pddl, const std::string& atom) {
+std::vector<Object> Object::ParseArguments(const Pddl& pddl,
+                                           const std::string& atom) {
   const std::vector<std::string> name_args = TokenizeArguments(atom);
   std::vector<Object> args;
   args.reserve(name_args.size());
@@ -112,10 +113,15 @@ std::vector<Object> Object::ParseArguments(const Pddl& pddl, const std::string& 
 
 std::vector<Object> Object::ParseArguments(const std::string& atom) {
   const std::vector<std::string> name_args = TokenizeArguments(atom);
+  return ParseArguments(name_args);
+}
+
+std::vector<Object> Object::ParseArguments(
+    const std::vector<std::string>& str_args) {
   std::vector<Object> args;
-  args.reserve(name_args.size());
-  for (const std::string& name_arg : name_args) {
-    args.emplace_back(name_arg);
+  args.reserve(str_args.size());
+  for (const std::string& str_arg : str_args) {
+    args.emplace_back(str_arg);
   }
   return args;
 }
