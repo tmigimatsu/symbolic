@@ -39,10 +39,26 @@ class Action {
     return Preconditions_(state, arguments);
   }
 
+  std::optional<bool> IsValid(const PartialState& state,
+                              const std::vector<Object>& arguments) const {
+    return Preconditions_(state, arguments);
+  }
+
   State Apply(const State& state, const std::vector<Object>& arguments) const;
 
   bool Apply(const std::vector<Object>& arguments, State* state) const {
-    return Apply_(arguments, state);
+    return static_cast<bool>(Apply_(arguments, state));
+  }
+
+  PartialState Apply(const PartialState& state,
+                     const std::vector<Object>& arguments) const;
+
+  /**
+   * @return 0 if no change was made, 1 if the value of at least one proposition
+   * became explicit, 2 if value of at least one proposition was flipped.
+   */
+  int Apply(const std::vector<Object>& arguments, PartialState* state) const {
+    return ApplyPartial_(arguments, state);
   }
 
   const VAL::operator_* symbol() const { return symbol_; }
@@ -81,7 +97,8 @@ class Action {
   ParameterGenerator param_gen_;
 
   Formula Preconditions_;
-  std::function<bool(const std::vector<Object>&, State*)> Apply_;
+  std::function<int(const std::vector<Object>&, State*)> Apply_;
+  std::function<int(const std::vector<Object>&, PartialState*)> ApplyPartial_;
 };
 
 }  // namespace symbolic

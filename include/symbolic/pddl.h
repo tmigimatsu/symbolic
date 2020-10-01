@@ -15,6 +15,7 @@
 #include <set>            // std::set
 #include <string>         // std::string
 #include <unordered_map>  // std::unordered_map
+#include <utility>        // std::pair
 #include <vector>         // std::vector
 
 #include "symbolic/action.h"
@@ -63,6 +64,11 @@ class Pddl {
   State ConsistentState(const State& state) const;
   std::set<std::string> ConsistentState(
       const std::set<std::string>& state) const;
+
+  PartialState ConsistentState(const PartialState& state) const;
+  std::pair<std::set<std::string>, std::set<std::string>> ConsistentState(
+      const std::set<std::string>& state_pos,
+      const std::set<std::string>& state_neg) const;
 
   /**
    * Evaluate whether the action's preconditions are satisfied.
@@ -162,6 +168,8 @@ class Pddl {
 };
 
 std::set<std::string> Stringify(const State& state);
+std::pair<std::set<std::string>, std::set<std::string>> Stringify(
+    const PartialState& state);
 std::vector<std::string> Stringify(const std::vector<Action>& actions);
 std::vector<std::vector<std::string>> Stringify(
     const std::vector<std::vector<Object>>& arguments);

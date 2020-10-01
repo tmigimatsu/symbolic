@@ -109,6 +109,55 @@ std::ostream& operator<<(std::ostream& os, const State& state) {
   return os;
 }
 
+bool PartialState::contains(const Proposition& prop) const {
+  if (pos_.contains(prop)) return true;
+  if (neg_.contains(prop)) return false;
+  throw UnknownEvaluation(prop);
+}
+
+int PartialState::insert(const Proposition& prop) {
+  const int was_negated = static_cast<int>(neg_.erase(prop));
+  const int was_added = static_cast<int>(pos_.insert(prop));
+  return was_negated + was_added;
+}
+
+int PartialState::insert(Proposition&& prop) {
+  const int was_negated = static_cast<int>(neg_.erase(prop));
+  const int was_added = static_cast<int>(pos_.insert(std::move(prop)));
+  return was_negated + was_added;
+}
+
+int PartialState::erase(const Proposition& prop) {
+  const int was_negated = static_cast<int>(pos_.erase(prop));
+  const int was_erased = static_cast<int>(neg_.insert(prop));
+  return was_negated + was_erased;
+}
+
+int PartialState::erase(Proposition&& prop) {
+  const int was_negated = static_cast<int>(pos_.erase(prop));
+  const int was_erased = static_cast<int>(neg_.insert(std::move(prop)));
+  return was_negated + was_erased;
+}
+
+bool PartialState::IsConsistent() const {
+  for (const Proposition& prop : pos_) {
+    if (neg_.contains(prop)) return false;
+  }
+  return true;
+}
+
+std::ostream& operator<<(std::ostream& os, const PartialState& state) {
+  os << "(and" << std::endl;
+  for (const Proposition& prop : state.pos_) {
+    os << "\t" << prop << std::endl;
+  }
+  for (const Proposition& prop : state.neg_) {
+    os << "\tnot " << prop << std::endl;
+  }
+  os << ")" << std::endl;
+  return os;
+}
+
 StateIndex::StateIndex(const std::vector<Predicate>& predicates, bool use_cache)
     : predicates_(predicates),
       idx_predicate_group_(PredicateCumSum(predicates_)),
@@ -141,7 +190,8 @@ Proposition StateIndex::GetProposition(size_t idx_proposition) const {
 
   // Cache results
   if (use_cache_) {
-    cache_propositions_[idx_proposition] = Proposition(pred.name(), args).to_string();
+    cache_propositions_[idx_proposition] =
+        Proposition(pred.name(), args).to_string();
   }
 
   return Proposition(pred.name(), std::move(args));

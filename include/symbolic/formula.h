@@ -11,6 +11,8 @@
 #define SYMBOLIC_FORMULA_H_
 
 #include <functional>  // std::function
+#include <optional>    // std::optional
+#include <ostream>     // std::ostream
 #include <set>         // std::set
 #include <vector>      // std::vector
 
@@ -44,6 +46,15 @@ class Formula {
 
   bool operator()(const State& state) const { return P_(state, {}); };
 
+  std::optional<bool> operator()(const PartialState& state,
+                                 const std::vector<Object>& arguments) const;
+
+  std::optional<bool> operator()(const PartialState& state) const;
+
+  const std::string& to_string() const { return str_formula_; }
+
+  friend ostream& operator<<(ostream& os, const Formula& F);
+
   /**
    * Create a function that takes action_args and returns prop_args based on the
    * mapping (action_params -> prop_params).
@@ -57,6 +68,12 @@ class Formula {
 
   std::function<bool(const State& state, const std::vector<Object>& arguments)>
       P_;
+
+  std::function<bool(const PartialState& state,
+                     const std::vector<Object>& arguments)>
+      PP_;
+
+  std::string str_formula_;
 };
 
 }  // namespace symbolic

@@ -20,7 +20,8 @@
 namespace {
 
 using ::symbolic::DisjunctiveFormula;
-using ::symbolic::FormulaLiterals;
+using ::symbolic::Object;
+using ::symbolic::PartialState;
 using ::symbolic::Pddl;
 using ::symbolic::Proposition;
 
@@ -31,13 +32,21 @@ std::optional<bool> Negate(const std::optional<bool>& x) {
 std::optional<bool> EvaluateEquals(const Proposition& prop) {
   if (prop.name() != "=") return {};
   assert(prop.arguments().size() == 2);
-  return prop.arguments()[0] == prop.arguments()[1];
+  const Object& a = prop.arguments()[0];
+  const Object& b = prop.arguments()[1];
+  if (dynamic_cast<const VAL::var_symbol*>(a.symbol()) !=
+      dynamic_cast<const VAL::var_symbol*>(b.symbol())) {
+    // Cannot evaluate if one is a parameter (var_symbol) and the other is an
+    // argument (parameter_symbol)
+    return {};
+  }
+  return a == b;
 }
 
-std::optional<bool> EvaluateEquals(const FormulaLiterals& formula) {
+std::optional<bool> EvaluateEquals(const PartialState& formula) {
   assert(formula.size() == 1);
-  return formula.neg.empty() ? EvaluateEquals(*formula.pos.begin())
-                             : Negate(EvaluateEquals(*formula.neg.begin()));
+  return formula.neg().empty() ? EvaluateEquals(*formula.pos().begin())
+                               : Negate(EvaluateEquals(*formula.neg().begin()));
 }
 
 std::optional<bool> EvaluateType(const Pddl& pddl, const Proposition& prop) {
@@ -47,10 +56,11 @@ std::optional<bool> EvaluateType(const Pddl& pddl, const Proposition& prop) {
 }
 
 std::optional<bool> EvaluateType(const Pddl& pddl,
-                                 const FormulaLiterals& formula) {
+                                 const PartialState& formula) {
   assert(formula.size() == 1);
-  return formula.neg.empty() ? EvaluateType(pddl, *formula.pos.begin())
-                             : Negate(EvaluateType(pddl, *formula.neg.begin()));
+  return formula.neg().empty()
+             ? EvaluateType(pddl, *formula.pos().begin())
+             : Negate(EvaluateType(pddl, *formula.neg().begin()));
 }
 
 template <typename T>
@@ -75,11 +85,11 @@ bool IsSubset(const DisjunctiveFormula::Conjunction& sub,
               const DisjunctiveFormula::Conjunction& super) {
   if (sub.size() > super.size()) return false;
 
-  for (const Proposition& prop : sub.pos) {
-    if (!super.pos.contains(prop)) return false;
+  for (const Proposition& prop : sub.pos()) {
+    if (!super.pos().contains(prop)) return false;
   }
-  for (const Proposition& prop : sub.neg) {
-    if (!super.neg.contains(prop)) return false;
+  for (const Proposition& prop : sub.neg()) {
+    if (!super.neg().contains(prop)) return false;
   }
   return true;
 }
@@ -126,14 +136,10 @@ std::optional<bool> Evaluate(const Pddl& pddl,
   }
 
   // Ensure pos and neg sets don't overlap
-  for (const Proposition& prop : conj.pos) {
-    if (conj.neg.contains(prop)) return false;
-  }
+  if (!conj.IsConsistent()) return false;
 
   // Ensure axioms are satisfied
-  for (const Axiom& axiom : pddl.axioms()) {
-    if (!axiom.IsConsistent(conj.pos)) return false;
-  }
+  if (!Axiom::IsConsistent(pddl.axioms(), conj)) return false;
   return {};
 }
 
@@ -162,6 +168,7 @@ std::optional<DisjunctiveFormula> Simplify(const Pddl& pddl,
       ret.conjunctions.clear();
       return std::move(ret);
     }
+
     // Conjunction is false: discard it from the disjunction
   }
 
@@ -203,12 +210,13 @@ std::optional<DisjunctiveFormula> Conjoin(
 
   // Iterate over all combinations
   for (const std::vector<DisjunctiveFormula::Conjunction>& combo : gen) {
-    DisjunctiveFormula::Conjunction term;
+    State pos;
+    State neg;
     for (const DisjunctiveFormula::Conjunction& term_i : combo) {
-      term.pos.insert(term_i.pos.begin(), term_i.pos.end());
-      term.neg.insert(term_i.neg.begin(), term_i.neg.end());
+      pos.insert(term_i.pos().begin(), term_i.pos().end());
+      neg.insert(term_i.neg().begin(), term_i.neg().end());
     }
-    conj.conjunctions.push_back(std::move(term));
+    conj.conjunctions.emplace_back(std::move(pos), std::move(neg));
   }
 
   return Simplify(pddl, std::move(conj));
@@ -228,11 +236,11 @@ std::vector<DisjunctiveFormula> Convert(ConjunctiveFormula&& cnf) {
   for (ConjunctiveFormula::Disjunction& disj : cnf.disjunctions) {
     DisjunctiveFormula dnf;
     dnf.conjunctions.reserve(disj.size());
-    for (Proposition& prop : disj.pos) {
-      dnf.conjunctions.push_back({{std::move(prop)}, {}});
+    for (Proposition& prop : disj.pos()) {
+      dnf.conjunctions.push_back(PartialState({std::move(prop)}, {}));
     }
-    for (Proposition& prop : disj.neg) {
-      dnf.conjunctions.push_back({{}, {std::move(prop)}});
+    for (Proposition& prop : disj.neg()) {
+      dnf.conjunctions.push_back(PartialState({}, {std::move(prop)}));
     }
     dnfs.push_back(std::move(dnf));
   }
@@ -250,7 +258,7 @@ std::optional<DisjunctiveFormula> Negate(const Pddl& pddl,
 
   // ((!a & !b) | (!c & !d) | (!e & !f))
   for (DisjunctiveFormula::Conjunction& conj : dnf.conjunctions) {
-    std::swap(conj.pos, conj.neg);
+    std::swap(conj.pos(), conj.neg());
   }
 
   // ((!a | !b) & (!c | !d) & (!e | !f))
@@ -273,7 +281,8 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
         symbolic::Object::CreateList(pddl, prop->args);
     const auto Apply =
         Formula::CreateApplicationFunction(parameters, prop_params);
-    return {{{{Proposition(name_predicate, Apply(arguments))}, {}}}};
+    return {
+        {PartialState({Proposition(name_predicate, Apply(arguments))}, {})}};
     // return Simplify(pddl,
     //                 {{{Proposition(name_predicate, Apply(arguments))}, {}}});
   }
@@ -390,8 +399,8 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   }
 
   // Add effects
-  DisjunctiveFormula::Conjunction simple;
-  simple.pos.reserve(symbol->add_effects.size());
+  State pos;
+  pos.reserve(symbol->add_effects.size());
   for (const VAL::simple_effect* effect : symbol->add_effects) {
     const std::string name_predicate = effect->prop->head->getName();
     const std::vector<Object> effect_params =
@@ -399,11 +408,12 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
     const auto Apply =
         Formula::CreateApplicationFunction(parameters, effect_params);
 
-    simple.pos.emplace(name_predicate, Apply(arguments));
+    pos.emplace(name_predicate, Apply(arguments));
   }
 
   // Del effects
-  simple.neg.reserve(symbol->del_effects.size());
+  State neg;
+  neg.reserve(symbol->del_effects.size());
   for (const VAL::simple_effect* effect : symbol->del_effects) {
     const std::string name_predicate = effect->prop->head->getName();
     const std::vector<Object> effect_params =
@@ -411,11 +421,11 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
     const auto Apply =
         Formula::CreateApplicationFunction(parameters, effect_params);
 
-    simple.neg.emplace(name_predicate, Apply(arguments));
+    neg.emplace(name_predicate, Apply(arguments));
   }
 
-  if (!simple.empty()) {
-    dnfs.push_back({{std::move(simple)}});
+  if (!pos.empty() || !neg.empty()) {
+    dnfs.push_back({PartialState(std::move(pos), std::move(neg))});
   }
 
   // Cond effects
@@ -474,25 +484,14 @@ DisjunctiveFormula::NormalizeConditions(const Pddl& pddl,
   return std::make_pair(std::move(*pre), std::move(*post));
 }
 
-ostream& operator<<(ostream& os, const FormulaLiterals& lits) {
-  os << "(and" << std::endl;
-  for (const Proposition& prop : lits.pos) {
-    os << "\t" << prop << std::endl;
-  }
-  for (const Proposition& prop : lits.neg) {
-    os << "\tnot " << prop << std::endl;
-  }
-  os << ")" << std::endl;
-  return os;
-}
-ostream& operator<<(ostream& os, const DisjunctiveFormula& dnf) {
+std::ostream& operator<<(std::ostream& os, const DisjunctiveFormula& dnf) {
   os << "(or" << std::endl;
   for (const DisjunctiveFormula::Conjunction& conj : dnf.conjunctions) {
     os << "\t(and" << std::endl;
-    for (const Proposition& prop : conj.pos) {
+    for (const Proposition& prop : conj.pos()) {
       os << "\t\t" << prop << std::endl;
     }
-    for (const Proposition& prop : conj.neg) {
+    for (const Proposition& prop : conj.neg()) {
       os << "\t\tnot " << prop << std::endl;
     }
     os << "\t)" << std::endl;
@@ -500,14 +499,14 @@ ostream& operator<<(ostream& os, const DisjunctiveFormula& dnf) {
   os << ")" << std::endl;
   return os;
 }
-ostream& operator<<(ostream& os, const ConjunctiveFormula& cnf) {
+std::ostream& operator<<(std::ostream& os, const ConjunctiveFormula& cnf) {
   os << "(and" << std::endl;
   for (const ConjunctiveFormula::Disjunction& disj : cnf.disjunctions) {
     os << "\t(or" << std::endl;
-    for (const Proposition& prop : disj.pos) {
+    for (const Proposition& prop : disj.pos()) {
       os << "\t\t" << prop << std::endl;
     }
-    for (const Proposition& prop : disj.neg) {
+    for (const Proposition& prop : disj.neg()) {
       os << "\t\tnot " << prop << std::endl;
     }
     os << "\t)" << std::endl;

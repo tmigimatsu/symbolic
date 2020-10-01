@@ -11,6 +11,7 @@
 
 #include <cassert>        // assert
 #include <exception>      // std::runtime_error
+#include <sstream>        // std::stringstream
 #include <unordered_map>  // std::unordered_map
 #include <utility>        // std::move
 
@@ -23,20 +24,25 @@ using ::symbolic::Object;
 using ::symbolic::ParameterGenerator;
 using ::symbolic::Pddl;
 using ::symbolic::Proposition;
-using ::symbolic::State;
 
-using FormulaFunction = std::function<bool(
-    const State& state, const std::vector<Object>& arguments)>;
+template <typename T>
+using FormulaFunction =
+    std::function<bool(const T& state, const std::vector<Object>& arguments)>;
 
 using ApplicationFunction =
     std::function<std::vector<Object>(const std::vector<Object>&)>;
 
-FormulaFunction CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
-                              const std::vector<Object>& parameters);
+template <typename T>
+using NamedFormulaFunction = std::pair<FormulaFunction<T>, std::string>;
 
-FormulaFunction CreateProposition(const Pddl& pddl,
-                                  const VAL::simple_goal* symbol,
-                                  const std::vector<Object>& parameters) {
+template <typename T>
+NamedFormulaFunction<T> CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
+                                      const std::vector<Object>& parameters);
+
+template <typename T>
+NamedFormulaFunction<T> CreateProposition(
+    const Pddl& pddl, const VAL::simple_goal* symbol,
+    const std::vector<Object>& parameters) {
   const VAL::proposition* prop = symbol->getProp();
   std::string name_predicate = prop->head->getName();
   const std::vector<Object> prop_params = Object::CreateList(pddl, prop->args);
@@ -44,96 +50,138 @@ FormulaFunction CreateProposition(const Pddl& pddl,
       Formula::CreateApplicationFunction(parameters, prop_params);
 
   if (name_predicate == "=") {
-    // NOLINTNEXTLINE(misc-unused-parameters)
-    return [Apply = std::move(Apply)](const State& state,
-                                      const std::vector<Object>& arguments) {
+    FormulaFunction<T> F = [Apply = std::move(Apply)](
+                               // NOLINTNEXTLINE(misc-unused-parameters)
+                               const T& state,
+                               const std::vector<Object>& arguments) -> bool {
       const std::vector<Object> prop_args = Apply(arguments);
       assert(prop_args.size() == 2);
       return prop_args[0] == prop_args[1];
     };
+
+    return {std::move(F), Proposition(name_predicate, prop_params).to_string()};
   }
   if (pddl.object_map().find(name_predicate) != pddl.object_map().end()) {
     // Predicate is a type. If it isn't in the object map, then no objects of
     // that type exist, and the proposition will be treated as a normal one
     // (and will always be false since the state will never contain it).
-    return [name_predicate, Apply = std::move(Apply)](
-               // NOLINTNEXTLINE(misc-unused-parameters)
-               const State& state, const std::vector<Object>& arguments) {
+    FormulaFunction<T> F = [name_predicate, Apply = std::move(Apply)](
+                               // NOLINTNEXTLINE(misc-unused-parameters)
+                               const T& state,
+                               const std::vector<Object>& arguments) -> bool {
       const std::vector<Object> prop_args = Apply(arguments);
       assert(prop_args.size() == 1);
       return prop_args[0].type().IsSubtype(name_predicate);
     };
+
+    return {std::move(F), Proposition(name_predicate, prop_params).to_string()};
   }
 
-  return [name_predicate, Apply = std::move(Apply)](
-             const State& state, const std::vector<Object>& arguments) {
+  FormulaFunction<T> F = [name_predicate, Apply = std::move(Apply)](
+                             const T& state,
+                             const std::vector<Object>& arguments) -> bool {
     Proposition P(name_predicate, Apply(arguments));
     return state.contains(P);
   };
+
+  return {std::move(F), Proposition(name_predicate, prop_params).to_string()};
 }
 
-FormulaFunction CreateConjunction(const Pddl& pddl,
-                                  const VAL::conj_goal* symbol,
-                                  const std::vector<Object>& parameters) {
-  std::vector<FormulaFunction> subformulas;
+template <typename T>
+NamedFormulaFunction<T> CreateConjunction(
+    const Pddl& pddl, const VAL::conj_goal* symbol,
+    const std::vector<Object>& parameters) {
+  std::stringstream ss("(");
+  std::string delim;
+
+  std::vector<FormulaFunction<T>> subformulas;
   const VAL::goal_list* goals = symbol->getGoals();
   subformulas.reserve(goals->size());
   for (const VAL::goal* goal : *goals) {
-    subformulas.push_back(CreateFormula(pddl, goal, parameters));
-  }
+    NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, parameters);
+    subformulas.push_back(std::move(P_str.first));
 
-  return [subformulas = std::move(subformulas)](
-             const State& state, const std::vector<Object>& arguments) -> bool {
-    for (const FormulaFunction& P : subformulas) {
+    ss << delim << P_str.second;
+    if (delim.empty()) delim = " && ";
+  }
+  ss << ")";
+
+  FormulaFunction<T> F = [subformulas = std::move(subformulas)](
+                             const T& state,
+                             const std::vector<Object>& arguments) -> bool {
+    for (const FormulaFunction<T>& P : subformulas) {
       if (!P(state, arguments)) return false;
     }
     return true;
   };
+
+  return {std::move(F), ss.str()};
 }
 
-FormulaFunction CreateDisjunction(const Pddl& pddl,
-                                  const VAL::disj_goal* symbol,
-                                  const std::vector<Object>& parameters) {
-  std::vector<FormulaFunction> subformulas;
+template <typename T>
+NamedFormulaFunction<T> CreateDisjunction(
+    const Pddl& pddl, const VAL::disj_goal* symbol,
+    const std::vector<Object>& parameters) {
+  std::stringstream ss("(");
+  std::string delim;
+
+  std::vector<FormulaFunction<T>> subformulas;
   const VAL::goal_list* goals = symbol->getGoals();
   subformulas.reserve(goals->size());
   for (const VAL::goal* goal : *goals) {
-    subformulas.push_back(CreateFormula(pddl, goal, parameters));
-  }
+    NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, parameters);
+    subformulas.push_back(std::move(P_str.first));
 
-  return [subformulas = std::move(subformulas)](
-             const State& state, const std::vector<Object>& arguments) -> bool {
-    for (const FormulaFunction& P : subformulas) {
+    ss << delim << P_str.second;
+    if (delim.empty()) delim = " || ";
+  }
+  ss << ")";
+
+  FormulaFunction<T> F = [subformulas = std::move(subformulas)](
+                             const T& state,
+                             const std::vector<Object>& arguments) -> bool {
+    for (const FormulaFunction<T>& P : subformulas) {
       if (P(state, arguments)) return true;
     }
     return false;
   };
+
+  return {std::move(F), ss.str()};
 }
 
-FormulaFunction CreateNegation(const Pddl& pddl, const VAL::neg_goal* symbol,
-                               const std::vector<Object>& parameters) {
+template <typename T>
+NamedFormulaFunction<T> CreateNegation(const Pddl& pddl,
+                                       const VAL::neg_goal* symbol,
+                                       const std::vector<Object>& parameters) {
   const VAL::goal* goal = symbol->getGoal();
-  FormulaFunction P = CreateFormula(pddl, goal, parameters);
-  return [P = std::move(P)](const State& state,
-                            const std::vector<Object>& arguments) -> bool {
+  NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, parameters);
+
+  FormulaFunction<T> F = [P = std::move(P_str.first)](
+                             const T& state,
+                             const std::vector<Object>& arguments) -> bool {
     // Negate positive formula
     return !P(state, arguments);
   };
+
+  return {std::move(F), "!" + P_str.second};
 }
 
-FormulaFunction CreateForall(const Pddl& pddl, const VAL::qfied_goal* symbol,
-                             const std::vector<Object>& parameters) {
+template <typename T>
+NamedFormulaFunction<T> CreateForall(const Pddl& pddl,
+                                     const VAL::qfied_goal* symbol,
+                                     const std::vector<Object>& parameters) {
   // Create forall parameters
   std::vector<Object> forall_params = parameters;
   std::vector<Object> types = Object::CreateList(pddl, symbol->getVars());
   forall_params.insert(forall_params.end(), types.begin(), types.end());
 
   const VAL::goal* goal = symbol->getGoal();
-  FormulaFunction P = CreateFormula(pddl, goal, forall_params);
+  NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, forall_params);
 
-  return [gen = ParameterGenerator(pddl.object_map(), types),
-          types = std::move(types), P = std::move(P)](
-             const State& state, const std::vector<Object>& arguments) -> bool {
+  FormulaFunction<T> F = [gen = ParameterGenerator(pddl.object_map(), types),
+                          types = std::move(types), P = std::move(P_str.first)](
+                             const T& state,
+                             const std::vector<Object>& arguments) -> bool {
     // Loop over forall arguments
     for (const std::vector<Object>& forall_objs : gen) {
       // Create forall arguments
@@ -145,21 +193,34 @@ FormulaFunction CreateForall(const Pddl& pddl, const VAL::qfied_goal* symbol,
     }
     return true;
   };
+
+  std::stringstream ss("(forall ");
+  std::string delim;
+  for (const Object& param : parameters) {
+    ss << delim << param;
+    if (delim.empty()) delim = ", ";
+  }
+  ss << " =>" << std::endl << P_str.second << std::endl << ")";
+
+  return {std::move(F), ss.str()};
 }
 
-FormulaFunction CreateExists(const Pddl& pddl, const VAL::qfied_goal* symbol,
-                             const std::vector<Object>& parameters) {
+template <typename T>
+NamedFormulaFunction<T> CreateExists(const Pddl& pddl,
+                                     const VAL::qfied_goal* symbol,
+                                     const std::vector<Object>& parameters) {
   // Create exists parameters
   std::vector<Object> exists_params = parameters;
   std::vector<Object> types = Object::CreateList(pddl, symbol->getVars());
   exists_params.insert(exists_params.end(), types.begin(), types.end());
 
   const VAL::goal* goal = symbol->getGoal();
-  FormulaFunction P = CreateFormula(pddl, goal, exists_params);
+  NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, exists_params);
 
-  return [gen = ParameterGenerator(pddl.object_map(), types),
-          types = std::move(types), P = std::move(P)](
-             const State& state, const std::vector<Object>& arguments) -> bool {
+  FormulaFunction<T> F = [gen = ParameterGenerator(pddl.object_map(), types),
+                          types = std::move(types), P = std::move(P_str.first)](
+                             const T& state,
+                             const std::vector<Object>& arguments) -> bool {
     // Loop over exists arguments
     for (const std::vector<Object>& exists_objs : gen) {
       // Create exists arguments
@@ -171,32 +232,43 @@ FormulaFunction CreateExists(const Pddl& pddl, const VAL::qfied_goal* symbol,
     }
     return false;
   };
+
+  std::stringstream ss("(exists ");
+  std::string delim;
+  for (const Object& param : parameters) {
+    ss << delim << param;
+    if (delim.empty()) delim = ", ";
+  }
+  ss << " =>" << std::endl << P_str.second << std::endl << ")";
+
+  return {std::move(F), ss.str()};
 }
 
-FormulaFunction CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
-                              const std::vector<Object>& parameters) {
+template <typename T>
+NamedFormulaFunction<T> CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
+                                      const std::vector<Object>& parameters) {
   // Proposition
   const auto* simple_goal = dynamic_cast<const VAL::simple_goal*>(symbol);
   if (simple_goal != nullptr) {
-    return CreateProposition(pddl, simple_goal, parameters);
+    return CreateProposition<T>(pddl, simple_goal, parameters);
   }
 
   // Conjunction
   const auto* conj_goal = dynamic_cast<const VAL::conj_goal*>(symbol);
   if (conj_goal != nullptr) {
-    return CreateConjunction(pddl, conj_goal, parameters);
+    return CreateConjunction<T>(pddl, conj_goal, parameters);
   }
 
   // Disjunction
   const auto* disj_goal = dynamic_cast<const VAL::disj_goal*>(symbol);
   if (disj_goal != nullptr) {
-    return CreateDisjunction(pddl, disj_goal, parameters);
+    return CreateDisjunction<T>(pddl, disj_goal, parameters);
   }
 
   // Negation
   const auto* neg_goal = dynamic_cast<const VAL::neg_goal*>(symbol);
   if (neg_goal != nullptr) {
-    return CreateNegation(pddl, neg_goal, parameters);
+    return CreateNegation<T>(pddl, neg_goal, parameters);
   }
 
   // Forall
@@ -204,9 +276,9 @@ FormulaFunction CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
   if (qfied_goal != nullptr) {
     switch (qfied_goal->getQuantifier()) {
       case VAL::quantifier::E_FORALL:
-        return CreateForall(pddl, qfied_goal, parameters);
+        return CreateForall<T>(pddl, qfied_goal, parameters);
       case VAL::quantifier::E_EXISTS:
-        return CreateExists(pddl, qfied_goal, parameters);
+        return CreateExists<T>(pddl, qfied_goal, parameters);
     }
   }
 
@@ -219,7 +291,35 @@ namespace symbolic {
 
 Formula::Formula(const Pddl& pddl, const VAL::goal* symbol,
                  const std::vector<Object>& parameters)
-    : symbol_(symbol), P_(CreateFormula(pddl, symbol, parameters)) {}
+    : symbol_(symbol),
+      P_(CreateFormula<State>(pddl, symbol, parameters).first) {
+  NamedFormulaFunction<PartialState> pp_str =
+      CreateFormula<PartialState>(pddl, symbol, parameters);
+  PP_ = pp_str.first;
+  str_formula_ = pp_str.second;
+}
+
+std::optional<bool> Formula::operator()(
+    const PartialState& state, const std::vector<Object>& arguments) const {
+  try {
+    return PP_(state, arguments);
+  } catch (const PartialState::UnknownEvaluation& e) {
+    return {};
+  }
+};
+
+std::optional<bool> Formula::operator()(const PartialState& state) const {
+  try {
+    return PP_(state, {});
+  } catch (const PartialState::UnknownEvaluation& e) {
+    return {};
+  }
+};
+
+ostream& operator<<(ostream& os, const Formula& F) {
+  os << F.to_string();
+  return os;
+}
 
 ApplicationFunction Formula::CreateApplicationFunction(
     const std::vector<Object>& action_params,

@@ -24,28 +24,8 @@ namespace symbolic {
 
 struct ConjunctiveFormula;
 
-struct FormulaLiterals {
-  bool empty() const { return pos.empty() && neg.empty(); }
-  size_t size() const { return pos.size() + neg.size(); }
-
-  friend bool operator==(const FormulaLiterals& lhs,
-                         const FormulaLiterals& rhs) {
-    return lhs.pos == rhs.pos && lhs.neg == rhs.neg;
-  }
-
-  friend bool operator<(const FormulaLiterals& lhs,
-                        const FormulaLiterals& rhs) {
-    return std::tie(lhs.pos, lhs.neg) < std::tie(rhs.pos, rhs.neg);
-  }
-
-  friend ostream& operator<<(ostream& os, const FormulaLiterals& lits);
-
-  State pos;
-  State neg;
-};
-
 struct DisjunctiveFormula {
-  using Conjunction = FormulaLiterals;
+  using Conjunction = PartialState;
 
   DisjunctiveFormula() = default;
 
@@ -120,7 +100,7 @@ struct DisjunctiveFormula {
 };
 
 struct ConjunctiveFormula {
-  using Disjunction = FormulaLiterals;
+  using Disjunction = PartialState;
 
   ConjunctiveFormula() = default;
 

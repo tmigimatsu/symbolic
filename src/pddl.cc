@@ -13,6 +13,7 @@
 #include <VAL/typecheck.h>
 
 #include <fstream>  // std::ifstream
+#include <sstream>  // std::stringstream
 #include <string>   // std::string
 #include <utility>  // std::move
 
@@ -75,6 +76,7 @@ using ::symbolic::Action;
 using ::symbolic::Axiom;
 using ::symbolic::DerivedPredicate;
 using ::symbolic::Object;
+using ::symbolic::PartialState;
 using ::symbolic::Pddl;
 using ::symbolic::Predicate;
 using ::symbolic::Proposition;
@@ -82,10 +84,17 @@ using ::symbolic::State;
 
 State ParseState(const Pddl& pddl, const std::set<std::string>& str_state) {
   State state;
+  state.reserve(str_state.size());
   for (const std::string& str_prop : str_state) {
     state.emplace(pddl, str_prop);
   }
   return state;
+}
+PartialState ParseState(const Pddl& pddl,
+                        const std::set<std::string>& str_state_pos,
+                        const std::set<std::string>& str_state_neg) {
+  return PartialState(ParseState(pddl, str_state_pos),
+                      ParseState(pddl, str_state_neg));
 }
 
 std::vector<Object> GetObjects(const VAL::domain& domain,
@@ -195,7 +204,8 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
       axioms_(GetAxioms(*this, *analysis_->the_domain)),
       derived_predicates_(GetDerivedPredicates(*this, *analysis_->the_domain)),
       state_index_(predicates_),
-      initial_state_(GetInitialState(*analysis_->the_domain, *analysis_->the_problem)),
+      initial_state_(
+          GetInitialState(*analysis_->the_domain, *analysis_->the_problem)),
       goal_(*this, analysis_->the_problem->the_goal) {}
 
 bool Pddl::IsValid(bool verbose, std::ostream& os) const {
@@ -239,14 +249,53 @@ std::set<std::string> Pddl::DerivedState(
 
 State Pddl::ConsistentState(const State& state) const {
   State next_state = state;
-  for (const Axiom& axiom : axioms()) {
-    axiom.Apply(&next_state);
+  bool is_changed = true;
+  while (is_changed) {
+    is_changed = false;
+    for (const Axiom& axiom : axioms()) {
+      is_changed |= axiom.Apply(&next_state);
+    }
   }
   return next_state;
 }
 std::set<std::string> Pddl::ConsistentState(
     const std::set<std::string>& str_state) const {
   return Stringify(ConsistentState(ParseState(*this, str_state)));
+}
+
+PartialState Pddl::ConsistentState(const PartialState& state) const {
+  constexpr int kMaxIterations = 50;
+  PartialState next_state = state;
+
+  size_t i = 0;
+  bool is_changed = true;
+  while (is_changed) {
+    is_changed = false;
+    for (const Axiom& axiom : axioms()) {
+      const int axiom_change = axiom.Apply(&next_state);
+      is_changed |= axiom_change > 0;
+
+      if (axiom_change == 2) {
+        std::stringstream ss;
+        ss << "Pddl::ConsistentState(): Axiom violation" << std::endl
+           << axiom << std::endl
+           << std::endl
+           << next_state << std::endl;
+        throw std::runtime_error(ss.str());
+      }
+    }
+
+    if (i++ > kMaxIterations) {
+      throw std::runtime_error("Pddl::ConsistentState(): Exceeded max num iterations.");
+    }
+  }
+  return next_state;
+}
+std::pair<std::set<std::string>, std::set<std::string>> Pddl::ConsistentState(
+    const std::set<std::string>& str_state_pos,
+    const std::set<std::string>& str_state_neg) const {
+  return Stringify(
+      ConsistentState(ParseState(*this, str_state_pos, str_state_neg)));
 }
 
 bool Pddl::IsValidAction(const State& state,
@@ -367,6 +416,10 @@ std::set<std::string> Stringify(const State& state) {
     str_state.emplace(prop.to_string());
   }
   return str_state;
+}
+std::pair<std::set<std::string>, std::set<std::string>> Stringify(
+    const PartialState& state) {
+  return std::make_pair(Stringify(state.pos()), Stringify(state.neg()));
 }
 
 std::vector<std::string> Stringify(const std::vector<Action>& actions) {

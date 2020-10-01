@@ -26,15 +26,19 @@ using ::symbolic::Object;
 using ::symbolic::Pddl;
 using ::symbolic::State;
 
-State ParseState(const std::set<std::string>& str_state) {
+using StringSet = std::set<std::string>;
+using StringVector = std::vector<std::string>;
+
+State ParseState(const StringSet& str_state) {
   State state;
+  state.reserve(str_state.size());
   for (const std::string& str_prop : str_state) {
     state.emplace(str_prop);
   }
   return state;
 }
 
-std::vector<Object> ParseObjects(const std::vector<std::string>& str_objects) {
+std::vector<Object> ParseObjects(const StringVector& str_objects) {
   std::vector<Object> objects;
   objects.reserve(str_objects.size());
   for (const std::string& str_object : str_objects) {
@@ -84,37 +88,39 @@ PYBIND11_MODULE(pysymbolic, m) {
           [](const Pddl& pddl, bool verbose) { return pddl.IsValid(verbose); },
           "verbose"_a = false)
       .def("next_state",
-           static_cast<std::set<std::string> (Pddl::*)(
-               const std::set<std::string>&, const std::string&) const>(
-               &Pddl::NextState))
+           static_cast<StringSet (Pddl::*)(const StringSet&, const std::string&)
+                           const>(&Pddl::NextState))
       .def("derived_state",
-           static_cast<std::set<std::string> (Pddl::*)(
-               const std::set<std::string>&) const>(&Pddl::DerivedState))
+           static_cast<StringSet (Pddl::*)(const StringSet&) const>(
+               &Pddl::DerivedState))
       .def("consistent_state",
-           static_cast<std::set<std::string> (Pddl::*)(
-               const std::set<std::string>&) const>(&Pddl::ConsistentState))
+           static_cast<StringSet (Pddl::*)(const StringSet&) const>(
+               &Pddl::ConsistentState))
+      .def("consistent_state",
+           static_cast<std::pair<StringSet, StringSet> (Pddl::*)(
+               const StringSet&, const StringSet&) const>(
+               &Pddl::ConsistentState))
       .def("is_valid_action",
-           static_cast<bool (Pddl::*)(const std::set<std::string>&,
-                                      const std::string&) const>(
-               &Pddl::IsValidAction))
+           static_cast<bool (Pddl::*)(const StringSet&, const std::string&)
+                           const>(&Pddl::IsValidAction))
       .def("is_valid_state",
-           static_cast<bool (Pddl::*)(const std::set<std::string>&) const>(
+           static_cast<bool (Pddl::*)(const StringSet&) const>(
                &Pddl::IsValidState))
       .def("is_valid_tuple",
-           static_cast<bool (Pddl::*)(
-               const std::set<std::string>&, const std::string&,
-               const std::set<std::string>&) const>(&Pddl::IsValidTuple))
+           static_cast<bool (Pddl::*)(const StringSet&, const std::string&,
+                                      const StringSet&) const>(
+               &Pddl::IsValidTuple))
       .def("is_goal_satisfied",
            static_cast<bool (Pddl::*)(const std::set<std::string>&) const>(
                &Pddl::IsGoalSatisfied))
       .def("is_valid_plan", &Pddl::IsValidPlan)
       .def("list_valid_arguments",
-           static_cast<std::vector<std::vector<std::string>> (Pddl::*)(
-               const std::set<std::string>&, const std::string&) const>(
+           static_cast<std::vector<StringVector> (Pddl::*)(
+               const StringSet&, const std::string&) const>(
                &Pddl::ListValidArguments))
       .def("list_valid_actions",
-           static_cast<std::vector<std::string> (Pddl::*)(
-               const std::set<std::string>&) const>(&Pddl::ListValidActions))
+           static_cast<StringVector (Pddl::*)(const StringSet&) const>(
+               &Pddl::ListValidActions))
       .def(py::pickle(
           [](const Pddl& pddl) {
             return py::make_tuple(pddl.domain_pddl(), pddl.problem_pddl());
@@ -165,7 +171,8 @@ PYBIND11_MODULE(pysymbolic, m) {
 
   // Axiom
   py::class_<Axiom>(m, "Axiom")
-      .def("is_consistent", &Axiom::IsConsistent)
+      .def("is_consistent", static_cast<bool (Axiom::*)(const State&) const>(
+                                &Axiom::IsConsistent))
       .def("__repr__", [](const Axiom& axiom) {
         std::stringstream ss;
         ss << axiom;
@@ -197,7 +204,7 @@ PYBIND11_MODULE(pysymbolic, m) {
           py::keep_alive<0, 1>())  // Keep vector alive while iterator is used
       .def("index",
            [](const ParameterGenerator& param_gen,
-              const std::vector<std::string>& str_args) -> size_t {
+              const StringVector& str_args) -> size_t {
              return param_gen.find(Object::ParseArguments(str_args));
            });
 
@@ -219,8 +226,7 @@ PYBIND11_MODULE(pysymbolic, m) {
              return Stringify(state_index.GetState(indexed_state));
            })
       .def("get_indexed_state",
-           [](const StateIndex& state_index,
-              const std::set<std::string>& str_state) {
+           [](const StateIndex& state_index, const StringSet& str_state) {
              return state_index.GetIndexedState(ParseState(str_state));
            })
       .def("__len__", &StateIndex::size)
@@ -267,19 +273,18 @@ PYBIND11_MODULE(pysymbolic, m) {
         return ss.str();
       });
 
-  py::class_<FormulaLiterals>(m, "FormulaLiterals")
+  py::class_<PartialState>(m, "PartialState")
       .def_property_readonly(
-          "pos", [](const FormulaLiterals& f) { return Stringify(f.pos); })
+          "pos", [](const PartialState& s) { return Stringify(s.pos()); })
       .def_property_readonly(
-          "neg", [](const FormulaLiterals& f) { return Stringify(f.neg); })
+          "neg", [](const PartialState& s) { return Stringify(s.neg()); })
       .def(py::pickle(
-          [](const FormulaLiterals& f) {
-            return py::make_tuple(Stringify(f.pos), Stringify(f.neg));
+          [](const PartialState& s) {
+            return py::make_tuple(Stringify(s.pos()), Stringify(s.neg()));
           },
           [](const py::tuple& pos_neg) {
-            return FormulaLiterals{
-                ParseState(pos_neg[0].cast<std::set<std::string>>()),
-                ParseState(pos_neg[1].cast<std::set<std::string>>())};
+            return PartialState{ParseState(pos_neg[0].cast<StringSet>()),
+                                ParseState(pos_neg[1].cast<StringSet>())};
           }));
 }
 

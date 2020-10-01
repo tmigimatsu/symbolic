@@ -12,7 +12,9 @@
 
 // #define SYMBOLIC_STATE_USE_SET
 
-#include <ostream>  // std::ostream
+#include <exception>  // std::exception
+#include <optional>   // std::optional
+#include <ostream>    // std::ostream
 
 #ifndef SYMBOLIC_STATE_USE_SET
 #include <vector>  // std::vector
@@ -100,6 +102,71 @@ bool State::insert(InputIt first, InputIt last) {
   return is_changed;
 }
 
+class PartialState {
+ public:
+  class UnknownEvaluation : public std::exception {
+   public:
+    explicit UnknownEvaluation(const Proposition& prop)
+        : prop_(prop), str_prop_(prop.to_string()) {}
+
+    const char* what() const noexcept override { return str_prop_.c_str(); }
+
+    const Proposition& proposition() const { return prop_; }
+
+   private:
+    const Proposition prop_;
+    const std::string str_prop_;
+  };
+
+  PartialState() = default;
+
+  PartialState(const State& pos, const State& neg) : pos_(pos), neg_(neg) {}
+
+  PartialState(State&& pos, State&& neg)
+      : pos_(std::move(pos)), neg_(std::move(neg)) {}
+
+  const State& pos() const { return pos_; }
+  State& pos() { return pos_; }
+
+  const State& neg() const { return neg_; }
+  State& neg() { return neg_; }
+
+  bool empty() const { return pos_.empty() && neg_.empty(); }
+  size_t size() const { return pos_.size() + neg_.size(); }
+
+  bool contains(const Proposition& prop) const;
+
+  int insert(const Proposition& prop);
+  int insert(Proposition&& prop);
+
+  template <class... Args>
+  int emplace(Args&&... args) {
+    return insert(Proposition(args...));
+  }
+
+  int erase(const Proposition& prop);
+  int erase(Proposition&& prop);
+
+  /**
+   * Ensure positive and negative proposition sets don't overlap.
+   */
+  bool IsConsistent() const;
+
+  friend bool operator==(const PartialState& lhs, const PartialState& rhs) {
+    return lhs.pos_ == rhs.pos_ && lhs.neg_ == rhs.neg_;
+  }
+
+  friend bool operator<(const PartialState& lhs, const PartialState& rhs) {
+    return std::tie(lhs.pos_, lhs.neg_) < std::tie(rhs.pos_, rhs.neg_);
+  }
+
+  friend ostream& operator<<(ostream& os, const PartialState& state);
+
+ private:
+  State pos_;
+  State neg_;
+};
+
 /**
  * Database to convert between indexed and regular state.
  *
@@ -116,7 +183,8 @@ class StateIndex {
    * @param predicates Pddl predicates.
    * @param use_cache Cache proposition lookups.
    */
-  explicit StateIndex(const std::vector<Predicate>& predicates, bool use_cache=true);
+  explicit StateIndex(const std::vector<Predicate>& predicates,
+                      bool use_cache = true);
 
   /**
    * Get a proposition from the index.

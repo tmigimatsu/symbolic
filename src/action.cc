@@ -9,6 +9,7 @@
 
 #include "symbolic/action.h"
 
+#include <algorithm>  // std::max
 #include <cassert>    // assert
 #include <exception>  // std::runtime_error, std::invalid_argument
 #include <sstream>    // std::stringstream
@@ -24,47 +25,50 @@ using ::symbolic::Pddl;
 using ::symbolic::Proposition;
 using ::symbolic::State;
 
-using ActionFunction =
-    std::function<State(const State&, const std::vector<Object>&)>;
-
-using EffectsFunction = std::function<bool(const std::vector<Object>&, State*)>;
+template <typename T>
+using EffectsFunction = std::function<int(const std::vector<Object>&, T*)>;
 
 using ApplicationFunction =
     std::function<std::vector<Object>(const std::vector<Object>&)>;
 
-EffectsFunction CreateEffectsFunction(const Pddl& pddl,
-                                      const VAL::effect_lists* effects,
-                                      const std::vector<Object>& parameters);
+template <typename T>
+EffectsFunction<T> CreateEffectsFunction(const Pddl& pddl,
+                                         const VAL::effect_lists* effects,
+                                         const std::vector<Object>& parameters);
 
-EffectsFunction CreateForall(const Pddl& pddl, const VAL::forall_effect* effect,
-                             const std::vector<Object>& parameters) {
+template <typename T>
+EffectsFunction<T> CreateForall(const Pddl& pddl,
+                                const VAL::forall_effect* effect,
+                                const std::vector<Object>& parameters) {
   // Create forall parameters
   std::vector<Object> forall_params = parameters;
   const std::vector<Object> types =
       symbolic::Object::CreateList(pddl, effect->getVarsList());
   forall_params.insert(forall_params.end(), types.begin(), types.end());
-  EffectsFunction ForallEffects =
-      CreateEffectsFunction(pddl, effect->getEffects(), forall_params);
+  EffectsFunction<T> ForallEffects =
+      CreateEffectsFunction<T>(pddl, effect->getEffects(), forall_params);
 
   return [gen = symbolic::ParameterGenerator(pddl.object_map(), types),
           ForallEffects = std::move(ForallEffects)](
-             const std::vector<Object>& arguments, State* state) {
+             const std::vector<Object>& arguments, T* state) -> int {
     // Loop over forall arguments
-    bool is_state_changed = false;
+    int is_state_changed = 0;
     for (const std::vector<Object>& forall_objs : gen) {
       // Create forall arguments
       std::vector<Object> forall_args = arguments;
       forall_args.insert(forall_args.end(), forall_objs.begin(),
                          forall_objs.end());
 
-      is_state_changed |= ForallEffects(forall_args, state);
+      is_state_changed =
+          std::max(is_state_changed, ForallEffects(forall_args, state));
     }
     return is_state_changed;
   };
 }
 
-EffectsFunction CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
-                          const std::vector<Object>& parameters) {
+template <typename T>
+EffectsFunction<T> CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
+                             const std::vector<Object>& parameters) {
   // Prepare effect argument application functions
   const std::vector<Object> effect_params =
       symbolic::Object::CreateList(pddl, effect->prop->args);
@@ -76,7 +80,7 @@ EffectsFunction CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
     // Equality predicate
     return [Apply = std::move(Apply)](const std::vector<Object>& arguments,
                                       // NOLINTNEXTLINE(misc-unused-parameters)
-                                      State* state) {
+                                      T* state) -> int {
       std::vector<Object> prop_args = Apply(arguments);
       assert(prop_args.size() == 2);
       if (prop_args[0] != prop_args[1]) {
@@ -93,7 +97,7 @@ EffectsFunction CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
     return
         [name_predicate = std::move(name_predicate), Apply = std::move(Apply)](
             // NOLINTNEXTLINE(misc-unused-parameters)
-            const std::vector<Object>& arguments, State* state) {
+            const std::vector<Object>& arguments, T* state) -> int {
           std::vector<Object> prop_args = Apply(arguments);
           assert(prop_args.size() == 1);
           if (!prop_args[0].type().IsSubtype(name_predicate)) {
@@ -108,13 +112,14 @@ EffectsFunction CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
 
   // Add normal predicate
   return [name_predicate = std::move(name_predicate), Apply = std::move(Apply)](
-             const std::vector<Object>& arguments, State* state) {
+             const std::vector<Object>& arguments, T* state) -> int {
     return state->emplace(name_predicate, Apply(arguments));
   };
 }
 
-EffectsFunction CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
-                          const std::vector<Object>& parameters) {
+template <typename T>
+EffectsFunction<T> CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
+                             const std::vector<Object>& parameters) {
   // Prepare effect argument application functions
   const std::vector<Object> effect_params =
       symbolic::Object::CreateList(pddl, effect->prop->args);
@@ -126,12 +131,12 @@ EffectsFunction CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
     // Equality predicate
     return [Apply = std::move(Apply)](const std::vector<Object>& arguments,
                                       // NOLINTNEXTLINE(misc-unused-parameters)
-                                      State* state) {
+                                      T* state) -> int {
       std::vector<Object> prop_args = Apply(arguments);
       assert(prop_args.size() == 2);
       if (prop_args[0] == prop_args[1]) {
         std::stringstream ss;
-        ss << "Action::Apply(): Cannot add effect: "
+        ss << "Action::Apply(): Cannot delete effect: "
            << Proposition("=", std::move(prop_args)) << ".";
         throw std::runtime_error(ss.str());
       }
@@ -143,7 +148,7 @@ EffectsFunction CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
     return
         [name_predicate = std::move(name_predicate), Apply = std::move(Apply)](
             // NOLINTNEXTLINE(misc-unused-parameters)
-            const std::vector<Object>& arguments, State* state) {
+            const std::vector<Object>& arguments, T* state) -> int {
           std::vector<Object> prop_args = Apply(arguments);
           assert(prop_args.size() == 1);
           if (prop_args[0].type().IsSubtype(name_predicate)) {
@@ -159,57 +164,67 @@ EffectsFunction CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
   // Remove normal predicate
   return [name_predicate = effect->prop->head->getName(),
           Apply = std::move(Apply)](const std::vector<Object>& arguments,
-                                    State* state) {
+                                    T* state) -> int {
     return state->erase(Proposition(name_predicate, Apply(arguments)));
   };
 }
 
-EffectsFunction CreateCond(const Pddl& pddl, const VAL::cond_effect* effect,
-                           const std::vector<Object>& parameters) {
+bool EvaluateCondition(bool cond) {
+  return cond;
+}
+
+bool EvaluateCondition(const std::optional<bool>& cond) {
+  return cond ? *cond : false;
+}
+
+template <typename T>
+EffectsFunction<T> CreateCond(const Pddl& pddl, const VAL::cond_effect* effect,
+                              const std::vector<Object>& parameters) {
   symbolic::Formula Condition(pddl, effect->getCondition(), parameters);
-  EffectsFunction CondEffects =
-      CreateEffectsFunction(pddl, effect->getEffects(), parameters);
+  EffectsFunction<T> CondEffects =
+      CreateEffectsFunction<T>(pddl, effect->getEffects(), parameters);
   return
       [Condition = std::move(Condition), CondEffects = std::move(CondEffects)](
-          const std::vector<Object>& arguments, State* state) {
+          const std::vector<Object>& arguments, T* state) -> int {
         // TODO(tmigimatsu): Condition might return different results depending
         // on ordering of other effects since state is modified in place.
-        if (Condition(*state, arguments)) {
+        if (EvaluateCondition(Condition(*state, arguments))) {
           return CondEffects(arguments, state);
         }
         return false;
       };
 }
 
-EffectsFunction CreateEffectsFunction(const Pddl& pddl,
-                                      const VAL::effect_lists* effects,
-                                      const std::vector<Object>& parameters) {
-  std::vector<EffectsFunction> effect_functions;
+template <typename T>
+EffectsFunction<T> CreateEffectsFunction(
+    const Pddl& pddl, const VAL::effect_lists* effects,
+    const std::vector<Object>& parameters) {
+  std::vector<EffectsFunction<T>> effect_functions;
   // Forall effects
   for (const VAL::forall_effect* effect : effects->forall_effects) {
-    effect_functions.emplace_back(CreateForall(pddl, effect, parameters));
+    effect_functions.emplace_back(CreateForall<T>(pddl, effect, parameters));
   }
 
   // Add effects
   for (const VAL::simple_effect* effect : effects->add_effects) {
-    effect_functions.emplace_back(CreateAdd(pddl, effect, parameters));
+    effect_functions.emplace_back(CreateAdd<T>(pddl, effect, parameters));
   }
 
   // Del effects
   for (const VAL::simple_effect* effect : effects->del_effects) {
-    effect_functions.emplace_back(CreateDel(pddl, effect, parameters));
+    effect_functions.emplace_back(CreateDel<T>(pddl, effect, parameters));
   }
 
   // Cond effects
   for (const VAL::cond_effect* effect : effects->cond_effects) {
-    effect_functions.emplace_back(CreateCond(pddl, effect, parameters));
+    effect_functions.emplace_back(CreateCond<T>(pddl, effect, parameters));
   }
 
   return [effect_functions = std::move(effect_functions)](
-             const std::vector<Object>& arguments, State* state) {
-    bool is_state_changed = false;
-    for (const EffectsFunction& Effect : effect_functions) {
-      is_state_changed |= Effect(arguments, state);
+             const std::vector<Object>& arguments, T* state) -> int {
+    int is_state_changed = 0;
+    for (const EffectsFunction<T>& Effect : effect_functions) {
+      is_state_changed = std::max(is_state_changed, Effect(arguments, state));
     }
     return is_state_changed;
   };
@@ -237,20 +252,24 @@ Action::Action(const Pddl& pddl, const VAL::operator_* symbol)
       parameters_(Object::CreateList(pddl, symbol_->parameters)),
       param_gen_(pddl.object_map(), parameters_),
       Preconditions_(pddl, symbol_->precondition, parameters_),
-      Apply_(CreateEffectsFunction(pddl, symbol_->effects, parameters_)) {}
+      Apply_(CreateEffectsFunction<State>(pddl, symbol_->effects, parameters_)),
+      ApplyPartial_(CreateEffectsFunction<PartialState>(pddl, symbol_->effects,
+                                                        parameters_)) {}
 
 Action::Action(const Pddl& pddl, const std::string& action_call)
-    : symbol_(GetSymbol(pddl, Proposition::ParseHead(action_call))),
-      name_(symbol_->name->getName()),
-      parameters_(Object::CreateList(pddl, symbol_->parameters)),
-      param_gen_(pddl.object_map(), parameters_),
-      Preconditions_(pddl, symbol_->precondition, parameters_),
-      Apply_(CreateEffectsFunction(pddl, symbol_->effects, parameters_)) {}
+    : Action(pddl, GetSymbol(pddl, Proposition::ParseHead(action_call))) {}
 
 State Action::Apply(const State& state,
                     const std::vector<Object>& arguments) const {
   State next_state(state);
   Apply_(arguments, &next_state);
+  return next_state;
+}
+
+PartialState Action::Apply(const PartialState& state,
+                           const std::vector<Object>& arguments) const {
+  PartialState next_state(state);
+  ApplyPartial_(arguments, &next_state);
   return next_state;
 }
 
