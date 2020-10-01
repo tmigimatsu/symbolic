@@ -1,5 +1,5 @@
 ############################################################
-# CMakeLists for the symbolic library
+# CMakeLists for the symbolic library.
 #
 # Copyright 2020. All Rights Reserved.
 #
@@ -14,7 +14,6 @@ add_library(${LIB_NAME} SHARED)
 add_library(${LIB_NAME}::${LIB_NAME} ALIAS ${LIB_NAME})
 
 target_compile_features(${LIB_NAME} PUBLIC cxx_std_17)
-set_target_properties(${LIB_NAME} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXECUTABLE}")
 
 if(SYMBOLIC_CLANG_TIDY)
     target_enable_clang_tidy(${LIB_NAME})
