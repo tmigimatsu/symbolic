@@ -1,0 +1,6 @@
+[submodule "external/VAL/VAL.git"]
+	path = external/VAL/VAL.git
+	url = https://github.com/tmigimatsu/VAL.git
+[submodule "external/ctrl_utils/ctrl-utils.git"]
+	path = external/ctrl_utils/ctrl-utils.git
+	url = https://github.com/tmigimatsu/ctrl-utils.git

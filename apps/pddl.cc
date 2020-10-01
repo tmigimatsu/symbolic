@@ -13,11 +13,11 @@
 #include <string>    // std::stoi
 #include <vector>    // std::vector
 
-#include "symbolic/pddl.h"
-#include "symbolic/planning/a_star.h"
-#include "symbolic/planning/breadth_first_search.h"
-#include "symbolic/planning/depth_first_search.h"
-#include "symbolic/planning/planner.h"
+#include <symbolic/pddl.h>
+#include <symbolic/planning/a_star.h>
+#include <symbolic/planning/breadth_first_search.h>
+#include <symbolic/planning/depth_first_search.h>
+#include <symbolic/planning/planner.h>
 
 namespace {
 

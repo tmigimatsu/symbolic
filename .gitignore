@@ -1,6 +1,5 @@
 bin/
 build/
-external/
 
 compile_commands.json
 *.so

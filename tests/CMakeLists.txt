@@ -7,10 +7,13 @@
 # Authors: Toki Migimatsu
 ############################################################
 
-add_executable(${CMAKE_PROJECT_NAME}_tests ${CMAKE_CURRENT_SOURCE_DIR}/tests.cc)
+message(STATUS "Configuring ${PROJECT_NAME} tests.")
 
-target_link_libraries(${CMAKE_PROJECT_NAME}_tests PRIVATE
+add_executable(${PROJECT_NAME}_tests tests.cc)
+
+ctrl_utils_add_subdirectory(Catch2)
+target_link_libraries(${PROJECT_NAME}_tests PRIVATE
     Catch2::Catch2
     symbolic::symbolic
 )
-add_test(${CMAKE_PROJECT_NAME}_tests ${CMAKE_PROJECT_NAME}_tests)
+add_test(${PROJECT_NAME}_tests ${PROJECT_NAME}_tests)

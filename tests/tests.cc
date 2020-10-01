@@ -49,7 +49,8 @@ TEST_CASE("combination_generator", "[CombinationGenerator]") {
     std::array<int, 6> a = {0, 1, 2, 3, 4, 5};
     std::array<int*, 3> a_ref = {&a[0], &a[1], &a[2]};
     std::array<int*, 3> b_ref = {&a[3], &a[4], &a[5]};
-    symbolic::CombinationGenerator<std::array<int*, 3>> gen_mut({&a_ref, &b_ref});
+    symbolic::CombinationGenerator<std::array<int*, 3>> gen_mut(
+        {&a_ref, &b_ref});
     for (std::vector<int*> ab : gen_mut) {
       int& a = *ab[0];
       int& b = *ab[1];
@@ -146,7 +147,8 @@ TEST_CASE("combination_generator", "[CombinationGenerator]") {
     std::array<int, 6> a = {0, 1, 2, 3, 4, 5};
     std::array<int*, 3> a_ref = {&a[0], &a[1], &a[2]};
     std::array<int*, 3> b_ref = {&a[3], &a[4], &a[5]};
-    symbolic::CombinationGenerator<std::array<int*, 3>> gen_mut({&a_ref, &b_ref});
+    symbolic::CombinationGenerator<std::array<int*, 3>> gen_mut(
+        {&a_ref, &b_ref});
     for (auto rit = gen_mut.rbegin(); rit != gen_mut.rend(); ++rit) {
       std::vector<int*> ab = *rit;
       int& a = *ab[0];
@@ -164,8 +166,10 @@ TEST_CASE("StateIndex", "[StateIndex]") {
 
   SECTION("Iteration") {
     REQUIRE(state_index.size() == 16);
-    REQUIRE(*state_index.begin() == symbolic::Proposition(pddl, "inhand(hook)"));
-    REQUIRE(*--state_index.end() == symbolic::Proposition(pddl, "throwable(box)"));
+    REQUIRE(*state_index.begin() ==
+            symbolic::Proposition(pddl, "inhand(hook)"));
+    REQUIRE(*--state_index.end() ==
+            symbolic::Proposition(pddl, "throwable(box)"));
   }
 
   SECTION("Proposition") {
@@ -265,34 +269,36 @@ TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
 
   symbolic::DisjunctiveFormula precond(pddl, action.preconditions(),
                                        action.parameters(), {hook});
-  REQUIRE(precond == symbolic::DisjunctiveFormula(
-                         {{{symbolic::Proposition(pddl, "inworkspace(hook)")},
-                           {symbolic::Proposition(pddl, "inhand(box)"),
-                            symbolic::Proposition(pddl, "inhand(hook)")}}}));
+  REQUIRE(precond == symbolic::DisjunctiveFormula({symbolic::PartialState(
+                         {symbolic::Proposition(pddl, "inworkspace(hook)")},
+                         {symbolic::Proposition(pddl, "inhand(box)"),
+                          symbolic::Proposition(pddl, "inhand(hook)")})}));
 
   symbolic::DisjunctiveFormula neg_precond =
       symbolic::Negate(pddl, std::move(precond)).value();
   REQUIRE(neg_precond ==
           symbolic::DisjunctiveFormula(
-              {{{}, {symbolic::Proposition(pddl, "inworkspace(hook)")}},
-               {{symbolic::Proposition(pddl, "inhand(box)")}, {}},
-               {{symbolic::Proposition(pddl, "inhand(hook)")}, {}}}));
+              {symbolic::PartialState(
+                   {}, {symbolic::Proposition(pddl, "inworkspace(hook)")}),
+               symbolic::PartialState(
+                   {symbolic::Proposition(pddl, "inhand(box)")}, {}),
+               symbolic::PartialState(
+                   {symbolic::Proposition(pddl, "inhand(hook)")}, {})}));
 
   symbolic::DisjunctiveFormula postcond(pddl, action.postconditions(),
                                         action.parameters(), {hook});
-  REQUIRE(postcond ==
-          symbolic::DisjunctiveFormula(
-              {{{symbolic::Proposition(pddl, "inhand(hook)")},
-                {symbolic::Proposition(pddl, "on(hook, box)"),
-                 symbolic::Proposition(pddl, "on(hook, hook)"),
-                 symbolic::Proposition(pddl, "on(hook, shelf)"),
-                 symbolic::Proposition(pddl, "on(hook, table)")}}}));
+  REQUIRE(postcond == symbolic::DisjunctiveFormula({symbolic::PartialState(
+                          {symbolic::Proposition(pddl, "inhand(hook)")},
+                          {symbolic::Proposition(pddl, "on(hook, box)"),
+                           symbolic::Proposition(pddl, "on(hook, hook)"),
+                           symbolic::Proposition(pddl, "on(hook, shelf)"),
+                           symbolic::Proposition(pddl, "on(hook, table)")})}));
 
-  // symbolic::State state = pddl2.initial_state();
-  // REQUIRE(pddl2.IsValidAction(state, "goto(door_key)"));
-  // symbolic::State next_state = pddl2.NextState(state, "goto(door_key)");
-  // std::cout << state << std::endl;
-  // std::cout << next_state << std::endl;
+  symbolic::State state = pddl2.initial_state();
+  REQUIRE(pddl2.IsValidAction(state, "goto(door_key)"));
+  symbolic::State next_state = pddl2.NextState(state, "goto(door_key)");
+  std::cout << state << std::endl;
+  std::cout << next_state << std::endl;
 
   const auto t_start = std::chrono::high_resolution_clock::now();
   const auto cond = symbolic::DisjunctiveFormula::NormalizeConditions(
@@ -314,4 +320,31 @@ TEST_CASE("DisjunctiveFormula", "[DisjunctiveFormula]") {
             << cond->second.conjunctions.size() << std::endl;
   std::cout << std::chrono::duration<double>(t_end - t_start).count()
             << std::endl;
+
+  const symbolic::DisjunctiveFormula::Conjunction conj(
+      {symbolic::Proposition(pddl2, "in(chest, room_a)")}, {});
+  REQUIRE(symbolic::Axiom::IsConsistent(pddl2.axioms(), conj) == true);
+
+  size_t num_valid = 0;
+  size_t num_total = 0;
+  for (const symbolic::Action& action : pddl2.actions()) {
+    // std::cout << action << std::endl;
+    for (const std::vector<symbolic::Object>& args :
+         action.parameter_generator()) {
+      const std::string action_call = action.to_string(args);
+      const auto cond =
+          symbolic::DisjunctiveFormula::NormalizeConditions(pddl2,
+          action_call);
+
+      num_total++;
+
+      if (!cond) {
+        std::cout << " - " << action_call << std::endl;
+        continue;
+      }
+      // std::cout << " + " << action_call << std::endl;
+      num_valid++;
+    }
+  }
+  std::cout << num_valid << "/" << num_total << std::endl;
 }
