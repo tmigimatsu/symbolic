@@ -1,5 +1,5 @@
 ############################################################
-# CMakeLists for the symbolic library
+# CMakeLists for the symbolic library.
 #
 # Copyright 2020. All Rights Reserved.
 #
@@ -38,8 +38,10 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-# Set the output directory.
+# Set output directories.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 
 # Include custom CMake utilities.
 include(cmake/utils.cmake)
@@ -63,7 +65,9 @@ endif()
 # Build docs.
 if(SYMBOLIC_BUILD_DOCS)
     find_package(Doxygen)
-    if(Doxygen_FOUND)
+    if(NOT Doxygen_FOUND)
+        message(WARNING "Unable to find Doxygen for ${PROJECT_NAME} docs.")
+    else()
         add_subdirectory(docs)
     endif()
 endif()

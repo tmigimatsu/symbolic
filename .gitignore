@@ -3,5 +3,6 @@ build/
 
 compile_commands.json
 *.so
+*.a
 *.egg-info
 __pycache__
