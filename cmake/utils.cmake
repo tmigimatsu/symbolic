@@ -29,7 +29,7 @@ endfunction()
 
 function(lib_add_subdirectory SUBDIRECTORY)
     set(LIB_EXTERNAL_DIR "${PROJECT_SOURCE_DIR}/external")
-    set(EXTERNAL_BINARY_DIR "${PROJECT_BINARY_DIR}/external")
+    set(EXTERNAL_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/external")
     add_subdirectory("${LIB_EXTERNAL_DIR}/${SUBDIRECTORY}"
         "${EXTERNAL_BINARY_DIR}/${SUBDIRECTORY}"
         EXCLUDE_FROM_ALL
