@@ -38,24 +38,18 @@ endfunction()
 #     lib_add_subdirectory(ctrl_utils)
 #     lib_add_subdirectory(ctrl_utils INCLUDE_ALL_TARGETS)
 function(lib_add_subdirectory subdirectory)
-    set(INCLUDE_ALL_TARGETS "OFF")
+    set(INCLUDE_ALL_TARGETS "EXCLUDE_FROM_ALL")
     if((ARGC GREATER 1) AND (ARGV1 STREQUAL "INCLUDE_ALL_TARGETS"))
-        set(INCLUDE_ALL_TARGETS "ON")
+        set(INCLUDE_ALL_TARGETS "")
     endif()
 
     set(LIB_EXTERNAL_DIR "${PROJECT_SOURCE_DIR}/external")
     set(EXTERNAL_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/external")
 
-    if(INCLUDE_ALL_TARGETS)
-        add_subdirectory("${LIB_EXTERNAL_DIR}/${subdirectory}"
-            "${EXTERNAL_BINARY_DIR}/${subdirectory}"
-            EXCLUDE_FROM_ALL
-        )
-    else()
-        add_subdirectory("${LIB_EXTERNAL_DIR}/${subdirectory}"
-            "${EXTERNAL_BINARY_DIR}/${subdirectory}"
-        )
-    endif()
+    add_subdirectory("${LIB_EXTERNAL_DIR}/${subdirectory}"
+        "${EXTERNAL_BINARY_DIR}/${subdirectory}"
+        ${INCLUDE_ALL_TARGETS}
+    )
 endfunction()
 
 ##########

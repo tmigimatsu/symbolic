@@ -20,16 +20,16 @@ string(TOUPPER ${PROJECT_NAME} LIB_CMAKE_NAME)
 lib_dependent_option(${LIB_CMAKE_NAME}_MAIN_BUILD "Build ${PROJECT_NAME} as a main project."
     "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME")
 
-# Define BUILD_TESTING option.
+# Use testing framework.
 if(${LIB_CMAKE_NAME}_MAIN_BUILD)
     include(CTest)
 endif()
 
 # Define CMake options.
-lib_option(CLANG_TIDY "Perform clang-tidy checks." ON)
-lib_option(BUILD_TESTING "Build tests." ON)
-lib_option(BUILD_EXAMPLES "Build examples." ON)
 lib_option(BUILD_DOCS "Build docs." OFF)
+lib_option(BUILD_EXAMPLES "Build examples." ON)
+lib_option(BUILD_TESTING "Build tests." ON)
+lib_option(CLANG_TIDY "Perform clang-tidy checks." OFF)
 
 # Set default build type to release.
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
