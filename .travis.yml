@@ -1,0 +1,43 @@
+sudo: false
+
+dist: bionic
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-9 g++-9
+
+env:
+  - CC=gcc-9 CXX=g++-9
+
+branches:
+  only:
+    - master
+
+language: python
+
+python:
+  - "3.7"
+
+git:
+  submodules: false
+
+install:
+  - pip install pipenv
+  - pipenv install --dev
+
+script:
+  - mkdir -p build
+  - cd build
+  - cmake .. -DBUILD_DOCS=ON -DBUILD_TESTING=ON && make
+  - mkdir -p ../docs/_build/html && touch ../docs/_build/html/.nojekyll
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  local_dir: docs/_build/html
+  github_token: $GH_REPO_TOKEN
+  on:
+    branch: master
