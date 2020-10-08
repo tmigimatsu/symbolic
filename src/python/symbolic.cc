@@ -101,7 +101,6 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def_property_readonly("axioms", &Pddl::axioms)
       .def_property_readonly("derived_predicates", &Pddl::derived_predicates)
       .def_property_readonly("state_index", &Pddl::state_index)
-      .def(
       .def("derived_state",
            static_cast<StringSet (Pddl::*)(const StringSet&) const>(
                &Pddl::DerivedState))
