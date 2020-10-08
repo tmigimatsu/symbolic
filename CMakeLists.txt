@@ -16,6 +16,9 @@ project(symbolic
     LANGUAGES CXX)
 string(TOUPPER ${PROJECT_NAME} LIB_CMAKE_NAME)
 
+# Include custom CMake utilities.
+include(cmake/utils.cmake)
+
 # Detect whether this project is built by itself or included as a subdirectory.
 lib_dependent_option(${LIB_CMAKE_NAME}_MAIN_BUILD "Build ${PROJECT_NAME} as a main project."
     "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME")
@@ -42,9 +45,6 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-
-# Include custom CMake utilities.
-include(cmake/utils.cmake)
 
 # Standardize install directories.
 include(GNUInstallDirs)

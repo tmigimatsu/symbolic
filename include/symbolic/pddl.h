@@ -28,17 +28,31 @@
 
 namespace symbolic {
 
+/**
+ * Main class for manipulating the pddl specification.
+ */
 class Pddl {
  public:
   using ObjectTypeMap = std::unordered_map<std::string, std::vector<Object>>;
 
   /**
    * Parse the pddl specification from the domain and problem files.
+   *
+   * @param domain_pddl Path to the domain pddl.
+   * @param problem_pddl Path to the problem pddl.
+   *
+   * @seepython{symbolic.Pddl,__init__}
    */
   Pddl(const std::string& domain_pddl, const std::string& problem_pddl);
 
   /**
    * Evaluate whether the pddl specification is valid using VAL.
+   *
+   * @param verbose Print diagnostic information.
+   * @param os Output stream where diagnostic information should be printed.
+   * @returns Whether the pddl specification is valid.
+   *
+   * @seepython{symbolic.Pddl,is_valid}
    */
   bool IsValid(bool verbose = false, std::ostream& os = std::cout) const;
 

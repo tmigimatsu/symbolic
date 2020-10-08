@@ -59,24 +59,42 @@ PYBIND11_MODULE(pysymbolic, m) {
     symbolic Python API
     ===================
 
+    Python wrapper for the symbolic library.
+
     .. currentmodule:: symbolic
-
-    .. autosummary::
-       :toctree: _autosummary
-
-       Pddl
-       Object
-       Action
-       DisjunctiveFormula
   )pbdoc";
 
   // Pddl
   py::class_<Pddl>(m, "Pddl")
       .def(py::init<const std::string&, const std::string&>(), "domain"_a,
-           "problem"_a)
+           "problem"_a, R"pbdoc(
+             Parse the pddl specification from the domain and problem files.
+
+             Args:
+                 domain (str): Path to the domain pddl.
+                 problem (str): Path to the problem pddl.
+
+             .. seealso:: C++: :symbolic:`symbolic::Pddl::Pddl`.
+            )pbdoc")
+      .def(
+          "is_valid",
+          [](const Pddl& pddl, bool verbose) { return pddl.IsValid(verbose); },
+          "verbose"_a = false, R"pbdoc(
+            Evaluate whether the pddl specification is valid using VAL.
+
+            Args:
+                verbose (bool): Print diagnostic information.
+            Returns:
+                (bool): Whether the pddl specification is valid.
+
+            .. seealso:: C++: :symbolic:`symbolic::Pddl::IsValid`.
+          )pbdoc")
       .def_property_readonly(
           "initial_state",
-          [](const Pddl& pddl) { return Stringify(pddl.initial_state()); })
+          [](const Pddl& pddl) { return Stringify(pddl.initial_state()); },
+          R"pbdoc(
+            Initial state.
+          )pbdoc")
       .def_property_readonly("objects", &Pddl::objects)
       .def_property_readonly("actions", &Pddl::actions)
       .def_property_readonly("predicates", &Pddl::predicates)
@@ -84,12 +102,6 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def_property_readonly("derived_predicates", &Pddl::derived_predicates)
       .def_property_readonly("state_index", &Pddl::state_index)
       .def(
-          "is_valid",
-          [](const Pddl& pddl, bool verbose) { return pddl.IsValid(verbose); },
-          "verbose"_a = false)
-      .def("next_state",
-           static_cast<StringSet (Pddl::*)(const StringSet&, const std::string&)
-                           const>(&Pddl::NextState))
       .def("derived_state",
            static_cast<StringSet (Pddl::*)(const StringSet&) const>(
                &Pddl::DerivedState))

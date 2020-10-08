@@ -12,6 +12,7 @@ message(STATUS "Configuring ${PROJECT_NAME} examples.")
 add_executable(pddl pddl.cc)
 
 target_compile_features(pddl PUBLIC cxx_std_17)
+set_target_properties(pddl PROPERTIES CXX_EXTENSIONS OFF)
 
 target_link_libraries(pddl PRIVATE symbolic::symbolic)
 

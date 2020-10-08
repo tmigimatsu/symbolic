@@ -1,5 +1,5 @@
 ############################################################
-# CMakeLists for spatial_dyn tests
+# CMakeLists for symbolic tests.
 #
 # Copyright 2018. All Rights Reserved.
 #

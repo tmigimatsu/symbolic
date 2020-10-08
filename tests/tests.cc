@@ -210,8 +210,8 @@ TEST_CASE("pddl", "[Pddl]") {
     REQUIRE(action.Apply(state, {hook}) == next_state);
     REQUIRE(action.Apply(state, {hook}) != state);
 
-    REQUIRE(pddl.NextState(str_state, str_action) == str_next_state);
-    REQUIRE(pddl.NextState(str_state, str_action) != str_state);
+    REQUIRE(pddl.NextState(state, str_action) == next_state);
+    REQUIRE(pddl.NextState(state, str_action) != state);
   }
 
   SECTION("IsValidTuple") {
