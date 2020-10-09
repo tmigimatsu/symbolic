@@ -12,18 +12,19 @@
 
 // #define SYMBOLIC_STATE_USE_SET
 
+#include <Eigen/Eigen>
+
 #include <exception>      // std::exception
 #include <optional>       // std::optional
 #include <ostream>        // std::ostream
 #include <unordered_set>  // std::unordered_set
+#include <utility>        // std::pair
 
 #ifndef SYMBOLIC_STATE_USE_SET
 #include <vector>  // std::vector
 #else              // SYMBOLIC_STATE_USE_SET
 #include <set>     // std::set
 #endif             // SYMBOLIC_STATE_USE_SET
-
-#include <ctrl_utils/eigen.h>
 
 #include "symbolic/proposition.h"
 
@@ -78,7 +79,7 @@ class State : private std::set<Proposition> {
   void reserve(size_t size) {}
 #endif  // SYMBOLIC_STATE_USE_SET
 
-  std::unordered_set<std::string> to_string() const;
+  std::unordered_set<std::string> Stringify() const;
 
   friend bool operator==(const State& lhs, const State& rhs) {
     return static_cast<const Base&>(lhs) == static_cast<const Base&>(rhs);
@@ -130,6 +131,10 @@ class PartialState {
   PartialState(State&& pos, State&& neg)
       : pos_(std::move(pos)), neg_(std::move(neg)) {}
 
+  PartialState(const Pddl& pddl, const std::unordered_set<std::string>& str_pos,
+               const std::unordered_set<std::string>& str_neg)
+      : pos_(pddl, str_pos), neg_(pddl, str_neg) {}
+
   const State& pos() const { return pos_; }
   State& pos() { return pos_; }
 
@@ -157,6 +162,9 @@ class PartialState {
    */
   bool IsConsistent() const;
 
+  std::pair<std::unordered_set<std::string>, std::unordered_set<std::string>>
+  Stringify() const;
+
   friend bool operator==(const PartialState& lhs, const PartialState& rhs) {
     return lhs.pos_ == rhs.pos_ && lhs.neg_ == rhs.neg_;
   }
@@ -165,7 +173,7 @@ class PartialState {
     return std::tie(lhs.pos_, lhs.neg_) < std::tie(rhs.pos_, rhs.neg_);
   }
 
-  friend ostream& operator<<(ostream& os, const PartialState& state);
+  friend std::ostream& operator<<(std::ostream& os, const PartialState& state);
 
  private:
   State pos_;

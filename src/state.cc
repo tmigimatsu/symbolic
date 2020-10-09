@@ -105,7 +105,7 @@ bool State::erase(const Proposition& prop) {
 #endif  // SYMBOLIC_STATE_USE_SET
 }
 
-std::unordered_set<std::string> State::to_string() const {
+std::unordered_set<std::string> State::Stringify() const {
   std::unordered_set<std::string> str_state;
   str_state.reserve(size());
   for (const Proposition& prop : *this) {
@@ -160,6 +160,11 @@ bool PartialState::IsConsistent() const {
     if (neg_.contains(prop)) return false;
   }
   return true;
+}
+
+std::pair<std::unordered_set<std::string>, std::unordered_set<std::string>>
+PartialState::Stringify() const {
+  return {pos_.Stringify(), neg_.Stringify()};
 }
 
 std::ostream& operator<<(std::ostream& os, const PartialState& state) {

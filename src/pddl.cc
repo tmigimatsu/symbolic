@@ -10,6 +10,7 @@
 #include "symbolic/pddl.h"
 
 #include <VAL/FlexLexer.h>
+#include <VAL/ptree.h>
 #include <VAL/typecheck.h>
 
 #include <fstream>  // std::ifstream
@@ -34,18 +35,29 @@ yyFlexLexer* yfl = nullptr;
 bool Verbose = false;
 std::ostream* report = nullptr;
 
+std::ostream& operator<<(std::ostream& os, const VAL::domain& domain);
+
+std::ostream& operator<<(std::ostream& os, const VAL::problem& problem);
+
+std::ostream& operator<<(std::ostream& os, const VAL::simple_effect& effect);
+
+std::ostream& operator<<(std::ostream& os, const VAL::var_symbol_list& args);
+
+std::ostream& operator<<(std::ostream& os,
+                         const VAL::parameter_symbol_list& args);
+
 }  // namespace VAL
 
 const char* current_filename = nullptr;  // Expected in parse_error.h
 
 namespace {
 
-std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
-                                         const std::string& filename_problem) {
-  std::unique_ptr<VAL::analysis> analysis = std::make_unique<VAL::analysis>();
+VAL::analysis* ParsePddl(const std::string& filename_domain,
+                               const std::string& filename_problem) {
+  VAL::analysis* analysis = new VAL::analysis();
   yyFlexLexer yfl;
 
-  VAL::current_analysis = analysis.get();
+  VAL::current_analysis = analysis;
   VAL::yfl = &yfl;
   yydebug = 0;  // Set to 1 to output yacc trace
 
@@ -209,11 +221,15 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
           GetInitialState(*analysis_->the_domain, *analysis_->the_problem)),
       goal_(*this, analysis_->the_problem->the_goal) {}
 
+Pddl::~Pddl() {
+  if (analysis_ != nullptr) delete analysis_;
+}
+
 bool Pddl::IsValid(bool verbose, std::ostream& os) const {
   VAL::Verbose = verbose;
   VAL::report = &os;
 
-  VAL::TypeChecker tc(analysis_.get());
+  VAL::TypeChecker tc(analysis_);
   const bool is_domain_valid = tc.typecheckDomain();
   const bool is_problem_valid = tc.typecheckProblem();
 
@@ -225,9 +241,7 @@ bool Pddl::IsValid(bool verbose, std::ostream& os) const {
   return is_domain_valid && is_problem_valid;
 }
 
-TEST_CASE_FIXTURE(testing::Fixture, "Pddl.IsValid") {
-  REQUIRE(pddl.IsValid());
-}
+TEST_CASE_FIXTURE(testing::Fixture, "Pddl.IsValid") { REQUIRE(pddl.IsValid()); }
 
 State Pddl::NextState(const State& state,
                       const std::string& action_call) const {
@@ -263,10 +277,6 @@ State Pddl::ConsistentState(const State& state) const {
   }
   return next_state;
 }
-std::set<std::string> Pddl::ConsistentState(
-    const std::set<std::string>& str_state) const {
-  return Stringify(ConsistentState(ParseState(*this, str_state)));
-}
 
 PartialState Pddl::ConsistentState(const PartialState& state) const {
   constexpr int kMaxIterations = 50;
@@ -297,12 +307,6 @@ PartialState Pddl::ConsistentState(const PartialState& state) const {
   }
   return next_state;
 }
-std::pair<std::set<std::string>, std::set<std::string>> Pddl::ConsistentState(
-    const std::set<std::string>& str_state_pos,
-    const std::set<std::string>& str_state_neg) const {
-  return Stringify(
-      ConsistentState(ParseState(*this, str_state_pos, str_state_neg)));
-}
 
 bool Pddl::IsValidAction(const State& state,
                          const std::string& action_call) const {
@@ -314,9 +318,11 @@ bool Pddl::IsValidAction(const State& state,
 
   return action.IsValid(state, arguments);
 }
-bool Pddl::IsValidAction(const std::set<std::string>& str_state,
-                         const std::string& action_call) const {
-  return IsValidAction(ParseState(*this, str_state), action_call);
+
+TEST_CASE_FIXTURE(testing::Fixture, "Pddl.IsValidAction") {
+  const State& state = pddl.initial_state();
+  REQUIRE(pddl.IsValidAction(pddl.initial_state(), "pick(hook)") == true);
+  REQUIRE(pddl.IsValidAction(pddl.initial_state(), "pick(box)") == false);
 }
 
 bool Pddl::IsValidState(const State& state) const {
@@ -462,8 +468,8 @@ std::vector<std::string> Stringify(const std::vector<Object>& objects) {
 }
 
 std::ostream& operator<<(std::ostream& os, const Pddl& pddl) {
-  os << pddl.domain() << std::endl;
-  os << pddl.problem() << std::endl;
+  os << *pddl.symbol()->the_domain << std::endl;
+  os << *pddl.symbol()->the_domain << std::endl;
   return os;
 }
 

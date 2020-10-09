@@ -22,6 +22,13 @@
 #include "symbolic/state.h"
 #include "symbolic/utils/parameter_generator.h"
 
+namespace VAL {
+
+class operator_;
+class effect_lists;
+
+}  // namespace VAL
+
 namespace symbolic {
 
 class Pddl;
@@ -71,7 +78,7 @@ class Action {
 
   const Formula& preconditions() const { return Preconditions_; }
 
-  const VAL::effect_lists* postconditions() const { return symbol_->effects; }
+  const VAL::effect_lists* postconditions() const;
 
   std::string to_string() const;
 

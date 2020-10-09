@@ -12,6 +12,12 @@
 
 #include "symbolic/action.h"
 
+namespace VAL {
+
+class derivation_rule;
+
+}  // namespace VAL
+
 namespace symbolic {
 
 class DerivedPredicate : public Action {

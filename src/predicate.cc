@@ -9,6 +9,8 @@
 
 #include "symbolic/predicate.h"
 
+#include <VAL/ptree.h>
+
 #include <sstream>  // std::stringstream
 
 #include "symbolic/pddl.h"

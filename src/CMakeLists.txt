@@ -55,11 +55,11 @@ ctrl_utils_add_subdirectory(doctest)
 lib_add_subdirectory(VAL)
 target_link_libraries(${LIB_NAME}
   PUBLIC
-    VAL::VAL
-    ctrl_utils::ctrl_utils
     Eigen3::Eigen
   PRIVATE
+    ctrl_utils::ctrl_utils
     doctest::doctest
+    VAL::VAL
 )
 
 # Build python wrapper.

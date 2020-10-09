@@ -9,6 +9,8 @@
 
 #include "symbolic/object.h"
 
+#include <VAL/ptree.h>
+
 #include <algorithm>  // std::min, std::replace
 #include <cassert>    // assert
 #include <sstream>    // std::stringstream
@@ -32,13 +34,13 @@ const VAL::pddl_type* GetTypeSymbol(const VAL::pddl_type_list* types,
 
 const VAL::const_symbol* GetSymbol(const symbolic::Pddl& pddl,
                                    const std::string& name_object) {
-  assert(pddl.domain().constants != nullptr);
-  for (const VAL::const_symbol* obj : *pddl.domain().constants) {
+  assert(pddl.symbol()->the_domain->constants != nullptr);
+  for (const VAL::const_symbol* obj : *pddl.symbol()->the_domain->constants) {
     assert(obj != nullptr);
     if (obj->getName() == name_object) return obj;
   }
-  assert(pddl.problem().objects != nullptr);
-  for (const VAL::const_symbol* obj : *pddl.problem().objects) {
+  assert(pddl.symbol()->the_problem->objects != nullptr);
+  for (const VAL::const_symbol* obj : *pddl.symbol()->the_problem->objects) {
     assert(obj != nullptr);
     if (obj->getName() == name_object) return obj;
   }
@@ -67,6 +69,9 @@ std::vector<std::string> TokenizeArguments(const std::string& proposition) {
 
 namespace symbolic {
 
+Object::Type::Type(const VAL::pddl_type* symbol)
+    : symbol_(symbol), name_(symbol->getName()) {}
+
 bool Object::Type::IsSubtype(const std::string& type) const {
   for (const VAL::pddl_type* curr = symbol_; curr != nullptr;
        curr = curr->type) {
@@ -87,7 +92,7 @@ std::vector<std::string> Object::Type::ListTypes() const {
 Object::Object(const Pddl& pddl, const VAL::pddl_typed_symbol* symbol)
     : symbol_(symbol),
       name_(symbol->getName()),
-      type_(GetTypeSymbol(pddl.domain().types, symbol->type)) {}
+      type_(GetTypeSymbol(pddl.symbol()->the_domain->types, symbol->type)) {}
 
 Object::Object(const VAL::pddl_type_list* types,
                const VAL::pddl_typed_symbol* symbol)
@@ -98,7 +103,7 @@ Object::Object(const VAL::pddl_type_list* types,
 Object::Object(const Pddl& pddl, const std::string& name_object)
     : symbol_(GetSymbol(pddl, name_object)),
       name_(name_object),
-      type_(GetTypeSymbol(pddl.domain().types, symbol_->type)) {}
+      type_(GetTypeSymbol(pddl.symbol()->the_domain->types, symbol_->type)) {}
 
 std::vector<Object> Object::ParseArguments(const Pddl& pddl,
                                            const std::string& atom) {

@@ -9,6 +9,8 @@
 
 #include "symbolic/action.h"
 
+#include <VAL/ptree.h>
+
 #include <algorithm>  // std::max
 #include <cassert>    // assert
 #include <exception>  // std::runtime_error, std::invalid_argument
@@ -169,9 +171,7 @@ EffectsFunction<T> CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
   };
 }
 
-bool EvaluateCondition(bool cond) {
-  return cond;
-}
+bool EvaluateCondition(bool cond) { return cond; }
 
 bool EvaluateCondition(const std::optional<bool>& cond) {
   return cond ? *cond : false;
@@ -233,7 +233,7 @@ EffectsFunction<T> CreateEffectsFunction(
 const VAL::operator_* GetSymbol(const Pddl& pddl,
                                 const std::string& name_action) {
   assert(pddl.domain().ops != nullptr);
-  for (const VAL::operator_* op : *pddl.domain().ops) {
+  for (const VAL::operator_* op : *pddl.symbol()->the_domain->ops) {
     assert(op != nullptr && op->name != nullptr);
     if (op->name->getName() == name_action) return op;
   }
@@ -271,6 +271,10 @@ PartialState Action::Apply(const PartialState& state,
   PartialState next_state(state);
   ApplyPartial_(arguments, &next_state);
   return next_state;
+}
+
+const VAL::effect_lists* Action::postconditions() const {
+  return symbol_->effects;
 }
 
 std::string Action::to_string() const {

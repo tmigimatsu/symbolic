@@ -104,7 +104,7 @@ PYBIND11_MODULE(pysymbolic, m) {
           "next_state",
           [](const Pddl& pddl, const std::unordered_set<std::string>& state,
              const std::string& action) {
-            return pddl.NextState(State(pddl, state), action).to_string();
+            return pddl.NextState(State(pddl, state), action).Stringify();
           },
           "state"_a, "action"_a, R"pbdoc(
             Apply an action to the given state.
@@ -114,7 +114,7 @@ PYBIND11_MODULE(pysymbolic, m) {
 
             Args:
                 state (set[str]): Current state.
-                action_call (str): Action call in the form of :code:`"action(obj_a, obj_b)"`.
+                action (str): Action call in the form of :code:`"action(obj_a, obj_b)"`.
             Returns:
                 set[str]: Next state.
 
@@ -126,6 +126,52 @@ PYBIND11_MODULE(pysymbolic, m) {
                 ['inhand(hook)', 'inworkspace(hook)', 'inworkspace(shelf)', 'inworkspace(table)', 'on(box, table)']
 
             .. seealso:: C++: :symbolic:`symbolic::Pddl::NextState`.
+          )pbdoc")
+      .def(
+          "derived_state",
+          [](const Pddl& pddl, const std::unordered_set<std::string>& state) {
+            return pddl.DerivedState(State(pddl, state)).Stringify();
+          },
+          "state"_a)
+      .def(
+          "consistent_state",
+          [](const Pddl& pddl, const std::unordered_set<std::string>& state) {
+            return pddl.ConsistentState(State(pddl, state)).Stringify();
+          },
+          "state"_a)
+      .def(
+          "consistent_state",
+          [](const Pddl& pddl, const std::unordered_set<std::string>& state_pos,
+             const std::unordered_set<std::string>& state_neg) {
+            return pddl
+                .ConsistentState(PartialState(pddl, state_pos, state_neg))
+                .Stringify();
+          },
+          "state_pos"_a, "state_neg"_a)
+      .def(
+          "is_valid_action",
+          [](const Pddl& pddl, const std::unordered_set<std::string>& state,
+             const std::string& action) {
+            return pddl.IsValidAction(State(pddl, state), action);
+          },
+          "state"_a, "action"_a, R"pbdoc(
+            Evaluate whether the action's preconditions are satisfied.
+
+            Args:
+                state (set[str]): Current state.
+                action (str): Action call in the form of :code:`"action(obj_a, obj_b)"`.
+            Returns:
+                bool: Whether the action can be applied to the state.
+
+            Example:
+                >>> import symbolic
+                >>> pddl = symbolic.Pddl("../resources/domain.pddl", "../resources/problem.pddl")
+                >>> pddl.is_valid_action(pddl.initial_state, "pick(hook)")
+                True
+                >>> pddl.is_valid_action(pddl.initial_state, "pick(box)")
+                False
+
+            .. seealso:: C++: :symbolic:`symbolic::Pddl::IsValidAction`.
           )pbdoc")
       .def_property_readonly(
           "initial_state",
@@ -139,21 +185,6 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def_property_readonly("axioms", &Pddl::axioms)
       .def_property_readonly("derived_predicates", &Pddl::derived_predicates)
       .def_property_readonly("state_index", &Pddl::state_index)
-      .def("derived_state",
-           [](const Pddl& pddl,
-              const std::unordered_set<std::string>& str_state) {
-             return pddl.DerivedState(State(pddl, str_state)).to_string();
-           })
-      .def("consistent_state",
-           static_cast<StringSet (Pddl::*)(const StringSet&) const>(
-               &Pddl::ConsistentState))
-      .def("consistent_state",
-           static_cast<std::pair<StringSet, StringSet> (Pddl::*)(
-               const StringSet&, const StringSet&) const>(
-               &Pddl::ConsistentState))
-      .def("is_valid_action",
-           static_cast<bool (Pddl::*)(const StringSet&, const std::string&)
-                           const>(&Pddl::IsValidAction))
       .def("is_valid_state",
            static_cast<bool (Pddl::*)(const StringSet&) const>(
                &Pddl::IsValidState))
@@ -174,8 +205,8 @@ PYBIND11_MODULE(pysymbolic, m) {
                &Pddl::ListValidActions))
       .def("__repr__",
            [](const Pddl& pddl) {
-             return "symbolic.Pddl('" + pddl.domain_pddl() + "', '" + pddl.problem_pddl() +
-                    "')";
+             return "symbolic.Pddl('" + pddl.domain_pddl() + "', '" +
+                    pddl.problem_pddl() + "')";
            })
       .def(py::pickle(
           [](const Pddl& pddl) {

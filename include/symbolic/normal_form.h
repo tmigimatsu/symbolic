@@ -94,7 +94,7 @@ struct DisjunctiveFormula {
     return lhs.conjunctions == rhs.conjunctions;
   }
 
-  friend ostream& operator<<(ostream& os, const DisjunctiveFormula& dnf);
+  friend std::ostream& operator<<(std::ostream& os, const DisjunctiveFormula& dnf);
 
   std::vector<Conjunction> conjunctions;
 };
@@ -110,7 +110,7 @@ struct ConjunctiveFormula {
 
   // ConjunctiveFormula(const DisjunctiveFormula& dnf);
 
-  friend ostream& operator<<(ostream& os, const ConjunctiveFormula& cnf);
+  friend std::ostream& operator<<(std::ostream& os, const ConjunctiveFormula& cnf);
 
   std::vector<Disjunction> disjunctions;
 };

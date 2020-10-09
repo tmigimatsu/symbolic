@@ -21,6 +21,12 @@
 #include "symbolic/state.h"
 #include "symbolic/utils/parameter_generator.h"
 
+namespace VAL {
+
+class goal;
+
+}  // namespace VAL
+
 namespace symbolic {
 
 class Pddl;
@@ -53,7 +59,7 @@ class Formula {
 
   const std::string& to_string() const { return str_formula_; }
 
-  friend ostream& operator<<(ostream& os, const Formula& F);
+  friend std::ostream& operator<<(std::ostream& os, const Formula& F);
 
   /**
    * Create a function that takes action_args and returns prop_args based on the

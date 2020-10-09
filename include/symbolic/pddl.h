@@ -26,6 +26,12 @@
 #include "symbolic/predicate.h"
 #include "symbolic/proposition.h"
 
+namespace VAL {
+
+class analysis;
+
+}  // namespace VAL
+
 namespace symbolic {
 
 /**
@@ -44,6 +50,7 @@ class Pddl {
    * @seepython{symbolic.Pddl,__init__}
    */
   Pddl(const std::string& domain_pddl, const std::string& problem_pddl);
+  virtual ~Pddl();
 
   /**
    * Evaluate whether the pddl specification is valid using VAL.
@@ -63,12 +70,12 @@ class Pddl {
    * derived predicates.
    *
    * @param state Current state.
-   * @param action_call Action call in the form of `"action(obj_a, obj_b)"`.
+   * @param action Action call in the form of `"action(obj_a, obj_b)"`.
    * @returns Next state.
    *
    * @seepython{symbolic.Pddl,next_state}
    */
-  State NextState(const State& state, const std::string& action_call) const;
+  State NextState(const State& state, const std::string& action) const;
 
   /**
    * Apply the derived predicates to the given state.
@@ -79,20 +86,19 @@ class Pddl {
    * Apply the axioms to the given state.
    */
   State ConsistentState(const State& state) const;
-  std::set<std::string> ConsistentState(
-      const std::set<std::string>& state) const;
 
   PartialState ConsistentState(const PartialState& state) const;
-  std::pair<std::set<std::string>, std::set<std::string>> ConsistentState(
-      const std::set<std::string>& state_pos,
-      const std::set<std::string>& state_neg) const;
 
   /**
    * Evaluate whether the action's preconditions are satisfied.
+   *
+   * @param state Current state.
+   * @param action Action call in the form of `"action(obj_a, obj_b)"`.
+   * @returns Whether the action can be applied to the state.
+   *
+   * @seepython{symbolic.Pddl,is_valid_action}
    */
-  bool IsValidAction(const State& state, const std::string& action_call) const;
-  bool IsValidAction(const std::set<std::string>& state,
-                     const std::string& action_call) const;
+  bool IsValidAction(const State& state, const std::string& action) const;
 
   /**
    * Evaluate whether the state satisfies the axioms.
@@ -135,11 +141,11 @@ class Pddl {
   std::vector<std::string> ListValidActions(
       const std::set<std::string>& state) const;
 
-  const VAL::analysis& analysis() const { return *analysis_; }
+  const VAL::analysis* symbol() const { return analysis_; }
 
-  const VAL::domain& domain() const { return *analysis().the_domain; }
+  // const VAL::domain& domain() const { return *analysis().the_domain; }
 
-  const VAL::problem& problem() const { return *analysis().the_problem; }
+  // const VAL::problem& problem() const { return *analysis().the_problem; }
 
   const std::string& domain_pddl() const { return domain_pddl_; }
 
@@ -166,7 +172,7 @@ class Pddl {
   const Formula& goal() const { return goal_; }
 
  private:
-  std::unique_ptr<VAL::analysis> analysis_;
+  VAL::analysis* analysis_;
   std::string domain_pddl_;
   std::string problem_pddl_;
 
@@ -195,20 +201,5 @@ std::vector<std::string> Stringify(const std::vector<Object>& objects);
 std::ostream& operator<<(std::ostream& os, const Pddl& pddl);
 
 }  // namespace symbolic
-
-namespace VAL {
-
-std::ostream& operator<<(std::ostream& os, const VAL::domain& domain);
-
-std::ostream& operator<<(std::ostream& os, const VAL::problem& problem);
-
-std::ostream& operator<<(std::ostream& os, const VAL::simple_effect& effect);
-
-std::ostream& operator<<(std::ostream& os, const VAL::var_symbol_list& args);
-
-std::ostream& operator<<(std::ostream& os,
-                         const VAL::parameter_symbol_list& args);
-
-}  // namespace VAL
 
 #endif  // SYMBOLIC_PDDL_H_

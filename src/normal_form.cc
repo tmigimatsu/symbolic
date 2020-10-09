@@ -9,6 +9,8 @@
 
 #include "symbolic/normal_form.h"
 
+#include <VAL/ptree.h>
+
 #include <algorithm>  // std::swap, std::all_of
 #include <cassert>    // assert
 #include <iterator>   // std::make_move_iterator

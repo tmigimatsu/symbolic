@@ -9,6 +9,8 @@
 
 #include "symbolic/derived_predicate.h"
 
+#include <VAL/ptree.h>
+
 #include "symbolic/pddl.h"
 
 namespace symbolic {

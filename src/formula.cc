@@ -9,6 +9,8 @@
 
 #include "symbolic/formula.h"
 
+#include <VAL/ptree.h>
+
 #include <cassert>        // assert
 #include <exception>      // std::runtime_error
 #include <sstream>        // std::stringstream

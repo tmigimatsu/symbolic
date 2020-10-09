@@ -10,11 +10,21 @@
 #ifndef SYMBOLIC_OBJECTS_H_
 #define SYMBOLIC_OBJECTS_H_
 
-#include <VAL/ptree.h>
-
 #include <ostream>  // std::ostream
 #include <tuple>    // std::tie
 #include <vector>   // std::vector
+
+namespace VAL {
+
+class pddl_type;
+class pddl_typed_symbol;
+
+template<typename T>
+class typed_symbol_list;
+
+using pddl_type_list = class typed_symbol_list<pddl_type>;
+
+}  // namespace VAL
 
 namespace symbolic {
 
@@ -26,8 +36,7 @@ class Object {
    public:
     Type() = default;
 
-    explicit Type(const VAL::pddl_type* symbol)
-        : symbol_(symbol), name_(symbol->getName()) {}
+    explicit Type(const VAL::pddl_type* symbol);
 
     const VAL::pddl_type* symbol() const { return symbol_; }
 

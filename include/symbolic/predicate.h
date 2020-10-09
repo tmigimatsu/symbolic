@@ -12,6 +12,12 @@
 
 #include "symbolic/action.h"
 
+namespace VAL {
+
+class pred_decl;
+
+}  // namespace VAL
+
 namespace symbolic {
 
 class Predicate : public Action {
