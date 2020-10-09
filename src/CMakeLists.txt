@@ -16,6 +16,11 @@ add_library(${LIB_NAME}::${LIB_NAME} ALIAS ${LIB_NAME})
 target_compile_features(${LIB_NAME} PUBLIC cxx_std_17)
 set_target_properties(${LIB_NAME} PROPERTIES CXX_EXTENSIONS OFF)
 
+# Remove doctest code if tests are disabled.
+if(NOT ${LIB_CMAKE_NAME}_BUILD_TESTING)
+    target_compile_definitions(${LIB_NAME} PRIVATE DOCTEST_CONFIG_DISABLE)
+endif()
+
 if(SYMBOLIC_CLANG_TIDY)
     target_enable_clang_tidy(${LIB_NAME})
 endif()
@@ -34,6 +39,7 @@ target_sources(${LIB_NAME}
     state.cc
     planning/planner.cc
     utils/parameter_generator.cc
+    utils/doctest.cc
 )
 
 set(LIB_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
@@ -45,12 +51,15 @@ target_include_directories(${LIB_NAME}
 
 lib_add_subdirectory(ctrl_utils)
 ctrl_utils_add_subdirectory(Eigen3)
+ctrl_utils_add_subdirectory(doctest)
 lib_add_subdirectory(VAL)
 target_link_libraries(${LIB_NAME}
   PUBLIC
     VAL::VAL
     ctrl_utils::ctrl_utils
     Eigen3::Eigen
+  PRIVATE
+    doctest::doctest
 )
 
 # Build python wrapper.
@@ -101,4 +110,3 @@ export(TARGETS ${LIB_NAME}
     NAMESPACE ${LIB_NAME}::
     FILE ${LIB_NAME}Targets.cmake
 )
-

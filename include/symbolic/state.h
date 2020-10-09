@@ -12,9 +12,10 @@
 
 // #define SYMBOLIC_STATE_USE_SET
 
-#include <exception>  // std::exception
-#include <optional>   // std::optional
-#include <ostream>    // std::ostream
+#include <exception>      // std::exception
+#include <optional>       // std::optional
+#include <ostream>        // std::ostream
+#include <unordered_set>  // std::unordered_set
 
 #ifndef SYMBOLIC_STATE_USE_SET
 #include <vector>  // std::vector
@@ -45,6 +46,8 @@ class State : private std::set<Proposition> {
   State() = default;
   State(std::initializer_list<Proposition> l);
 
+  State(const Pddl& pddl, const std::unordered_set<std::string>& str_state);
+
   bool contains(const Proposition& prop) const;
 
   bool insert(const Proposition& prop);
@@ -74,6 +77,8 @@ class State : private std::set<Proposition> {
 #else   // SYMBOLIC_STATE_USE_SET
   void reserve(size_t size) {}
 #endif  // SYMBOLIC_STATE_USE_SET
+
+  std::unordered_set<std::string> to_string() const;
 
   friend bool operator==(const State& lhs, const State& rhs) {
     return static_cast<const Base&>(lhs) == static_cast<const Base&>(rhs);

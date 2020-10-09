@@ -52,6 +52,13 @@ State::State(std::initializer_list<Proposition> l) : Base(l) {
 #endif  // SYMBOLIC_STATE_USE_SET
 }
 
+State::State(const Pddl& pddl, const std::unordered_set<std::string>& str_state) {
+  reserve(str_state.size());
+  for (const std::string& str_prop : str_state) {
+    emplace(pddl, str_prop);
+  }
+}
+
 bool State::contains(const Proposition& prop) const {
 #ifndef SYMBOLIC_STATE_USE_SET
   assert(std::is_sorted(begin(), end()));
@@ -96,6 +103,15 @@ bool State::erase(const Proposition& prop) {
 #else   // SYMBOLIC_STATE_USE_SET
   return Base::erase(prop) > 0;
 #endif  // SYMBOLIC_STATE_USE_SET
+}
+
+std::unordered_set<std::string> State::to_string() const {
+  std::unordered_set<std::string> str_state;
+  str_state.reserve(size());
+  for (const Proposition& prop : *this) {
+    str_state.insert(prop.to_string());
+  }
+  return str_state;
 }
 
 std::ostream& operator<<(std::ostream& os, const State& state) {

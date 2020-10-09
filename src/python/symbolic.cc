@@ -100,6 +100,33 @@ PYBIND11_MODULE(pysymbolic, m) {
 
             .. seealso:: C++: :symbolic:`symbolic::Pddl::IsValid`.
           )pbdoc")
+      .def(
+          "next_state",
+          [](const Pddl& pddl, const std::unordered_set<std::string>& state,
+             const std::string& action) {
+            return pddl.NextState(State(pddl, state), action).to_string();
+          },
+          "state"_a, "action"_a, R"pbdoc(
+            Apply an action to the given state.
+
+            The action's preconditions are not checked. The resulting state includes
+            derived predicates.
+
+            Args:
+                state (set[str]): Current state.
+                action_call (str): Action call in the form of :code:`"action(obj_a, obj_b)"`.
+            Returns:
+                set[str]: Next state.
+
+            Example:
+                >>> import symbolic
+                >>> pddl = symbolic.Pddl("../resources/domain.pddl", "../resources/problem.pddl")
+                >>> next_state = pddl.next_state(pddl.initial_state, "pick(hook)")
+                >>> sorted(next_state)
+                ['inhand(hook)', 'inworkspace(hook)', 'inworkspace(shelf)', 'inworkspace(table)', 'on(box, table)']
+
+            .. seealso:: C++: :symbolic:`symbolic::Pddl::NextState`.
+          )pbdoc")
       .def_property_readonly(
           "initial_state",
           [](const Pddl& pddl) { return Stringify(pddl.initial_state()); },
@@ -113,8 +140,10 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def_property_readonly("derived_predicates", &Pddl::derived_predicates)
       .def_property_readonly("state_index", &Pddl::state_index)
       .def("derived_state",
-           static_cast<StringSet (Pddl::*)(const StringSet&) const>(
-               &Pddl::DerivedState))
+           [](const Pddl& pddl,
+              const std::unordered_set<std::string>& str_state) {
+             return pddl.DerivedState(State(pddl, str_state)).to_string();
+           })
       .def("consistent_state",
            static_cast<StringSet (Pddl::*)(const StringSet&) const>(
                &Pddl::ConsistentState))

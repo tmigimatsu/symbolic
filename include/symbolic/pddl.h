@@ -61,16 +61,19 @@ class Pddl {
    *
    * The action's preconditions are not checked. The resulting state includes
    * derived predicates.
+   *
+   * @param state Current state.
+   * @param action_call Action call in the form of `"action(obj_a, obj_b)"`.
+   * @returns Next state.
+   *
+   * @seepython{symbolic.Pddl,next_state}
    */
   State NextState(const State& state, const std::string& action_call) const;
-  std::set<std::string> NextState(const std::set<std::string>& state,
-                                  const std::string& action_call) const;
 
   /**
    * Apply the derived predicates to the given state.
    */
   State DerivedState(const State& state) const;
-  std::set<std::string> DerivedState(const std::set<std::string>& state) const;
 
   /**
    * Apply the axioms to the given state.

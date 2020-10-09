@@ -18,6 +18,7 @@
 #include <utility>  // std::move
 
 #include "symbolic/utils/parameter_generator.h"
+#include "utils/doctest.h"
 
 extern int yyparse();
 extern int yydebug;
@@ -224,6 +225,10 @@ bool Pddl::IsValid(bool verbose, std::ostream& os) const {
   return is_domain_valid && is_problem_valid;
 }
 
+TEST_CASE_FIXTURE(testing::Fixture, "Pddl.IsValid") {
+  REQUIRE(pddl.IsValid());
+}
+
 State Pddl::NextState(const State& state,
                       const std::string& action_call) const {
   // Parse strings
@@ -234,17 +239,17 @@ State Pddl::NextState(const State& state,
 
   return Apply(state, action, arguments, derived_predicates());
 }
-std::set<std::string> Pddl::NextState(const std::set<std::string>& str_state,
-                                      const std::string& action_call) const {
-  return Stringify(NextState(ParseState(*this, str_state), action_call));
+
+TEST_CASE_FIXTURE(testing::Fixture, "Pddl.NextState") {
+  const State& state = pddl.initial_state();
+  State next_state = state;
+  next_state.erase(Proposition(pddl, "on(hook, table)"));
+  next_state.emplace(pddl, "inhand(hook)");
+  REQUIRE(pddl.NextState(state, "pick(hook)") == next_state);
 }
 
 State Pddl::DerivedState(const State& state) const {
   return DerivedPredicate::Apply(state, derived_predicates());
-}
-std::set<std::string> Pddl::DerivedState(
-    const std::set<std::string>& str_state) const {
-  return Stringify(DerivedState(ParseState(*this, str_state)));
 }
 
 State Pddl::ConsistentState(const State& state) const {
@@ -286,7 +291,8 @@ PartialState Pddl::ConsistentState(const PartialState& state) const {
     }
 
     if (i++ > kMaxIterations) {
-      throw std::runtime_error("Pddl::ConsistentState(): Exceeded max num iterations.");
+      throw std::runtime_error(
+          "Pddl::ConsistentState(): Exceeded max num iterations.");
     }
   }
   return next_state;
