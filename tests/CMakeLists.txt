@@ -16,4 +16,12 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
     Catch2::Catch2
     symbolic::symbolic
 )
-add_test(${PROJECT_NAME}_tests ${PROJECT_NAME}_tests)
+add_test(NAME ${PROJECT_NAME}_tests
+    COMMAND ./${PROJECT_NAME}_tests
+    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+)
+
+add_test(NAME py${PROJECT_NAME}_tests
+    COMMAND pipenv run make -C docs doctest
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)

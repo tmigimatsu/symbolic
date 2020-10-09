@@ -34,6 +34,7 @@ script:
   - cd build
   - cmake .. -DBUILD_DOCS=ON -DBUILD_TESTING=ON && make
   - mkdir -p ../docs/_build/html && touch ../docs/_build/html/.nojekyll
+  - ctest --output-on-failure
 
 deploy:
   provider: pages

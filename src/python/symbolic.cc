@@ -74,6 +74,11 @@ PYBIND11_MODULE(pysymbolic, m) {
                  domain (str): Path to the domain pddl.
                  problem (str): Path to the problem pddl.
 
+             Example:
+                 >>> import symbolic
+                 >>> symbolic.Pddl("../resources/domain.pddl", "../resources/problem.pddl")
+                 symbolic.Pddl('../resources/domain.pddl', '../resources/problem.pddl')
+
              .. seealso:: C++: :symbolic:`symbolic::Pddl::Pddl`.
             )pbdoc")
       .def(
@@ -85,7 +90,13 @@ PYBIND11_MODULE(pysymbolic, m) {
             Args:
                 verbose (bool): Print diagnostic information.
             Returns:
-                (bool): Whether the pddl specification is valid.
+                bool: Whether the pddl specification is valid.
+
+            Example:
+                >>> import symbolic
+                >>> pddl = symbolic.Pddl("../resources/domain.pddl", "../resources/problem.pddl")
+                >>> pddl.is_valid()
+                True
 
             .. seealso:: C++: :symbolic:`symbolic::Pddl::IsValid`.
           )pbdoc")
@@ -132,6 +143,11 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def("list_valid_actions",
            static_cast<StringVector (Pddl::*)(const StringSet&) const>(
                &Pddl::ListValidActions))
+      .def("__repr__",
+           [](const Pddl& pddl) {
+             return "symbolic.Pddl('" + pddl.domain_pddl() + "', '" + pddl.problem_pddl() +
+                    "')";
+           })
       .def(py::pickle(
           [](const Pddl& pddl) {
             return py::make_tuple(pddl.domain_pddl(), pddl.problem_pddl());
