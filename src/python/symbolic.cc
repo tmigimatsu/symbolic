@@ -71,8 +71,8 @@ PYBIND11_MODULE(pysymbolic, m) {
              Parse the pddl specification from the domain and problem files.
 
              Args:
-                 domain (str): Path to the domain pddl.
-                 problem (str): Path to the problem pddl.
+                 domain: Path to the domain pddl.
+                 problem: Path to the problem pddl.
 
              Example:
                  >>> import symbolic
@@ -88,9 +88,9 @@ PYBIND11_MODULE(pysymbolic, m) {
             Evaluate whether the pddl specification is valid using VAL.
 
             Args:
-                verbose (bool): Print diagnostic information.
+                verbose: Print diagnostic information.
             Returns:
-                bool: Whether the pddl specification is valid.
+                Whether the pddl specification is valid.
 
             Example:
                 >>> import symbolic
@@ -113,10 +113,10 @@ PYBIND11_MODULE(pysymbolic, m) {
             derived predicates.
 
             Args:
-                state (set[str]): Current state.
-                action (str): Action call in the form of :code:`"action(obj_a, obj_b)"`.
+                state: Current state.
+                action: Action call in the form of :code:`"action(obj_a, obj_b)"`.
             Returns:
-                set[str]: Next state.
+                Next state.
 
             Example:
                 >>> import symbolic
@@ -158,10 +158,10 @@ PYBIND11_MODULE(pysymbolic, m) {
             Evaluate whether the action's preconditions are satisfied.
 
             Args:
-                state (set[str]): Current state.
-                action (str): Action call in the form of :code:`"action(obj_a, obj_b)"`.
+                state: Current state.
+                action: Action call in the form of :code:`"action(obj_a, obj_b)"`.
             Returns:
-                bool: Whether the action can be applied to the state.
+                Whether the action can be applied to the state.
 
             Example:
                 >>> import symbolic

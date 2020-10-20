@@ -38,6 +38,7 @@ extensions = [
     'sphinx.ext.doctest',  # Test snippets in the docs
     'sphinx.ext.intersphinx',  # Link to external Sphinx docs
     'sphinx.ext.napoleon',  # Parse Google-style docstrings
+    'sphinx_autodoc_typehints',  # Use type annotations for parameter types
     'sphinxcontrib.doxylink',  # Link to Doxygen tags
 ]
 

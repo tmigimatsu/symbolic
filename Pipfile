@@ -4,8 +4,10 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+sphinx = "*"
 sphinx-bootstrap-theme = "*"
 sphinxcontrib-doxylink = "*"
+sphinx-autodoc-typehints = "*"
 
 [packages]
 symbolic-tmigimatsu = {editable = true, path = "."}
