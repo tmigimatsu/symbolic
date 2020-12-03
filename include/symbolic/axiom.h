@@ -20,11 +20,32 @@ class Axiom : public Action {
   Axiom(const Pddl& pddl, const VAL::operator_* symbol);
 
   /**
-   * Determine whether the axiom is satisfied.
+   * Determine whether the axiom is satisfied in the given state.
+   *
+   * @param state State to evaluate.
+   * @returns Whether the state is consistent with this axiom.
    */
   bool IsConsistent(const State& state) const;
+
+  /**
+   * Determine whether the axiom is satisfied in the given partial state.
+   *
+   * @param state Partial state to evaluate.
+   * @returns Whether the state is consistent with this axiom.
+   */
   bool IsConsistent(const PartialState& state) const;
 
+  /**
+   * Determine whether all axioms are satisfied in the given partial state.
+   *
+   * Returns false only if a partial state fully satisfies the pre-conditions of
+   * the axiom and explicitly does not satisfy the post-conditions. If a
+   * proposition in the partial state is unknown, the axiom is assumed to be
+   * satisfied.
+   *
+   * @param state Partial state to evaluate.
+   * @returns Whether the state is consistent with this axiom.
+   */
   static bool IsConsistent(const std::vector<Axiom>& axioms,
                            const PartialState& state);
 

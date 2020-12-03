@@ -83,10 +83,23 @@ class Pddl {
   State DerivedState(const State& state) const;
 
   /**
-   * Apply the axioms to the given state.
+   * Applies the axioms to the given state.
+   *
+   * @param state Current state.
+   * @returns State with axioms applied.
+   *
+   * @seepython{symbolic.Pddl,consistent_state}
    */
   State ConsistentState(const State& state) const;
 
+  /**
+   * Applies the axioms to the given partial state.
+   *
+   * @param state Current partial state.
+   * @returns Partial state with axioms applied.
+   *
+   * @seepython{symbolic.Pddl,consistent_state}
+   */
   PartialState ConsistentState(const PartialState& state) const;
 
   /**
@@ -101,10 +114,29 @@ class Pddl {
   bool IsValidAction(const State& state, const std::string& action) const;
 
   /**
-   * Evaluate whether the state satisfies the axioms.
+   * Evaluates whether the state satisfies the axioms.
+   *
+   * @param state Current state.
+   * @returns Whether the state is valid.
+   *
+   * @seepython{symbolic.Pddl,is_valid_state}
    */
   bool IsValidState(const State& state) const;
-  bool IsValidState(const std::set<std::string>& state) const;
+
+  /**
+   * Evaluates whether the partial state satisfies the axioms.
+   *
+   * Returns false only if a partial state fully satisfies the pre-conditions of
+   * the axiom and explicitly does not satisfy the post-conditions. If a
+   * proposition in the partial state is unknown, the axiom is assumed to be
+   * satisfied.
+   *
+   * @param state Current partial state.
+   * @returns Whether the state is valid.
+   *
+   * @seepython{symbolic.Pddl,is_valid_state}
+   */
+  bool IsValidState(const PartialState& state) const;
 
   /**
    * Evaluate whether the (s, a, s') tuple is valid.

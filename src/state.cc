@@ -130,6 +130,11 @@ bool PartialState::contains(const Proposition& prop) const {
   if (neg_.contains(prop)) return false;
   throw UnknownEvaluation(prop);
 }
+bool PartialState::does_not_contain(const Proposition& prop) const {
+  if (pos_.contains(prop)) return false;
+  if (neg_.contains(prop)) return true;
+  throw UnknownEvaluation(prop);
+}
 
 int PartialState::insert(const Proposition& prop) {
   const int was_negated = static_cast<int>(neg_.erase(prop));

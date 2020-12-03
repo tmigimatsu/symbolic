@@ -9,6 +9,7 @@
 
 #include <pybind11/eigen.h>
 #include <pybind11/functional.h>
+#include <pybind11/iostream.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -138,7 +139,16 @@ PYBIND11_MODULE(pysymbolic, m) {
           [](const Pddl& pddl, const std::unordered_set<std::string>& state) {
             return pddl.ConsistentState(State(pddl, state)).Stringify();
           },
-          "state"_a)
+          "state"_a, R"pbdoc(
+            Applies the axioms to the given state.
+
+            Args:
+                state: Current state.
+            Returns:
+                Updated state.
+
+            .. seealso:: C++: :symbolic:`symbolic::Pddl::IsValidState`.
+          )pbdoc")
       .def(
           "consistent_state",
           [](const Pddl& pddl, const std::unordered_set<std::string>& state_pos,
@@ -147,7 +157,17 @@ PYBIND11_MODULE(pysymbolic, m) {
                 .ConsistentState(PartialState(pddl, state_pos, state_neg))
                 .Stringify();
           },
-          "state_pos"_a, "state_neg"_a)
+          "state_pos"_a, "state_neg"_a, R"pbdoc(
+            Applies the axioms to the given partial state.
+
+            Args:
+                state_pos: Positive propositions in partial state.
+                state_pos: Negative propositions in negative state.
+            Returns:
+                Updated state.
+
+            .. seealso:: C++: :symbolic:`symbolic::Pddl::IsValidState`.
+          )pbdoc")
       .def(
           "is_valid_action",
           [](const Pddl& pddl, const std::unordered_set<std::string>& state,
@@ -155,7 +175,7 @@ PYBIND11_MODULE(pysymbolic, m) {
             return pddl.IsValidAction(State(pddl, state), action);
           },
           "state"_a, "action"_a, R"pbdoc(
-            Evaluate whether the action's preconditions are satisfied.
+            Evaluates whether the action's preconditions are satisfied.
 
             Args:
                 state: Current state.
@@ -173,21 +193,51 @@ PYBIND11_MODULE(pysymbolic, m) {
 
             .. seealso:: C++: :symbolic:`symbolic::Pddl::IsValidAction`.
           )pbdoc")
+      .def(
+          "is_valid_state",
+          [](const Pddl& pddl, const std::unordered_set<std::string>& state) {
+            return pddl.IsValidState(State(pddl, state));
+          },
+          "state"_a, R"pbdoc(
+            Evaluates whether the state satisfies the axioms.
+
+            Args:
+                state: Current state.
+            Returns:
+                Whether the state is valid.
+
+            .. seealso:: C++: :symbolic:`symbolic::Pddl::IsValidState`.
+          )pbdoc")
+      .def(
+          "is_valid_state",
+          [](const Pddl& pddl, const std::unordered_set<std::string>& state_pos,
+             const std::unordered_set<std::string>& state_neg) {
+            return pddl.IsValidState(PartialState(pddl, state_pos, state_neg));
+          },
+          "state_pos"_a, "state_neg"_a, R"pbdoc(
+            Evaluate whether the partial state satisfies the axioms.
+
+            Args:
+                state_pos: Positive propositions in partial state.
+                state_neg: Negative propositions in partial state.
+            Returns:
+                Whether the partial state is valid.
+
+            .. seealso:: C++: :symbolic:`symbolic::Pddl::IsValidState`.
+          )pbdoc")
       .def_property_readonly(
           "initial_state",
           [](const Pddl& pddl) { return Stringify(pddl.initial_state()); },
           R"pbdoc(
             Initial state.
           )pbdoc")
+      .def_property_readonly("object_map", &Pddl::object_map)
       .def_property_readonly("objects", &Pddl::objects)
       .def_property_readonly("actions", &Pddl::actions)
       .def_property_readonly("predicates", &Pddl::predicates)
       .def_property_readonly("axioms", &Pddl::axioms)
       .def_property_readonly("derived_predicates", &Pddl::derived_predicates)
       .def_property_readonly("state_index", &Pddl::state_index)
-      .def("is_valid_state",
-           static_cast<bool (Pddl::*)(const StringSet&) const>(
-               &Pddl::IsValidState))
       .def("is_valid_tuple",
            static_cast<bool (Pddl::*)(const StringSet&, const std::string&,
                                       const StringSet&) const>(
@@ -258,8 +308,47 @@ PYBIND11_MODULE(pysymbolic, m) {
 
   // Axiom
   py::class_<Axiom>(m, "Axiom")
-      .def("is_consistent", static_cast<bool (Axiom::*)(const State&) const>(
-                                &Axiom::IsConsistent))
+      .def("is_consistent",
+           static_cast<bool (Axiom::*)(const State&) const>(
+               &Axiom::IsConsistent),
+           "state"_a, R"pbdoc(
+          Determine whether the axiom is satisfied in the given state.
+
+          Args:
+              state: State to evaluate.
+          Returns:
+              Whether the state is consistent with this axiom.
+          )pbdoc")
+      .def("is_consistent",
+           static_cast<bool (Axiom::*)(const PartialState&) const>(
+               &Axiom::IsConsistent),
+           "state"_a, R"pbdoc(
+          Determine whether the axiom is satisfied in the given partial state.
+
+          Args:
+              state: Partial state to evaluate.
+          Returns:
+              Whether the state is consistent with this axiom.
+          )pbdoc")
+      // .def_static(
+      //     "is_consistent_all",
+      //     static_cast<bool (*)(const std::vector<Axiom>&, const
+      //     PartialState&)>(
+      //         &Axiom::IsConsistent),
+      //     "axioms"_a, "state"_a, R"pbdoc(
+      //     Determine whether all axioms are satisfied in the given partial
+      //     state.
+
+      //     Returns false only if a partial state fully satisfies the
+      //     pre-conditions of the axiom and explicitly does not satisfy the
+      //     post-conditions. If a proposition in the partial state is unknown,
+      //     the axiom is assumed to be satisfied.
+
+      //     Args:
+      //         state: Partial state to evaluate.
+      //     Returns:
+      //         Whether the state is consistent with this axiom.
+      //     )pbdoc")
       .def("__repr__", [](const Axiom& axiom) {
         std::stringstream ss;
         ss << axiom;
@@ -270,7 +359,7 @@ PYBIND11_MODULE(pysymbolic, m) {
   py::class_<DerivedPredicate>(m, "DerivedPredicate")
       .def_static("apply",
                   [](const DerivedPredicate& pred) {
-
+                    // TODO
                   })
       .def("__repr__", [](const Axiom& axiom) {
         std::stringstream ss;
@@ -353,7 +442,28 @@ PYBIND11_MODULE(pysymbolic, m) {
   py::class_<DisjunctiveFormula>(m, "DisjunctiveFormula")
       .def_readonly("conjunctions", &DisjunctiveFormula::conjunctions)
       .def_static("normalize_conditions",
-                  &DisjunctiveFormula::NormalizeConditions)
+                  &DisjunctiveFormula::NormalizeConditions, "pddl"_a,
+                  "action_call"_a, "apply_axioms"_a = false, R"pbdoc(
+          Normalize the pre/post conditions of the given action.
+
+          If either of the conditions are invalid, this function will return an
+          empty optional.
+
+          Args:
+              pddl: Pddl object.
+              action: Action call in the form of :code:`"action(obj_a, obj_b)"`.
+              apply_axioms: Whether to apply the axioms to the pre/post conditions.
+          Returns:
+              Pair of normalized pre/post conditions.
+
+          Example:
+              >>> import symbolic
+              >>> pddl = symbolic.Pddl("../resources/domain.pddl", "../resources/problem.pddl")
+              >>> pddl.DisjunctiveFormula.normalize_conditions(pddl, "pick(hook)")
+              # TODO
+
+          .. seealso:: C++: :symbolic:`symbolic::DisjunctiveFormula::NormalizeConditions`.
+          )pbdoc")
       .def("__repr__", [](const DisjunctiveFormula& dnf) {
         std::stringstream ss;
         ss << dnf;
@@ -372,7 +482,14 @@ PYBIND11_MODULE(pysymbolic, m) {
           [](const py::tuple& pos_neg) {
             return PartialState{ParseState(pos_neg[0].cast<StringSet>()),
                                 ParseState(pos_neg[1].cast<StringSet>())};
-          }));
+          }))
+      .def("__repr__", [](const PartialState& s) {
+        std::stringstream ss;
+        ss << s;
+        return ss.str();
+      });
+
+  py::add_ostream_redirect(m);
 }
 
 }  // namespace symbolic

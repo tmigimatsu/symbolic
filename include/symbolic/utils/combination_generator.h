@@ -149,7 +149,7 @@ class CombinationGenerator {
       if (it_element == option.end()) {
         std::stringstream ss;
         ss << "CombinationGenerator::find(): No element " << element
-           << " in slot << " << i << ".";
+           << " in slot " << i << ".";
         throw std::out_of_range(ss.str());
       }
 

@@ -24,6 +24,7 @@ namespace {
 using ::symbolic::Formula;
 using ::symbolic::Object;
 using ::symbolic::ParameterGenerator;
+using ::symbolic::PartialState;
 using ::symbolic::Pddl;
 using ::symbolic::Proposition;
 
@@ -161,6 +162,54 @@ NamedFormulaFunction<T> CreateNegation(const Pddl& pddl,
   FormulaFunction<T> F = [P = std::move(P_str.first)](
                              const T& state,
                              const std::vector<Object>& arguments) -> bool {
+    // Negate positive formula
+    return !P(state, arguments);
+  };
+
+  return {std::move(F), "!" + P_str.second};
+}
+template <>
+NamedFormulaFunction<PartialState> CreateNegation(
+    const Pddl& pddl, const VAL::neg_goal* symbol,
+    const std::vector<Object>& parameters) {
+  const VAL::goal* goal = symbol->getGoal();
+
+  // Check if goal is a simple proposition.
+  const VAL::simple_goal* simple_goal =
+      dynamic_cast<const VAL::simple_goal*>(goal);
+  if (simple_goal != nullptr) {
+    const VAL::proposition* prop = simple_goal->getProp();
+    std::string name_predicate = prop->head->getName();
+    if (name_predicate != "=" &&
+        pddl.object_map().find(name_predicate) == pddl.object_map().end()) {
+      // Proposition is a simple goal, so evaluate its negation.
+
+      const std::vector<Object> prop_params =
+          Object::CreateList(pddl, prop->args);
+      ApplicationFunction Apply =
+          Formula::CreateApplicationFunction(parameters, prop_params);
+
+      FormulaFunction<PartialState> F =
+          [name_predicate, Apply = std::move(Apply)](
+              const PartialState& state,
+              const std::vector<Object>& arguments) -> bool {
+        Proposition P(name_predicate, Apply(arguments));
+        return state.does_not_contain(P);
+      };
+
+      return {std::move(F),
+              "!" + Proposition(name_predicate, prop_params).to_string()};
+    }
+    // Otherwise proposition is an = or type, so evaluate as normal.
+  }
+
+  NamedFormulaFunction<PartialState> P_str =
+      CreateFormula<PartialState>(pddl, goal, parameters);
+
+  FormulaFunction<PartialState> F =
+      [P = std::move(P_str.first)](
+          const PartialState& state,
+          const std::vector<Object>& arguments) -> bool {
     // Negate positive formula
     return !P(state, arguments);
   };

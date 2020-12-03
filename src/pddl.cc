@@ -331,8 +331,9 @@ bool Pddl::IsValidState(const State& state) const {
   }
   return true;
 }
-bool Pddl::IsValidState(const std::set<std::string>& str_state) const {
-  return IsValidState(ParseState(*this, str_state));
+
+bool Pddl::IsValidState(const PartialState& state) const {
+  return Axiom::IsConsistent(axioms(), state);
 }
 
 bool Pddl::IsValidTuple(const State& state, const std::string& action_call,

@@ -145,6 +145,7 @@ class PartialState {
   size_t size() const { return pos_.size() + neg_.size(); }
 
   bool contains(const Proposition& prop) const;
+  bool does_not_contain(const Proposition& prop) const;
 
   int insert(const Proposition& prop);
   int insert(Proposition&& prop);

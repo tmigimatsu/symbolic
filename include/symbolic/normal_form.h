@@ -84,17 +84,22 @@ struct DisjunctiveFormula {
    *
    * @param pddl Pddl object.
    * @param action_call Action call string.
+   * @param apply_axioms Whether to apply the axioms to the pre/post conditions.
    * @return Pair of normalized pre/post conditions.
+   *
+   * @seepython{symbolic.DisjunctiveFormula,normalize_conditions}
    */
   static std::optional<std::pair<DisjunctiveFormula, DisjunctiveFormula>>
-  NormalizeConditions(const Pddl& pddl, const std::string& action_call);
+  NormalizeConditions(const Pddl& pddl, const std::string& action_call,
+                      bool apply_axioms = false);
 
   friend bool operator==(const DisjunctiveFormula& lhs,
                          const DisjunctiveFormula& rhs) {
     return lhs.conjunctions == rhs.conjunctions;
   }
 
-  friend std::ostream& operator<<(std::ostream& os, const DisjunctiveFormula& dnf);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const DisjunctiveFormula& dnf);
 
   std::vector<Conjunction> conjunctions;
 };
@@ -110,7 +115,8 @@ struct ConjunctiveFormula {
 
   // ConjunctiveFormula(const DisjunctiveFormula& dnf);
 
-  friend std::ostream& operator<<(std::ostream& os, const ConjunctiveFormula& cnf);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const ConjunctiveFormula& cnf);
 
   std::vector<Disjunction> disjunctions;
 };

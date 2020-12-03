@@ -10,6 +10,7 @@
 #include "symbolic/utils/parameter_generator.h"
 
 #include <exception>  // std::runtime_error
+#include <iostream>   // std::cerr
 
 namespace {
 
