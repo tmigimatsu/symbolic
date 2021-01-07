@@ -225,6 +225,9 @@ PYBIND11_MODULE(pysymbolic, m) {
 
             .. seealso:: C++: :symbolic:`symbolic::Pddl::IsValidState`.
           )pbdoc")
+      .def_property_readonly("name", &Pddl::name, R"pbdoc(
+          Pddl domain name.
+      )pbdoc")
       .def_property_readonly(
           "initial_state",
           [](const Pddl& pddl) { return Stringify(pddl.initial_state()); },

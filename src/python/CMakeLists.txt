@@ -7,7 +7,9 @@
 # Authors: Toki Migimatsu
 ############################################################
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/symbolic)
+project(pysymbolic)
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/symbolic)
 
 ctrl_utils_add_subdirectory(pybind11)
 

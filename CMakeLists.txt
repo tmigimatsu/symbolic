@@ -20,8 +20,13 @@ string(TOUPPER ${PROJECT_NAME} LIB_CMAKE_NAME)
 include(cmake/utils.cmake)
 
 # Detect whether this project is built by itself or included as a subdirectory.
-lib_dependent_option(${LIB_CMAKE_NAME}_MAIN_BUILD "Build ${PROJECT_NAME} as a main project."
-    "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME")
+lib_dependent_option(${LIB_CMAKE_NAME}_MAIN_BUILD
+    "Build ${PROJECT_NAME} as a main project."
+    "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME"
+)
+
+# Generate a compilation database for autocompletion.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Use testing framework.
 if(${LIB_CMAKE_NAME}_MAIN_BUILD)
@@ -42,9 +47,11 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 # Set output directories.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+if(${LIB_CMAKE_NAME}_MAIN_BUILD)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+endif()
 
 # Standardize install directories.
 include(GNUInstallDirs)

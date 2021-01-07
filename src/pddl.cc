@@ -423,6 +423,8 @@ std::vector<std::string> Pddl::ListValidActions(
   return ListValidActions(ParseState(*this, state));
 }
 
+const std::string& Pddl::name() const { return symbol()->the_domain->name; }
+
 std::set<std::string> Stringify(const State& state) {
   std::set<std::string> str_state;
   for (const Proposition& prop : state) {

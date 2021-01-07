@@ -21,10 +21,12 @@ if(NOT ${LIB_CMAKE_NAME}_BUILD_TESTING)
     target_compile_definitions(${LIB_NAME} PRIVATE DOCTEST_CONFIG_DISABLE)
 endif()
 
-if(SYMBOLIC_CLANG_TIDY)
+# Enable clang tidy checks.
+if(${LIB_CMAKE_NAME}_CLANG_TIDY)
     target_enable_clang_tidy(${LIB_NAME})
 endif()
 
+# Set sources.
 target_sources(${LIB_NAME}
   PRIVATE
     action.cc
@@ -42,13 +44,15 @@ target_sources(${LIB_NAME}
     utils/doctest.cc
 )
 
-set(LIB_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
+# Set include directories.
+set(LIB_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(${LIB_NAME}
   PUBLIC
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    $<BUILD_INTERFACE:${LIB_INCLUDE_DIR}>
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+    "$<BUILD_INTERFACE:${LIB_INCLUDE_DIR}>"
 )
 
+# Link library dependencies.
 lib_add_subdirectory(ctrl_utils)
 ctrl_utils_add_subdirectory(Eigen3)
 ctrl_utils_add_subdirectory(doctest)
@@ -68,34 +72,34 @@ add_subdirectory(python)
 # Install the library.
 install(TARGETS ${LIB_NAME}
     EXPORT ${LIB_NAME}Targets
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
 
 # Install the headers.
-install(DIRECTORY ${LIB_INCLUDE_DIR} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY "${LIB_INCLUDE_DIR}" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
 # Create LibConfig.cmake.
-set(LIB_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME})
+set(LIB_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME}")
+include(CMakePackageConfigHelpers)
 configure_package_config_file(
-    ${PROJECT_SOURCE_DIR}/cmake/${LIB_NAME}Config.cmake.in
-    ${PROJECT_BINARY_DIR}/${LIB_NAME}Config.cmake
-    INSTALL_DESTINATION ${LIB_CONFIG_INSTALL_DIR}
+    "${PROJECT_SOURCE_DIR}/cmake/${LIB_NAME}Config.cmake.in"
+    "${PROJECT_BINARY_DIR}/${LIB_NAME}Config.cmake"
+    INSTALL_DESTINATION "${LIB_CONFIG_INSTALL_DIR}"
 )
 
 # Create LibConfigVersion.cmake.
-include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${PROJECT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake
+    "${PROJECT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake"
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
 # Install LibConfig.cmake and LibConfigVersion.cmake.
 install(FILES
-    ${PROJECT_BINARY_DIR}/${LIB_NAME}Config.cmake
-    ${PROJECT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake
+    "${PROJECT_BINARY_DIR}/${LIB_NAME}Config.cmake"
+    "${PROJECT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake"
     DESTINATION ${LIB_CONFIG_INSTALL_DIR}
 )
 

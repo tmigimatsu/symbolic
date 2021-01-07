@@ -175,6 +175,11 @@ class Pddl {
 
   const VAL::analysis* symbol() const { return analysis_; }
 
+  /**
+   * Pddl domain name.
+   */
+  const std::string& name() const;
+
   // const VAL::domain& domain() const { return *analysis().the_domain; }
 
   // const VAL::problem& problem() const { return *analysis().the_problem; }
