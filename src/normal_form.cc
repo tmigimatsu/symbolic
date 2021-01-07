@@ -505,14 +505,14 @@ DisjunctiveFormula::NormalizeConditions(const Pddl& pddl,
 std::ostream& operator<<(std::ostream& os, const DisjunctiveFormula& dnf) {
   os << "(or" << std::endl;
   for (const DisjunctiveFormula::Conjunction& conj : dnf.conjunctions) {
-    os << "\t(and" << std::endl;
+    os << "    (and" << std::endl;
     for (const Proposition& prop : conj.pos()) {
-      os << "\t\t" << prop << std::endl;
+      os << "        " << prop << std::endl;
     }
     for (const Proposition& prop : conj.neg()) {
-      os << "\t\tnot " << prop << std::endl;
+      os << "        not " << prop << std::endl;
     }
-    os << "\t)" << std::endl;
+    os << "    )" << std::endl;
   }
   os << ")" << std::endl;
   return os;
@@ -520,14 +520,14 @@ std::ostream& operator<<(std::ostream& os, const DisjunctiveFormula& dnf) {
 std::ostream& operator<<(std::ostream& os, const ConjunctiveFormula& cnf) {
   os << "(and" << std::endl;
   for (const ConjunctiveFormula::Disjunction& disj : cnf.disjunctions) {
-    os << "\t(or" << std::endl;
+    os << "    (or" << std::endl;
     for (const Proposition& prop : disj.pos()) {
-      os << "\t\t" << prop << std::endl;
+      os << "        " << prop << std::endl;
     }
     for (const Proposition& prop : disj.neg()) {
-      os << "\t\tnot " << prop << std::endl;
+      os << "        not " << prop << std::endl;
     }
-    os << "\t)" << std::endl;
+    os << "    )" << std::endl;
   }
   os << ")" << std::endl;
   return os;

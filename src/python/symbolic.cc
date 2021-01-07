@@ -462,8 +462,24 @@ PYBIND11_MODULE(pysymbolic, m) {
           Example:
               >>> import symbolic
               >>> pddl = symbolic.Pddl("../resources/domain.pddl", "../resources/problem.pddl")
-              >>> pddl.DisjunctiveFormula.normalize_conditions(pddl, "pick(hook)")
-              # TODO
+              >>> symbolic.DisjunctiveFormula.normalize_conditions(pddl, "pick(hook)")
+              ((or
+                  (and
+                      inworkspace(hook)
+                      not inhand(box)
+                      not inhand(hook)
+                  )
+              )
+              , (or
+                  (and
+                      inhand(hook)
+                      not on(hook, box)
+                      not on(hook, hook)
+                      not on(hook, shelf)
+                      not on(hook, table)
+                  )
+              )
+              )
 
           .. seealso:: C++: :symbolic:`symbolic::DisjunctiveFormula::NormalizeConditions`.
           )pbdoc")
