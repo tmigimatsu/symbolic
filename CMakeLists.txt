@@ -15,6 +15,7 @@ project(symbolic
     DESCRIPTION "Library for manipulating PDDL symbols"
     LANGUAGES CXX)
 string(TOUPPER ${PROJECT_NAME} LIB_CMAKE_NAME)
+set(LIB_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Include custom CMake utilities.
 include(cmake/utils.cmake)
