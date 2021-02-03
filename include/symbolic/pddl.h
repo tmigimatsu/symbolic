@@ -42,6 +42,31 @@ class Pddl {
   using ObjectTypeMap = std::unordered_map<std::string, std::vector<Object>>;
 
   /**
+   * Copy constructor.
+   */
+  Pddl(const Pddl& pddl) = default;
+
+  /**
+   * Move constructor.
+   */
+  Pddl(Pddl&& pddl) = default;
+
+  /**
+   * Copy assignment.
+   */
+  Pddl& operator=(const Pddl& rhs) = default;
+
+  /**
+   * Move assignment.
+   */
+  Pddl& operator=(Pddl&& rhs) = default;
+
+  /**
+   * Destructor.
+   */
+  virtual ~Pddl();
+
+  /**
    * Parse the pddl specification from the domain and problem files.
    *
    * @param domain_pddl Path to the domain pddl.
@@ -50,7 +75,6 @@ class Pddl {
    * @seepython{symbolic.Pddl,__init__}
    */
   Pddl(const std::string& domain_pddl, const std::string& problem_pddl);
-  virtual ~Pddl();
 
   /**
    * Evaluate whether the pddl specification is valid using VAL.
@@ -173,7 +197,7 @@ class Pddl {
   std::vector<std::string> ListValidActions(
       const std::set<std::string>& state) const;
 
-  const VAL::analysis* symbol() const { return analysis_; }
+  const VAL::analysis* symbol() const { return analysis_.get(); }
 
   /**
    * Pddl domain name.
@@ -209,7 +233,7 @@ class Pddl {
   const Formula& goal() const { return goal_; }
 
  private:
-  VAL::analysis* analysis_;
+  std::unique_ptr<VAL::analysis> analysis_;
   std::string domain_pddl_;
   std::string problem_pddl_;
 

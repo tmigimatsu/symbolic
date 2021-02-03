@@ -7,6 +7,7 @@
  * Authors: Toki Migimatsu
  */
 
+#include <VAL/ptree.h>
 #include <pybind11/eigen.h>
 #include <pybind11/functional.h>
 #include <pybind11/iostream.h>
@@ -227,6 +228,8 @@ PYBIND11_MODULE(pysymbolic, m) {
           )pbdoc")
       .def_property_readonly("name", &Pddl::name, R"pbdoc(
           Pddl domain name.
+
+          :type: str
       )pbdoc")
       .def_property_readonly(
           "initial_state",
@@ -299,15 +302,45 @@ PYBIND11_MODULE(pysymbolic, m) {
 
   // Predicate
   py::class_<Predicate>(m, "Predicate")
-      .def_property_readonly("name", &Predicate::name)
-      .def_property_readonly("parameters", &Predicate::parameters)
+      .def_property_readonly("name", &Predicate::name, R"pbdoc(
+          Predicate head.
+
+          :type: str
+
+          .. seealso:: C++: :symbolic:`symbolic::Predicate::name`.
+      )pbdoc")
+      .def_property_readonly("parameters", &Predicate::parameters, R"pbdoc(
+          List of predicate parameters.
+
+          :type: `symbolic.Object`
+
+          .. seealso:: C++: :symbolic:`symbolic::Predicate::parameters`.
+      )pbdoc")
       .def_property_readonly("parameter_generator",
-                             &Predicate::parameter_generator)
-      .def("to_string", static_cast<std::string (Predicate::*)(
-                            const std::vector<Object>& arguments) const>(
-                            &Predicate::to_string))
-      .def("__repr__", static_cast<std::string (Predicate::*)() const>(
-                           &Predicate::to_string));
+                             &Predicate::parameter_generator, R"pbdoc(
+          Combination generator for predicate parameters.
+
+          :type: `symbolic.ParameterGenerator`
+
+          .. seealso:: C++: :symbolic:`symbolic::Predicate::parameter_generator`.
+       )pbdoc")
+      .def("to_string",
+           static_cast<std::string (Predicate::*)(
+               const std::vector<Object>& arguments) const>(
+               &Predicate::to_string),
+           R"pbdoc(
+          Creates a string representation of the predicate with the given arguments.
+
+          .. seealso:: C++: :symbolic:`symbolic::Predicate::to_string`.
+      )pbdoc")
+      .def("__repr__",
+           static_cast<std::string (Predicate::*)() const>(
+               &Predicate::to_string),
+           R"pbdoc(
+          Creates a string representation of the predicate with the default parameters.
+
+          .. seealso:: C++: :symbolic:`symbolic::Predicate::to_string`.
+       )pbdoc");
 
   // Axiom
   py::class_<Axiom>(m, "Axiom")
@@ -408,10 +441,22 @@ PYBIND11_MODULE(pysymbolic, m) {
            [](const StateIndex& state_index, const StringSet& str_state) {
              return state_index.GetIndexedState(ParseState(str_state));
            })
-      .def("__len__", &StateIndex::size)
-      .def("__iter__", [](const StateIndex& state_index) {
-        return py::make_iterator(state_index.begin(), state_index.end());
-      });
+      .def("__len__", &StateIndex::size, R"pbdoc(
+          Size of the state index.
+
+          .. seealso:: C++: :symbolic:`symbolic::StateIndex::size`.
+      )pbdoc");
+  // .def(
+  //     "__iter__",
+  //     [](const StateIndex& state_index) {
+  //     // TODO: Iterator returns a Proposition, need to convert to string.
+  //       return py::make_iterator(state_index.begin(), state_index.end());
+  //     },
+  //     R"pbdoc(
+  //     Iterate over the state index.
+
+  //     .. seealso:: C++: :symbolic:`symbolic::StateIndex::iterator`.
+  // )pbdoc");
 
   // Planner::Node
   py::class_<Planner::Node>(m, "PlannerNode")

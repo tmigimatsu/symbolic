@@ -9,7 +9,7 @@
 
 project(pysymbolic)
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/symbolic)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${LIB_SOURCE_DIR}/symbolic")
 
 ctrl_utils_add_subdirectory(pybind11)
 
@@ -19,4 +19,6 @@ target_link_libraries(pysymbolic
   PUBLIC
     pybind11::pybind11
     symbolic::symbolic
+  PRIVATE
+    VAL::VAL
 )

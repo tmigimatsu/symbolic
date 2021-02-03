@@ -52,12 +52,12 @@ const char* current_filename = nullptr;  // Expected in parse_error.h
 
 namespace {
 
-VAL::analysis* ParsePddl(const std::string& filename_domain,
-                               const std::string& filename_problem) {
-  VAL::analysis* analysis = new VAL::analysis();
+std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
+                                         const std::string& filename_problem) {
+  std::unique_ptr<VAL::analysis> analysis = std::make_unique<VAL::analysis>();
   yyFlexLexer yfl;
 
-  VAL::current_analysis = analysis;
+  VAL::current_analysis = analysis.get();
   VAL::yfl = &yfl;
   yydebug = 0;  // Set to 1 to output yacc trace
 
@@ -206,6 +206,10 @@ bool Apply(const Action& action, const std::vector<Object>& arguments,
 
 namespace symbolic {
 
+// Empty destructor needs to be implemented here because VAL::analysis is not
+// fully defined in the header.
+Pddl::~Pddl() {}
+
 Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
     : analysis_(ParsePddl(domain_pddl, problem_pddl)),
       domain_pddl_(domain_pddl),
@@ -221,15 +225,11 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
           GetInitialState(*analysis_->the_domain, *analysis_->the_problem)),
       goal_(*this, analysis_->the_problem->the_goal) {}
 
-Pddl::~Pddl() {
-  if (analysis_ != nullptr) delete analysis_;
-}
-
 bool Pddl::IsValid(bool verbose, std::ostream& os) const {
   VAL::Verbose = verbose;
   VAL::report = &os;
 
-  VAL::TypeChecker tc(analysis_);
+  VAL::TypeChecker tc(analysis_.get());
   const bool is_domain_valid = tc.typecheckDomain();
   const bool is_problem_valid = tc.typecheckProblem();
 
