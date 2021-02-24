@@ -502,6 +502,22 @@ DisjunctiveFormula::NormalizeConditions(const Pddl& pddl,
   return std::make_pair(std::move(*pre), std::move(*post));
 }
 
+std::optional<DisjunctiveFormula>
+DisjunctiveFormula::NormalizeGoal(const Pddl& pddl, bool apply_axioms) {
+  std::optional<DisjunctiveFormula> goal = DisjunctiveFormula::Create(pddl, pddl.goal(), {}, {});
+  if (!goal.has_value()) return goal;
+
+  if (apply_axioms) {
+    std::vector<DisjunctiveFormula::Conjunction> conj_goal;
+    conj_goal.reserve(goal->conjunctions.size());
+    for (const DisjunctiveFormula::Conjunction& conj : goal->conjunctions) {
+      conj_goal.push_back(pddl.ConsistentState(conj));
+    }
+    goal = DisjunctiveFormula(std::move(conj_goal));
+  }
+  return goal;
+}
+
 std::ostream& operator<<(std::ostream& os, const DisjunctiveFormula& dnf) {
   os << "(or" << std::endl;
   for (const DisjunctiveFormula::Conjunction& conj : dnf.conjunctions) {

@@ -244,6 +244,7 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def_property_readonly("axioms", &Pddl::axioms)
       .def_property_readonly("derived_predicates", &Pddl::derived_predicates)
       .def_property_readonly("state_index", &Pddl::state_index)
+      .def_property_readonly("goal", &Pddl::goal)
       .def("is_valid_tuple",
            static_cast<bool (Pddl::*)(const StringSet&, const std::string&,
                                       const StringSet&) const>(
@@ -489,6 +490,8 @@ PYBIND11_MODULE(pysymbolic, m) {
 
   py::class_<DisjunctiveFormula>(m, "DisjunctiveFormula")
       .def_readonly("conjunctions", &DisjunctiveFormula::conjunctions)
+      .def_static("normalize_goal", &DisjunctiveFormula::NormalizeGoal,
+                  "pddl"_a, "apply_axioms"_a = false)
       .def_static("normalize_conditions",
                   &DisjunctiveFormula::NormalizeConditions, "pddl"_a,
                   "action_call"_a, "apply_axioms"_a = false, R"pbdoc(
