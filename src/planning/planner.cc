@@ -156,6 +156,7 @@ Planner::Node::iterator& Planner::Node::iterator::operator++() {
     if (action.IsValid(parent_.state(), arguments)) {
       // Set action and apply postconditions to child
       State state = action.Apply(parent_.state(), arguments);
+      DerivedPredicate::Apply(pddl_.derived_predicates(), &state);
       child_ =
           Node(parent_, child_, std::move(state), action.to_string(arguments));
 
@@ -181,6 +182,7 @@ Planner::Node::iterator& Planner::Node::iterator::operator--() {
     if (action.IsValid(parent_.state(), arguments)) {
       // Set action and apply postconditions to child
       State state = action.Apply(parent_.state(), arguments);
+      DerivedPredicate::Apply(pddl_.derived_predicates(), &state);
       child_ =
           Node(parent_, child_, std::move(state), action.to_string(arguments));
 
@@ -211,6 +213,7 @@ Planner::Node::iterator& Planner::Node::iterator::operator--() {
     if (action.IsValid(parent_.state(), arguments)) {
       // Set action and apply postconditions to child
       State state = action.Apply(parent_.state(), arguments);
+      DerivedPredicate::Apply(pddl_.derived_predicates(), &state);
       child_ =
           Node(parent_, child_, std::move(state), action.to_string(arguments));
 

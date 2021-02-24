@@ -461,11 +461,18 @@ PYBIND11_MODULE(pysymbolic, m) {
 
   // Planner::Node
   py::class_<Planner::Node>(m, "PlannerNode")
+      .def(py::init<const Planner::Node&>())
       .def_property_readonly("action", &Planner::Node::action)
       .def_property_readonly(
           "state",
           [](const Planner::Node& node) { return Stringify(node.state()); })
       .def_property_readonly("depth", &Planner::Node::depth)
+      .def(
+          "__iter__",
+          [](const Planner::Node& node) {
+            return py::make_iterator(node.begin(), node.end());
+          },
+          py::keep_alive<0, 1>())
       .def("__repr__", [](const Planner::Node& node) {
         std::stringstream ss;
         ss << node;
