@@ -32,7 +32,7 @@ jobs:
       python:
         - "3.6"
       env:
-        - CMAKE_ARGS="-DPYTHON_EXECUTABLE=$(python-config --prefix)/bin/python3.6 -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython3.6m.so -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python3.6m"
+        - CMAKE_ARGS="'-DPYTHON_EXECUTABLE=$(python-config --prefix)/bin/python3.6 -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython3.6m.so -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python3.6m'"
 
     # 2. Bionic gcc 7, python 3.7
     - dist: bionic
@@ -47,26 +47,26 @@ jobs:
             - ubuntu-toolchain-r-test
           packages:
             - g++-8
-      env:
-        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
       python:
         - "3.6"
       env:
-        - CMAKE_ARGS="-DPYTHON_EXECUTABLE=$(python-config --prefix)/bin/python3.6 -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython3.6m.so -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python3.6m"
+        - CC="gcc-8"
+        - CXX="g++-8"
+        - CMAKE_ARGS="'-DPYTHON_EXECUTABLE=$(python-config --prefix)/bin/python3.6 -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython3.6m.so -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python3.6m'"
 
     # 4. Focal gcc 9, python 3.8 (default)
     - dist: focal
       python:
         - "3.8"
       env:
-        - CMAKE_ARGS="-DPYTHON_EXECUTABLE=$(python-config --prefix)/bin/python3.8 -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython3.8m.so -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python3.8m"
+        - CMAKE_ARGS="'-DPYTHON_EXECUTABLE=$(python-config --prefix)/bin/python3.8 -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython3.8m.so -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python3.8m'"
 
     # 5. Focal gcc 9, python 3.9
     - dist: focal
       python:
         - "3.9"
       env:
-        - CMAKE_ARGS="-DPYTHON_EXECUTABLE=$(python-config --prefix)/bin/python3.9 -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython3.9m.so -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python3.9m"
+        - CMAKE_ARGS="'-DPYTHON_EXECUTABLE=$(python-config --prefix)/bin/python3.9 -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython3.9m.so -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python3.9m'"
 
     # 6. Focal gcc 10, python 3.8
     - dist: focal
@@ -79,8 +79,9 @@ jobs:
           packages:
             - g++-10
       env:
-        - MATRIX_EVAL="CC=gcc-10 && CXX=g++-10"
-        - CMAKE_ARGS="-DPYTHON_EXECUTABLE=$(python-config --prefix)/bin/python3.8 -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython3.8m.so -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python3.8m"
+        - CC="gcc-10"
+        - CXX="g++-10"
+        - CMAKE_ARGS="'-DPYTHON_EXECUTABLE=$(python-config --prefix)/bin/python3.8 -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython3.8m.so -DPYTHON_INCLUDE_DIR=$(python-config --prefix)/include/python3.8m'"
 
     # 7. Docs
     - dist: focal
