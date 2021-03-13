@@ -19,7 +19,7 @@ Ubuntu 20.04, but older systems require updating:
 Ubuntu 16.04
 ^^^^^^^^^^^^
 
-::
+.. code-block:: console
 
     # Install gcc 7.
     sudo apt-get update && sudo apt-get install -y software-properties-common
