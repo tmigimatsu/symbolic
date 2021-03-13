@@ -11,6 +11,9 @@ branches:
 git:
   submodules: false
 
+install:
+  - pipenv install --dev
+
 script:
   - mkdir -p build
   - cd build
@@ -69,13 +72,12 @@ jobs:
         - MATRIX_EVAL="CC=gcc-10 && CXX=g++-10"
 
     # 7. Docs
-    - python:
+    - dist: focal
+      python:
         - "3.7"
       addons:
         apt:
           - doxygen
-      install:
-        - pipenv install --dev
       env:
         - CMAKE_ARGS="-DBUILD_DOCS=ON"
       deploy:
