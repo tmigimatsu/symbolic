@@ -11,10 +11,6 @@ branches:
 git:
   submodules: false
 
-install:
-  - pip install pipenv
-  - pipenv install --dev
-
 script:
   - mkdir -p build
   - cd build
@@ -28,30 +24,17 @@ jobs:
     # Bionic default: gcc 7, python 3.6
     # Focal default:  gcc 9, python 3.8
 
-    # 1. Xenial gcc 7, python 3.5
-    - dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-      python:
-        - "3.5"
-
-    # 2. Bionic gcc 7, python 3.6 (default)
+    # 1. Bionic gcc 7, python 3.6 (default)
     - dist: bionic
       python:
         - "3.6"
 
-    # 3. Bionic gcc 7, python 3.7
+    # 2. Bionic gcc 7, python 3.7
     - dist: bionic
       python:
         - "3.7"
 
-    # 4. Bionic gcc 8, python 3.6
+    # 3. Bionic gcc 8, python 3.6
     - dist: bionic
       addons:
         apt:
@@ -64,7 +47,7 @@ jobs:
       python:
         - "3.6"
 
-    # 5. Focal gcc 9, python 3.8 (default)
+    # 4. Focal gcc 9, python 3.8 (default)
     - dist: focal
       python:
         - "3.8"
@@ -73,9 +56,8 @@ jobs:
     - dist: focal
       python:
         - "3.9"
-      env:
 
-    # 5. Focal gcc 10, python 3.8
+    # 6. Focal gcc 10, python 3.8
     - dist: focal
       addons:
         apt:
@@ -86,11 +68,14 @@ jobs:
       env:
         - MATRIX_EVAL="CC=gcc-10 && CXX=g++-10"
 
-    # Docs
-    - dist: focal
+    # 7. Docs
+    - python:
+        - "3.7"
       addons:
         apt:
           - doxygen
+      install:
+        - pipenv install --dev
       env:
         - CMAKE_ARGS="-DBUILD_DOCS=ON"
       deploy:
