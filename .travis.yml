@@ -1,26 +1,12 @@
 sudo: false
 
-dist: bionic
+os: linux
 
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - doxygen
-      - gcc-9 g++-9
-
-env:
-  - CC=gcc-9 CXX=g++-9
+language: python
 
 branches:
   only:
     - master
-
-language: python
-
-python:
-  - "3.7"
 
 git:
   submodules: false
@@ -32,14 +18,85 @@ install:
 script:
   - mkdir -p build
   - cd build
-  - cmake .. -DBUILD_DOCS=ON -DBUILD_TESTING=ON && make
+  - cmake .. -DBUILD_TESTING=ON $CMAKE_ARGS && make
   - mkdir -p ../docs/_build/html && touch ../docs/_build/html/.nojekyll
   - ctest --output-on-failure
 
-deploy:
-  provider: pages
-  skip_cleanup: true
-  local_dir: docs/_build/html
-  github_token: $GH_REPO_TOKEN
-  on:
-    branch: master
+jobs:
+  include:
+    # Xenial default: gcc 5, python 3.5
+    # Bionic default: gcc 7, python 3.6
+    # Focal default:  gcc 9, python 3.8
+
+    # 1. Xenial gcc 7, python 3.5
+    - dist: xenial
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+      python:
+        - "3.5"
+
+    # 2. Bionic gcc 7, python 3.6 (default)
+    - dist: bionic
+      python:
+        - "3.6"
+
+    # 3. Bionic gcc 7, python 3.7
+    - dist: bionic
+      python:
+        - "3.7"
+
+    # 4. Bionic gcc 8, python 3.6
+    - dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+      env:
+        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
+      python:
+        - "3.6"
+
+    # 5. Focal gcc 9, python 3.8 (default)
+    - dist: focal
+      python:
+        - "3.8"
+
+    # 5. Focal gcc 9, python 3.9
+    - dist: focal
+      python:
+        - "3.9"
+      env:
+
+    # 5. Focal gcc 10, python 3.8
+    - dist: focal
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-10
+      env:
+        - MATRIX_EVAL="CC=gcc-10 && CXX=g++-10"
+
+    # Docs
+    - dist: focal
+      addons:
+        apt:
+          - doxygen
+      env:
+        - CMAKE_ARGS="-DBUILD_DOCS=ON"
+      deploy:
+        provider: pages
+        skip_cleanup: true
+        local_dir: docs/_build/html
+        github_token: $GH_REPO_TOKEN
+        on:
+          branch: master

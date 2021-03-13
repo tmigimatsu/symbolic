@@ -296,8 +296,10 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def_property_readonly("parameter_generator",
                              &Action::parameter_generator)
       .def("to_string",
-           static_cast<std::string (Action::*)(
-               const std::vector<Object>& arguments) const>(&Action::to_string))
+           [](const Action& action,
+              const std::vector<std::string>& arguments) -> std::string {
+             return action.to_string(ParseObjects(arguments));
+           })
       .def("__repr__",
            static_cast<std::string (Action::*)() const>(&Action::to_string));
 
@@ -325,11 +327,13 @@ PYBIND11_MODULE(pysymbolic, m) {
 
           .. seealso:: C++: :symbolic:`symbolic::Predicate::parameter_generator`.
        )pbdoc")
-      .def("to_string",
-           static_cast<std::string (Predicate::*)(
-               const std::vector<Object>& arguments) const>(
-               &Predicate::to_string),
-           R"pbdoc(
+      .def(
+          "to_string",
+          [](const Predicate& pred,
+             const std::vector<std::string>& arguments) -> std::string {
+            return pred.to_string(ParseObjects(arguments));
+          },
+          R"pbdoc(
           Creates a string representation of the predicate with the given arguments.
 
           .. seealso:: C++: :symbolic:`symbolic::Predicate::to_string`.

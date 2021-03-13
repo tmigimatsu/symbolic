@@ -12,16 +12,17 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
+
+sys.path.insert(0, os.path.abspath(".."))
 
 import sphinx_bootstrap_theme
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'Symbolic'
-copyright = '2020, Toki Migimatsu'
-author = 'Toki Migimatsu'
+project = "symbolic"
+copyright = "2020, Toki Migimatsu"
+author = "Toki Migimatsu"
 
 
 # -- General configuration ---------------------------------------------------
@@ -32,23 +33,23 @@ author = 'Toki Migimatsu'
 extensions = [
     # 'breathe',  # Generate Sphinx docs from Doxygen
     # 'exhale',  # Run Doxygen and build class/file hierarchy lists
-    'sphinx.ext.autodoc',  # Generate docs from docstrings
-    'sphinx.ext.autosummary',  # Generate docs from docstrings
-    'sphinx.ext.coverage',  # Evaluate documentation coverage
-    'sphinx.ext.doctest',  # Test snippets in the docs
-    'sphinx.ext.intersphinx',  # Link to external Sphinx docs
-    'sphinx.ext.napoleon',  # Parse Google-style docstrings
-    'sphinx_autodoc_typehints',  # Use type annotations for parameter types
-    'sphinxcontrib.doxylink',  # Link to Doxygen tags
+    "sphinx.ext.autodoc",  # Generate docs from docstrings
+    "sphinx.ext.autosummary",  # Generate docs from docstrings
+    "sphinx.ext.coverage",  # Evaluate documentation coverage
+    "sphinx.ext.doctest",  # Test snippets in the docs
+    "sphinx.ext.intersphinx",  # Link to external Sphinx docs
+    "sphinx.ext.napoleon",  # Parse Google-style docstrings
+    "sphinx_autodoc_typehints",  # Use type annotations for parameter types
+    "sphinxcontrib.doxylink",  # Link to Doxygen tags
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # Tell sphinx what the primary language being documented is.
 # primary_domain = 'cpp'
@@ -61,7 +62,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'bootstrap'
+html_theme = "bootstrap"
 html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -76,14 +77,12 @@ autosummary_imported_members = True  # Document pysymbolic symbols imported in s
 
 # # Setup the breathe extension.
 # breathe_projects = {
-#     "Symbolic": "./_build/doxygen/xml"
+#     "symbolic": "./_build/doxygen/xml"
 # }
-# breathe_default_project = "Symbolic"
+# breathe_default_project = "symbolic"
 
 # Setup the doxylink extension.
-doxylink = {
-    'symbolic': ('_build/symbolic.tag', 'cpp/')
-}
+doxylink = {"symbolic": ("_build/symbolic.tag", "cpp/")}
 
 # # Setup the exhale extension.
 # exhale_args = {
@@ -105,6 +104,6 @@ doxylink = {
 # }
 
 intersphinx_mapping = {
-    'numpy': ('http://docs.scipy.org/doc/numpy/', None),
-    'python': ('http://docs.python.org/3/', None),
+    "numpy": ("http://docs.scipy.org/doc/numpy/", None),
+    "python": ("http://docs.python.org/3/", None),
 }
