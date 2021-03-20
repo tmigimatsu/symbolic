@@ -69,8 +69,7 @@ int main(int argc, char* argv[]) {  // NOLINT(bugprone-exception-escape)
 
   std::cout << "Planning:" << std::endl;
   const auto t_start = std::chrono::high_resolution_clock::now();
-  symbolic::BreadthFirstSearch<symbolic::Planner::Node> bfs(planner.root(),
-                                                            args.depth);
+  symbolic::BreadthFirstSearch bfs(planner.root(), args.depth);
   for (const std::vector<symbolic::Planner::Node>& plan : bfs) {
     std::cout << std::chrono::duration<float>(
                      std::chrono::high_resolution_clock::now() - t_start)

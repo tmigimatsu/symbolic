@@ -99,7 +99,7 @@ class Pddl {
    *
    * @seepython{symbolic.Pddl,next_state}
    */
-  State NextState(const State& state, const std::string& action) const;
+  State NextState(const State& state, const std::string& action_call) const;
 
   /**
    * Apply the derived predicates to the given state.

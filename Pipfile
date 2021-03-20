@@ -5,9 +5,9 @@ verify_ssl = true
 
 [dev-packages]
 sphinx = "*"
-sphinx-bootstrap-theme = "*"
 sphinxcontrib-doxylink = "*"
 sphinx-autodoc-typehints = "*"
+sphinx-bootstrap-theme = "*"
 
 [packages]
 symbolic-tmigimatsu = {editable = true, path = "."}
