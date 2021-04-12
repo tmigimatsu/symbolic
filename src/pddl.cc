@@ -161,6 +161,15 @@ std::vector<Axiom> GetAxioms(const Pddl& pddl, const VAL::domain& domain) {
   return axioms;
 }
 
+std::unordered_map<std::string, std::vector<Axiom>> CreateAxiomContextMap(
+    const std::vector<Axiom>& axioms) {
+  std::unordered_map<std::string, std::vector<Axiom>> axiom_map(axioms.size());
+  for (const Axiom& axiom : axioms) {
+    axiom_map[axiom.context()].push_back(axiom);
+  }
+  return axiom_map;
+}
+
 std::vector<DerivedPredicate> GetDerivedPredicates(const Pddl& pddl,
                                                    const VAL::domain& domain) {
   std::vector<DerivedPredicate> predicates;
@@ -206,10 +215,6 @@ bool Apply(const Action& action, const std::vector<Object>& arguments,
 
 namespace symbolic {
 
-// Empty destructor needs to be implemented here because VAL::analysis is not
-// fully defined in the header.
-Pddl::~Pddl() {}
-
 Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
     : analysis_(ParsePddl(domain_pddl, problem_pddl)),
       domain_pddl_(domain_pddl),
@@ -217,13 +222,17 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
       objects_(GetObjects(*analysis_->the_domain, *analysis_->the_problem)),
       object_map_(CreateObjectTypeMap(objects_)),
       actions_(GetActions(*this, *analysis_->the_domain)),
-      predicates_(GetPredicates(*this, *analysis_->the_domain)),
       axioms_(GetAxioms(*this, *analysis_->the_domain)),
+      predicates_(GetPredicates(*this, *analysis_->the_domain)),
       derived_predicates_(GetDerivedPredicates(*this, *analysis_->the_domain)),
       state_index_(predicates_),
       initial_state_(
           GetInitialState(*analysis_->the_domain, *analysis_->the_problem)),
-      goal_(*this, analysis_->the_problem->the_goal) {}
+      goal_(*this, analysis_->the_problem->the_goal) {
+  // Create axiom map after initialization list to avoid conflicts with
+  // GetAxioms(), which accesses the axiom map during the construction of DNFs.
+  axiom_map_ = CreateAxiomContextMap(axioms());
+}
 
 bool Pddl::IsValid(bool verbose, std::ostream& os) const {
   VAL::Verbose = verbose;

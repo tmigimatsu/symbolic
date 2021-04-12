@@ -11,7 +11,7 @@
 #define SYMBOLIC_PDDL_H_
 
 #include <iostream>       // std::cout, std::ostream
-#include <memory>         // std::unique_ptr
+#include <memory>         // std::shared_ptr
 #include <set>            // std::set
 #include <string>         // std::string
 #include <unordered_map>  // std::unordered_map
@@ -40,31 +40,7 @@ namespace symbolic {
 class Pddl {
  public:
   using ObjectTypeMap = std::unordered_map<std::string, std::vector<Object>>;
-
-  /**
-   * Copy constructor.
-   */
-  Pddl(const Pddl& pddl) = default;
-
-  /**
-   * Move constructor.
-   */
-  Pddl(Pddl&& pddl) = default;
-
-  /**
-   * Copy assignment.
-   */
-  Pddl& operator=(const Pddl& rhs) = default;
-
-  /**
-   * Move assignment.
-   */
-  Pddl& operator=(Pddl&& rhs) = default;
-
-  /**
-   * Destructor.
-   */
-  virtual ~Pddl();
+  using AxiomContextMap = std::unordered_map<std::string, std::vector<Axiom>>;
 
   /**
    * Parse the pddl specification from the domain and problem files.
@@ -204,10 +180,6 @@ class Pddl {
    */
   const std::string& name() const;
 
-  // const VAL::domain& domain() const { return *analysis().the_domain; }
-
-  // const VAL::problem& problem() const { return *analysis().the_problem; }
-
   const std::string& domain_pddl() const { return domain_pddl_; }
 
   const std::string& problem_pddl() const { return problem_pddl_; }
@@ -224,6 +196,11 @@ class Pddl {
 
   const std::vector<Axiom>& axioms() const { return axioms_; }
 
+  /**
+   * Map from context predicate name to vector of axioms.
+   */
+  const AxiomContextMap& axiom_map() const { return axiom_map_; }
+
   const std::vector<DerivedPredicate>& derived_predicates() const {
     return derived_predicates_;
   }
@@ -233,16 +210,18 @@ class Pddl {
   const Formula& goal() const { return goal_; }
 
  private:
-  std::unique_ptr<VAL::analysis> analysis_;
+  std::shared_ptr<VAL::analysis> analysis_;
   std::string domain_pddl_;
   std::string problem_pddl_;
 
   std::vector<Object> objects_;
   ObjectTypeMap object_map_;
 
+  AxiomContextMap axiom_map_;
   std::vector<Action> actions_;
-  std::vector<Predicate> predicates_;
   std::vector<Axiom> axioms_;
+
+  std::vector<Predicate> predicates_;
   std::vector<DerivedPredicate> derived_predicates_;
 
   StateIndex state_index_;

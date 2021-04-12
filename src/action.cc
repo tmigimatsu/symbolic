@@ -21,6 +21,7 @@
 
 namespace {
 
+using ::symbolic::Axiom;
 using ::symbolic::Formula;
 using ::symbolic::Object;
 using ::symbolic::Pddl;
@@ -94,7 +95,7 @@ EffectsFunction<T> CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
       return false;
     };
   }
-  if (pddl.object_map().find(name_predicate) != pddl.object_map().end()) {
+  if (pddl.object_map().count(name_predicate) > 0) {
     // Type predicate
     return
         [name_predicate = std::move(name_predicate), Apply = std::move(Apply)](
@@ -113,9 +114,19 @@ EffectsFunction<T> CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
   }
 
   // Add normal predicate
-  return [name_predicate = std::move(name_predicate), Apply = std::move(Apply)](
-             const std::vector<Object>& arguments, T* state) -> int {
-    return state->emplace(name_predicate, Apply(arguments));
+  return [name_predicate = std::move(name_predicate), Apply = std::move(Apply),
+          &axiom_map = pddl.axiom_map()](const std::vector<Object>& arguments,
+                                         T* state) -> int {
+    int status = state->emplace(name_predicate, Apply(arguments));
+    // Return early to avoid infinite loop of axiom application.
+    if (status == 0) return status;
+
+    if (axiom_map.count(name_predicate) > 0) {
+      for (const Axiom& axiom : axiom_map.at(name_predicate)) {
+        axiom.Apply(state);
+      }
+    }
+    return status;
   };
 }
 
@@ -145,7 +156,7 @@ EffectsFunction<T> CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
       return false;
     };
   }
-  if (pddl.object_map().find(name_predicate) != pddl.object_map().end()) {
+  if (pddl.object_map().count(name_predicate) > 0) {
     // Type predicate
     return
         [name_predicate = std::move(name_predicate), Apply = std::move(Apply)](
@@ -165,9 +176,18 @@ EffectsFunction<T> CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
 
   // Remove normal predicate
   return [name_predicate = effect->prop->head->getName(),
-          Apply = std::move(Apply)](const std::vector<Object>& arguments,
-                                    T* state) -> int {
-    return state->erase(Proposition(name_predicate, Apply(arguments)));
+          Apply = std::move(Apply), &axiom_map = pddl.axiom_map()](
+             const std::vector<Object>& arguments, T* state) -> int {
+    int status = state->erase(Proposition(name_predicate, Apply(arguments)));
+    // Return early to avoid infinite loop of axiom application.
+    if (status == 0) return status;
+
+    if (axiom_map.count(name_predicate) > 0) {
+      for (const Axiom& axiom : axiom_map.at(name_predicate)) {
+        axiom.Apply(state);
+      }
+    }
+    return status;
   };
 }
 
@@ -232,7 +252,7 @@ EffectsFunction<T> CreateEffectsFunction(
 
 const VAL::operator_* GetSymbol(const Pddl& pddl,
                                 const std::string& name_action) {
-  assert(pddl.domain().ops != nullptr);
+  assert(pddl.symbol()->the_domain->ops != nullptr);
   for (const VAL::operator_* op : *pddl.symbol()->the_domain->ops) {
     assert(op != nullptr && op->name != nullptr);
     if (op->name->getName() == name_action) return op;

@@ -49,19 +49,34 @@ class State : private std::set<Proposition> {
 
   State(const Pddl& pddl, const std::unordered_set<std::string>& str_state);
 
+  /**
+   * Returns whether the state contains the given proposition.
+   */
   bool contains(const Proposition& prop) const;
 
+  /**
+   * Inserts a proposition into the state, and returns whether or not the state
+   * has changed.
+   */
   bool insert(const Proposition& prop);
   bool insert(Proposition&& prop);
 
   template <class InputIt>
   bool insert(InputIt first, InputIt last);
 
+  /**
+   * Emplaces a proposition into the state, and returns whether or not the state
+   * has changed.
+   */
   template <class... Args>
   bool emplace(Args&&... args) {
     return insert(Proposition(args...));
   }
 
+  /**
+   * Removes a proposition from the state, and returns whether or not the state
+   * has changed.
+   */
   bool erase(const Proposition& prop);
 
   iterator begin() { return Base::begin(); }
@@ -147,6 +162,12 @@ class PartialState {
   bool contains(const Proposition& prop) const;
   bool does_not_contain(const Proposition& prop) const;
 
+  /**
+   * Inserts the proposition into the positive state.
+   *
+   * If the proposition is negated, returns 2. If the proposition is simply
+   * inserted, returns 1. If the proposition already exists, returns 0.
+   */
   int insert(const Proposition& prop);
   int insert(Proposition&& prop);
 
@@ -155,6 +176,12 @@ class PartialState {
     return insert(Proposition(args...));
   }
 
+  /**
+   * Inserts the proposition into the negative state.
+   *
+   * If the proposition is negated, returns 2. If the proposition is simply
+   * inserted, returns 1. If the proposition already exists, returns 0.
+   */
   int erase(const Proposition& prop);
   int erase(Proposition&& prop);
 

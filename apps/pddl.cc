@@ -63,8 +63,6 @@ int main(int argc, char* argv[]) {  // NOLINT(bugprone-exception-escape)
   const symbolic::Pddl pddl(args.filename_domain, args.filename_problem);
   pddl.IsValid(true);
 
-  std::cout << pddl << std::endl;
-
   symbolic::Planner planner(pddl);
 
   std::cout << "Planning:" << std::endl;

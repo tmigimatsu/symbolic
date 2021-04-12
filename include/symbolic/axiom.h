@@ -63,12 +63,18 @@ class Axiom : public Action {
   PartialState Apply(const PartialState& state) const;
   int Apply(PartialState* state) const;
 
+  /**
+   * Predicate used in the axiom context.
+   */
+  const std::string& context() const { return context_; }
+
   friend std::ostream& operator<<(std::ostream& os, const Axiom& axiom);
 
  private:
   bool IsConsistent(PartialState* state, bool* is_changed) const;
 
   std::vector<std::vector<Object>> arguments_;
+  std::string context_;
   std::string formula_;
 };
 
