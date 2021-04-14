@@ -70,7 +70,7 @@ std::vector<std::string> TokenizeArguments(const std::string& proposition) {
 namespace symbolic {
 
 Object::Type::Type(const VAL::pddl_type* symbol)
-    : symbol_(symbol), name_(symbol->getName()) {}
+    : symbol_(symbol), name_(&symbol->getNameRef()) {}
 
 bool Object::Type::IsSubtype(const std::string& type) const {
   for (const VAL::pddl_type* curr = symbol_; curr != nullptr;
@@ -91,19 +91,23 @@ std::vector<std::string> Object::Type::ListTypes() const {
 
 Object::Object(const Pddl& pddl, const VAL::pddl_typed_symbol* symbol)
     : symbol_(symbol),
-      name_(symbol->getName()),
+      name_(&symbol->getNameRef()),
       type_(GetTypeSymbol(pddl.symbol()->the_domain->types, symbol->type)) {}
 
 Object::Object(const VAL::pddl_type_list* types,
                const VAL::pddl_typed_symbol* symbol)
     : symbol_(symbol),
-      name_(symbol->getName()),
+      name_(&symbol->getNameRef()),
       type_(GetTypeSymbol(types, symbol->type)) {}
 
 Object::Object(const Pddl& pddl, const std::string& name_object)
     : symbol_(GetSymbol(pddl, name_object)),
-      name_(name_object),
+      name_(&symbol_->getNameRef()),
       type_(GetTypeSymbol(pddl.symbol()->the_domain->types, symbol_->type)) {}
+
+Object::Object(const std::string& name_object)
+    : name_storage_(std::make_shared<std::string>(name_object)),
+      name_(name_storage_.get()) {}
 
 std::vector<Object> Object::ParseArguments(const Pddl& pddl,
                                            const std::string& atom) {
@@ -129,6 +133,15 @@ std::vector<Object> Object::ParseArguments(
     args.emplace_back(str_arg);
   }
   return args;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::vector<Object>& objects) {
+  if (objects.empty()) return os;
+  os << objects.front();
+  for (size_t i = 1; i < objects.size(); i++) {
+    os << ", " << objects[i];
+  }
+  return os;
 }
 
 }  // namespace symbolic
