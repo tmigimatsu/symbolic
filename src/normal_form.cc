@@ -128,8 +128,9 @@ bool TryInsertSubset(
 namespace symbolic {
 
 std::optional<bool> Evaluate(const Pddl& pddl,
-                             const DisjunctiveFormula::Conjunction& conj) {
-  // Evaluate =, type
+                             const DisjunctiveFormula::Conjunction& conj,
+                             bool apply_axioms) {
+  // Evaluate =, type.
   if (conj.size() == 1) {
     std::optional<bool> eval = EvaluateEquals(conj);
     if (eval.has_value()) return eval;
@@ -137,16 +138,17 @@ std::optional<bool> Evaluate(const Pddl& pddl,
     if (eval.has_value()) return eval;
   }
 
-  // Ensure pos and neg sets don't overlap
+  // Ensure pos and neg sets don't overlap.
   if (!conj.IsConsistent()) return false;
 
-  // Ensure axioms are satisfied
-  if (!Axiom::IsConsistent(pddl.axioms(), conj)) return false;
+  // Ensure axioms are satisfied.
+  if (apply_axioms && !Axiom::IsConsistent(pddl.axioms(), conj)) return false;
   return {};
 }
 
 std::optional<DisjunctiveFormula> Simplify(const Pddl& pddl,
-                                           DisjunctiveFormula&& dnf) {
+                                           DisjunctiveFormula&& dnf,
+                                           bool apply_axioms) {
   if (dnf.empty()) return std::move(dnf);
 
   DisjunctiveFormula ret;
@@ -159,7 +161,7 @@ std::optional<DisjunctiveFormula> Simplify(const Pddl& pddl,
     // DerivedPredicate::Apply(pddl.derived_predicates(), &conj.pos);
 
     // Evaluate conjunction
-    const std::optional<bool> is_true = Evaluate(pddl, conj);
+    const std::optional<bool> is_true = Evaluate(pddl, conj, apply_axioms);
     if (!is_true.has_value()) {
       if (!TryInsertSubset(conj, &ret.conjunctions)) {
         // Current conjunction is not a subset or superset: append it
@@ -184,18 +186,18 @@ std::optional<DisjunctiveFormula> Simplify(const Pddl& pddl,
 }
 
 std::optional<DisjunctiveFormula> Disjoin(
-    const Pddl& pddl, std::vector<DisjunctiveFormula>&& dnfs) {
+    const Pddl& pddl, std::vector<DisjunctiveFormula>&& dnfs, bool apply_axioms) {
   DisjunctiveFormula disj;
   for (DisjunctiveFormula& dnf : dnfs) {
     disj.conjunctions.insert(disj.conjunctions.end(),
                              std::make_move_iterator(dnf.conjunctions.begin()),
                              std::make_move_iterator(dnf.conjunctions.end()));
   }
-  return Simplify(pddl, std::move(disj));
+  return Simplify(pddl, std::move(disj), apply_axioms);
 }
 
 std::optional<DisjunctiveFormula> Conjoin(
-    const Pddl& pddl, const std::vector<DisjunctiveFormula>& dnfs) {
+    const Pddl& pddl, const std::vector<DisjunctiveFormula>& dnfs, bool apply_axioms) {
   // ((a | b) & (c | d) & (e | f))
   // ((a & c & e) | ...)
   DisjunctiveFormula conj;
@@ -221,7 +223,7 @@ std::optional<DisjunctiveFormula> Conjoin(
     conj.conjunctions.emplace_back(std::move(pos), std::move(neg));
   }
 
-  return Simplify(pddl, std::move(conj));
+  return Simplify(pddl, std::move(conj), apply_axioms);
 }
 
 ConjunctiveFormula Flip(DisjunctiveFormula&& dnf) {
@@ -238,20 +240,30 @@ std::vector<DisjunctiveFormula> Convert(ConjunctiveFormula&& cnf) {
   for (ConjunctiveFormula::Disjunction& disj : cnf.disjunctions) {
     DisjunctiveFormula dnf;
     dnf.conjunctions.reserve(disj.size());
+#ifndef SYMBOLIC_STATE_USE_SET
     for (Proposition& prop : disj.pos()) {
       dnf.conjunctions.push_back(PartialState({std::move(prop)}, {}));
     }
     for (Proposition& prop : disj.neg()) {
       dnf.conjunctions.push_back(PartialState({}, {std::move(prop)}));
     }
+#else  // SYMBOLIC_STATE_USE_SET
+    // Cannot modify elements in unordered_set.
+    for (const Proposition& prop : disj.pos()) {
+      dnf.conjunctions.push_back(PartialState({prop}, {}));
+    }
+    for (const Proposition& prop : disj.neg()) {
+      dnf.conjunctions.push_back(PartialState({}, {prop}));
+    }
+#endif  // SYMBOLIC_STATE_USE_SET
     dnfs.push_back(std::move(dnf));
   }
   return dnfs;
 }
 
 std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
-    const Pddl& pddl, ConjunctiveFormula&& cnf) {
-  return Conjoin(pddl, Convert(std::move(cnf)));
+    const Pddl& pddl, ConjunctiveFormula&& cnf, bool apply_axioms) {
+  return Conjoin(pddl, Convert(std::move(cnf)), apply_axioms);
 }
 
 std::optional<DisjunctiveFormula> Negate(const Pddl& pddl,
@@ -273,7 +285,7 @@ std::optional<DisjunctiveFormula> Negate(const Pddl& pddl,
 std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
     const Pddl& pddl, const VAL::goal* symbol,
     const std::vector<Object>& parameters,
-    const std::vector<Object>& arguments) {
+    const std::vector<Object>& arguments, bool apply_axioms) {
   // Proposition
   const auto* simple_goal = dynamic_cast<const VAL::simple_goal*>(symbol);
   if (simple_goal != nullptr) {
@@ -301,7 +313,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
       if (!conj.has_value()) return {};
       conj_terms.push_back(std::move(*conj));
     }
-    return Conjoin(pddl, conj_terms);
+    return Conjoin(pddl, conj_terms, apply_axioms);
   }
 
   // Disjunction
@@ -316,7 +328,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
       if (!disj.has_value()) continue;
       disj_terms.push_back(std::move(*disj));
     }
-    return Disjoin(pddl, std::move(disj_terms));
+    return Disjoin(pddl, std::move(disj_terms), apply_axioms);
   }
 
   // Negation
@@ -363,9 +375,9 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
 
     switch (qfied_goal->getQuantifier()) {
       case VAL::quantifier::E_FORALL:
-        return Conjoin(pddl, qfied_terms);
+        return Conjoin(pddl, qfied_terms, apply_axioms);
       case VAL::quantifier::E_EXISTS:
-        return Disjoin(pddl, std::move(qfied_terms));
+        return Disjoin(pddl, std::move(qfied_terms), apply_axioms);
     }
   }
 
@@ -375,7 +387,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
 std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
     const Pddl& pddl, const VAL::effect_lists* symbol,
     const std::vector<Object>& parameters,
-    const std::vector<Object>& arguments) {
+    const std::vector<Object>& arguments, bool apply_axioms) {
   std::vector<DisjunctiveFormula> dnfs;
 
   // Forall effects
@@ -461,7 +473,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
       continue;
     }
 
-    condition = Disjoin(pddl, {std::move(*condition), std::move(*result)});
+    condition = Disjoin(pddl, {std::move(*condition), std::move(*result)}, apply_axioms);
     if (!condition.has_value()) {
       throw std::runtime_error(
           "DisjunctiveFormula::Create(): Invalid condition.");
@@ -469,7 +481,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
     dnfs.push_back(std::move(*condition));
   }
 
-  return Conjoin(pddl, dnfs);
+  return Conjoin(pddl, dnfs, apply_axioms);
 }
 
 std::optional<std::pair<DisjunctiveFormula, DisjunctiveFormula>>

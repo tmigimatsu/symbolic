@@ -79,8 +79,9 @@ BreadthFirstSearch<NodeT>::iterator::operator++() {
 
     // Take ancestors list and append current node
     ancestors_ = std::make_shared<std::vector<NodeT>>(*front.second);
-    ancestors_->push_back(front.first);
+    ancestors_->push_back(std::move(front.first));
     queue_.pop();
+    const NodeT& node = ancestors_->back();
 
     // Print search depth
     if (bfs_->verbose_ && ancestors_->size() > depth) {
