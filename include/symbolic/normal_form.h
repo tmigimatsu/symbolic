@@ -59,22 +59,23 @@ struct DisjunctiveFormula {
   static std::optional<DisjunctiveFormula> Create(
       const Pddl& pddl, const Formula& formula,
       const std::vector<Object>& parameters,
-      const std::vector<Object>& arguments) {
-    return Create(pddl, formula.symbol(), parameters, arguments);
+      const std::vector<Object>& arguments, bool apply_axioms = false) {
+    return Create(pddl, formula.symbol(), parameters, arguments, apply_axioms);
   }
 
   static std::optional<DisjunctiveFormula> Create(
       const Pddl& pddl, const VAL::goal* symbol,
       const std::vector<Object>& parameters,
-      const std::vector<Object>& arguments);
+      const std::vector<Object>& arguments, bool apply_axioms = false);
 
   static std::optional<DisjunctiveFormula> Create(
       const Pddl& pddl, const VAL::effect_lists* symbol,
       const std::vector<Object>& parameters,
-      const std::vector<Object>& arguments);
+      const std::vector<Object>& arguments, bool apply_axioms = false);
 
   static std::optional<DisjunctiveFormula> Create(const Pddl& pddl,
-                                                  ConjunctiveFormula&& cnf);
+                                                  ConjunctiveFormula&& cnf,
+                                                  bool apply_axioms = false);
 
   /**
    * Normalize the pre/post conditions of the given action.
@@ -93,8 +94,8 @@ struct DisjunctiveFormula {
   NormalizeConditions(const Pddl& pddl, const std::string& action_call,
                       bool apply_axioms = false);
 
-  static std::optional<DisjunctiveFormula>
-  NormalizeGoal(const Pddl& pddl, bool apply_axioms = false);
+  static std::optional<DisjunctiveFormula> NormalizeGoal(
+      const Pddl& pddl, bool apply_axioms = false);
 
   friend bool operator==(const DisjunctiveFormula& lhs,
                          const DisjunctiveFormula& rhs) {
