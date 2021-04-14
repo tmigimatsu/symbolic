@@ -35,6 +35,10 @@ using EffectsFunction = std::function<int(const std::vector<Object>&, T*)>;
 using ApplicationFunction =
     std::function<std::vector<Object>(const std::vector<Object>&)>;
 
+using AxiomApplicationFunction =
+    std::function<std::optional<std::vector<Object>>(
+        const std::vector<Object>&)>;
+
 template <typename T>
 EffectsFunction<T> CreateEffectsFunction(const Pddl& pddl,
                                          const VAL::effect_lists* effects,
@@ -114,18 +118,45 @@ EffectsFunction<T> CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
         };
   }
 
+  // Prepare axioms.
+  const std::string axiom_context = SignedProposition::Sign(true) + name_predicate;
+  std::vector<std::pair<std::weak_ptr<Axiom>, AxiomApplicationFunction>> axioms;
+  if (pddl.axiom_map().count(axiom_context) > 0) {
+    for (const std::weak_ptr<Axiom>& ptr_axiom :
+         pddl.axiom_map().at(axiom_context)) {
+      const std::shared_ptr<Axiom> axiom = ptr_axiom.lock();
+      std::optional<AxiomApplicationFunction> AxiomApply =
+          Axiom::CreateApplicationFunction(parameters, effect_params,
+                                           axiom->parameters(),
+                                           axiom->context().arguments());
+      if (!AxiomApply.has_value()) continue;
+
+      axioms.emplace_back(axiom, std::move(*AxiomApply));
+    }
+  }
+
   // Add normal predicate
   return [name_predicate = std::move(name_predicate), Apply = std::move(Apply),
-          &axiom_map = pddl.axiom_map()](const std::vector<Object>& arguments,
-                                         T* state) -> int {
+          axioms = std::move(axioms)](const std::vector<Object>& arguments,
+                                      T* state) -> int {
     int status = state->emplace(name_predicate, Apply(arguments));
     // Return early to avoid infinite loop of axiom application.
     if (status == 0) return status;
 
-    if (axiom_map.count(name_predicate) > 0) {
-      for (const Axiom& axiom : axiom_map.at(name_predicate)) {
-        axiom.Apply(state);
-      }
+    // Apply axioms.
+    for (const auto& axiom_apply : axioms) {
+      const Axiom& axiom = *axiom_apply.first.lock();
+      const AxiomApplicationFunction& AxiomApply = axiom_apply.second;
+      const std::optional<std::vector<Object>> axiom_args =
+          AxiomApply(arguments);
+
+      // std::cout << axiom << std::endl;
+      if (!axiom_args.has_value()) continue;
+
+      // std::cout << "+" << name_predicate << ": " << *axiom_args << std::endl;
+      // std::cout << "[" << *state << std::endl;
+      axiom.Action::Apply(*axiom_args, state);
+      // std::cout << "]" << *state << std::endl << std::endl;
     }
     return status;
   };
@@ -175,18 +206,45 @@ EffectsFunction<T> CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
         };
   }
 
+  // Prepare axioms.
+  const std::string axiom_context = SignedProposition::Sign(false) + name_predicate;
+  std::vector<std::pair<std::weak_ptr<Axiom>, AxiomApplicationFunction>> axioms;
+  if (pddl.axiom_map().count(axiom_context) > 0) {
+    for (const std::weak_ptr<Axiom>& ptr_axiom :
+         pddl.axiom_map().at(axiom_context)) {
+      const std::shared_ptr<Axiom> axiom = ptr_axiom.lock();
+      std::optional<AxiomApplicationFunction> AxiomApply =
+          Axiom::CreateApplicationFunction(parameters, effect_params,
+                                           axiom->parameters(),
+                                           axiom->context().arguments());
+      if (!AxiomApply.has_value()) continue;
+
+      axioms.emplace_back(axiom, std::move(*AxiomApply));
+    }
+  }
+
   // Remove normal predicate
-  return [name_predicate = effect->prop->head->getName(),
-          Apply = std::move(Apply), &axiom_map = pddl.axiom_map()](
-             const std::vector<Object>& arguments, T* state) -> int {
+  return [name_predicate = std::move(name_predicate), Apply = std::move(Apply),
+          axioms = std::move(axioms)](const std::vector<Object>& arguments,
+                                      T* state) -> int {
     int status = state->erase(Proposition(name_predicate, Apply(arguments)));
     // Return early to avoid infinite loop of axiom application.
     if (status == 0) return status;
 
-    if (axiom_map.count(name_predicate) > 0) {
-      for (const Axiom& axiom : axiom_map.at(name_predicate)) {
-        axiom.Apply(state);
-      }
+    // Apply axioms.
+    for (const auto& axiom_apply : axioms) {
+      const Axiom& axiom = *axiom_apply.first.lock();
+      const AxiomApplicationFunction& AxiomApply = axiom_apply.second;
+      const std::optional<std::vector<Object>> axiom_args =
+          AxiomApply(arguments);
+
+      // std::cout << axiom << std::endl;
+      if (!axiom_args.has_value()) continue;
+
+      // std::cout << "-" << name_predicate << ": " << *axiom_args << std::endl;
+      // std::cout << "[" << *state << std::endl;
+      axiom.Action::Apply(*axiom_args, state);
+      // std::cout << "]" << *state << std::endl << std::endl;
     }
     return status;
   };

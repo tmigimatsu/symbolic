@@ -11,7 +11,7 @@
 #define SYMBOLIC_PDDL_H_
 
 #include <iostream>       // std::cout, std::ostream
-#include <memory>         // std::shared_ptr
+#include <memory>         // std::shared_ptr, std::weak_ptr
 #include <set>            // std::set
 #include <string>         // std::string
 #include <unordered_map>  // std::unordered_map
@@ -40,7 +40,8 @@ namespace symbolic {
 class Pddl {
  public:
   using ObjectTypeMap = std::unordered_map<std::string, std::vector<Object>>;
-  using AxiomContextMap = std::unordered_map<std::string, std::vector<Axiom>>;
+  using AxiomContextMap =
+      std::unordered_map<std::string, std::vector<std::weak_ptr<Axiom>>>;
 
   /**
    * Parse the pddl specification from the domain and problem files.
@@ -194,7 +195,7 @@ class Pddl {
 
   const std::vector<Predicate>& predicates() const { return predicates_; }
 
-  const std::vector<Axiom>& axioms() const { return axioms_; }
+  const std::vector<std::shared_ptr<Axiom>>& axioms() const { return axioms_; }
 
   /**
    * Map from context predicate name to vector of axioms.
@@ -219,7 +220,7 @@ class Pddl {
 
   AxiomContextMap axiom_map_;
   std::vector<Action> actions_;
-  std::vector<Axiom> axioms_;
+  std::vector<std::shared_ptr<Axiom>> axioms_;
 
   std::vector<Predicate> predicates_;
   std::vector<DerivedPredicate> derived_predicates_;

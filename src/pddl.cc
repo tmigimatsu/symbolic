@@ -151,21 +151,30 @@ std::vector<Predicate> GetPredicates(const Pddl& pddl,
   return predicates;
 }
 
-std::vector<Axiom> GetAxioms(const Pddl& pddl, const VAL::domain& domain) {
-  std::vector<Axiom> axioms;
+std::vector<std::shared_ptr<Axiom>> GetAxioms(const Pddl& pddl,
+                                              const VAL::domain& domain) {
+  std::vector<std::shared_ptr<Axiom>> axioms;
   for (const VAL::operator_* op : *domain.ops) {
     const auto* a = dynamic_cast<const VAL::axiom*>(op);
     if (a == nullptr) continue;
-    axioms.emplace_back(pddl, op);
+    axioms.push_back(std::make_shared<Axiom>(pddl, op));
   }
   return axioms;
 }
 
-std::unordered_map<std::string, std::vector<Axiom>> CreateAxiomContextMap(
-    const std::vector<Axiom>& axioms) {
-  std::unordered_map<std::string, std::vector<Axiom>> axiom_map(axioms.size());
-  for (const Axiom& axiom : axioms) {
-    axiom_map[axiom.context()].push_back(axiom);
+void UpdateAxioms(const Pddl& pddl,
+                  std::vector<std::shared_ptr<Axiom>>* axioms) {
+  for (std::shared_ptr<Axiom>& axiom : *axioms) {
+    *axiom = Axiom(pddl, axiom->symbol());
+  }
+}
+
+std::unordered_map<std::string, std::vector<std::weak_ptr<Axiom>>>
+CreateAxiomContextMap(const std::vector<std::shared_ptr<Axiom>>& axioms) {
+  std::unordered_map<std::string, std::vector<std::weak_ptr<Axiom>>> axiom_map(
+      axioms.size());
+  for (const std::shared_ptr<Axiom>& axiom : axioms) {
+    axiom_map[axiom->context().sign() + axiom->context().name()].emplace_back(axiom);
   }
   return axiom_map;
 }
@@ -221,7 +230,6 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
       problem_pddl_(problem_pddl),
       objects_(GetObjects(*analysis_->the_domain, *analysis_->the_problem)),
       object_map_(CreateObjectTypeMap(objects_)),
-      actions_(GetActions(*this, *analysis_->the_domain)),
       axioms_(GetAxioms(*this, *analysis_->the_domain)),
       predicates_(GetPredicates(*this, *analysis_->the_domain)),
       derived_predicates_(GetDerivedPredicates(*this, *analysis_->the_domain)),
@@ -232,6 +240,14 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
   // Create axiom map after initialization list to avoid conflicts with
   // GetAxioms(), which accesses the axiom map during the construction of DNFs.
   axiom_map_ = CreateAxiomContextMap(axioms());
+
+  // Recreate axioms with updated axiom map. Axioms need to be pointers so
+  // that they can be updated and remain usable from Action::Apply() lambdas
+  // while handling axiom loops.
+  UpdateAxioms(*this, &axioms_);
+
+  // Create actions after all axioms have settled.
+  actions_ = GetActions(*this, *analysis_->the_domain);
 }
 
 bool Pddl::IsValid(bool verbose, std::ostream& os) const {
@@ -280,8 +296,8 @@ State Pddl::ConsistentState(const State& state) const {
   bool is_changed = true;
   while (is_changed) {
     is_changed = false;
-    for (const Axiom& axiom : axioms()) {
-      is_changed |= axiom.Apply(&next_state);
+    for (const std::shared_ptr<Axiom>& axiom : axioms()) {
+      is_changed |= axiom->Apply(&next_state);
     }
   }
   return next_state;
@@ -295,8 +311,8 @@ PartialState Pddl::ConsistentState(const PartialState& state) const {
   bool is_changed = true;
   while (is_changed) {
     is_changed = false;
-    for (const Axiom& axiom : axioms()) {
-      const int axiom_change = axiom.Apply(&next_state);
+    for (const std::shared_ptr<Axiom>& axiom : axioms()) {
+      const int axiom_change = axiom->Apply(&next_state);
       is_changed |= axiom_change > 0;
 
       if (axiom_change == 2) {
@@ -335,8 +351,8 @@ TEST_CASE_FIXTURE(testing::Fixture, "Pddl.IsValidAction") {
 }
 
 bool Pddl::IsValidState(const State& state) const {
-  for (const Axiom& axiom : axioms()) {
-    if (!axiom.IsConsistent(state)) return false;
+  for (const std::shared_ptr<Axiom>& axiom : axioms()) {
+    if (!axiom->IsConsistent(state)) return false;
   }
   return true;
 }

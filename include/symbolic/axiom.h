@@ -46,7 +46,7 @@ class Axiom : public Action {
    * @param state Partial state to evaluate.
    * @returns Whether the state is consistent with this axiom.
    */
-  static bool IsConsistent(const std::vector<Axiom>& axioms,
+  static bool IsConsistent(const std::vector<std::shared_ptr<Axiom>>& axioms,
                            const PartialState& state);
 
   /**
@@ -69,6 +69,18 @@ class Axiom : public Action {
   const SignedProposition& context() const { return context_; }
 
   friend std::ostream& operator<<(std::ostream& os, const Axiom& axiom);
+
+  /**
+   * Creates a function that takes action_args and returns axiom_args based on
+   * positional indices of the axiom context proposition. If the action_args are
+   * not consistent with the axiom context, returns an empty vector.
+   */
+  static std::optional<std::function<std::optional<std::vector<Object>>(
+      const std::vector<Object>&)>>
+  CreateApplicationFunction(const std::vector<Object>& action_params,
+                            const std::vector<Object>& action_prop_params,
+                            const std::vector<Object>& axiom_params,
+                            const std::vector<Object>& axiom_prop_params);
 
  private:
   bool IsConsistent(PartialState* state, bool* is_changed) const;

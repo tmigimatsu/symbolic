@@ -25,6 +25,10 @@ using ::symbolic::Pddl;
 using ::symbolic::Proposition;
 using ::symbolic::SignedProposition;
 
+using AxiomApplicationFunction =
+    std::function<std::optional<std::vector<Object>>(
+        const std::vector<Object>&)>;
+
 /**
  * Prepares list of possible arguments given axiom parameters.
  */
@@ -166,7 +170,7 @@ bool Axiom::IsConsistent(const PartialState& state) const {
   return true;
 }
 
-bool Axiom::IsConsistent(const std::vector<Axiom>& axioms,
+bool Axiom::IsConsistent(const std::vector<std::shared_ptr<Axiom>>& axioms,
                          const PartialState& state) {
   PartialState test_state = state;
 
@@ -174,8 +178,8 @@ bool Axiom::IsConsistent(const std::vector<Axiom>& axioms,
   bool is_changed = true;
   while (is_changed) {
     is_changed = false;
-    for (const Axiom& axiom : axioms) {
-      if (!axiom.IsConsistent(&test_state, &is_changed)) return false;
+    for (const std::shared_ptr<Axiom>& axiom : axioms) {
+      if (!axiom->IsConsistent(&test_state, &is_changed)) return false;
     }
   }
   return true;
@@ -228,5 +232,78 @@ std::ostream& operator<<(std::ostream& os, const Axiom& axiom) {
   os << "): " << axiom.formula_;
   return os;
 }
+
+std::optional<AxiomApplicationFunction> Axiom::CreateApplicationFunction(
+    const std::vector<Object>& action_params,
+    const std::vector<Object>& action_prop_params,
+    const std::vector<Object>& axiom_params,
+    const std::vector<Object>& axiom_prop_params) {
+  const size_t num_prop_params = action_prop_params.size();
+  assert(num_prop_params == axiom_prop_params.size());
+
+  // Map action prop parameter index to action parameter index.
+  std::vector<std::optional<size_t>> idx_action_params(num_prop_params);
+  for (size_t i = 0; i < num_prop_params; i++) {
+    for (size_t j = 0; j < action_params.size(); j++) {
+      if (action_prop_params[i] == action_params[j]) {
+        idx_action_params[i] = j;
+        break;
+      }
+    }
+  }
+
+  // Map axiom prop parameter index to axiom parameter index.
+  std::vector<std::optional<size_t>> idx_axiom_params(num_prop_params);
+  for (size_t i = 0; i < num_prop_params; i++) {
+    for (size_t j = 0; j < axiom_params.size(); j++) {
+      if (axiom_prop_params[i] == axiom_params[j]) {
+        idx_axiom_params[i] = j;
+        break;
+      }
+    }
+  }
+
+  // Check if axiom context will never be valid.
+  for (size_t i = 0; i < num_prop_params; i++) {
+    const std::optional<size_t>& idx_action_param = idx_action_params[i];
+    const std::optional<size_t>& idx_axiom_param = idx_axiom_params[i];
+    if (idx_action_param.has_value() || idx_axiom_param.has_value()) continue;
+
+    const Object& action_prop_param = action_prop_params[i];
+    const Object& axiom_prop_param = axiom_prop_params[i];
+    if (action_prop_param != axiom_prop_param) return {};
+  }
+
+  return [axiom_params, action_prop_params, axiom_prop_params,
+          idx_action_params = std::move(idx_action_params),
+          idx_axiom_params = std::move(idx_axiom_params)](
+             const std::vector<Object>& action_args)
+             -> std::optional<std::vector<Object>> {
+    std::vector<Object> axiom_args = axiom_params;
+    for (size_t i = 0; i < action_prop_params.size(); i++) {
+      const Object& action_prop_param = action_prop_params[i];
+      const Object& axiom_prop_param = axiom_prop_params[i];
+      const std::optional<size_t>& idx_action_param = idx_action_params[i];
+      const std::optional<size_t>& idx_axiom_param = idx_axiom_params[i];
+
+      const Object& action_prop_arg = idx_action_param.has_value()
+                                          ? action_args[*idx_action_param]
+                                          : action_prop_param;
+
+      if (idx_axiom_param.has_value()) {
+        Object& axiom_arg = axiom_args[*idx_axiom_param];
+        axiom_arg = action_prop_arg;
+      } else if (axiom_prop_param != action_prop_arg) {
+        // Action prop not consistent with axiom context.
+        return {};
+      }
+    }
+    return axiom_args;
+  };
+}
+static std::function<
+    std::vector<std::vector<Object>>(const std::vector<Object>&)>
+CreateApplicationFunction(const std::vector<Object>& action_params,
+                          const std::vector<Object>& prop_params);
 
 }  // namespace symbolic
