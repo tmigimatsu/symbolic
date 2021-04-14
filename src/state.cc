@@ -52,7 +52,8 @@ State::State(std::initializer_list<Proposition> l) : Base(l) {
 #endif  // SYMBOLIC_STATE_USE_SET
 }
 
-State::State(const Pddl& pddl, const std::unordered_set<std::string>& str_state) {
+State::State(const Pddl& pddl,
+             const std::unordered_set<std::string>& str_state) {
   reserve(str_state.size());
   for (const std::string& str_prop : str_state) {
     emplace(pddl, str_prop);
@@ -277,3 +278,17 @@ StateIndex::IndexedState StateIndex::GetIndexedState(const State& state) const {
 }
 
 }  // namespace symbolic
+
+namespace std {
+
+size_t hash<symbolic::State>::operator()(
+    const symbolic::State& state) const noexcept {
+  size_t seed = 0;
+  for (const symbolic::Proposition& prop : state) {
+    seed ^= hash<symbolic::Proposition>{}(prop) + 0x9e3779b9 + (seed << 6) +
+            (seed >> 2);
+  }
+  return seed;
+}
+
+}  // namespace std

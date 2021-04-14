@@ -10,8 +10,9 @@
 #ifndef SYMBOLIC_PLANNING_PLANNER_H_
 #define SYMBOLIC_PLANNING_PLANNER_H_
 
-#include <iostream>  // std::ostream
-#include <memory>    // std::shared_ptr
+#include <functional>  // std::hash
+#include <iostream>    // std::ostream
+#include <memory>      // std::shared_ptr
 
 #include "symbolic/pddl.h"
 
@@ -93,5 +94,14 @@ class Planner::Node::iterator {
 };
 
 }  // namespace symbolic
+
+namespace std {
+
+template <>
+struct hash<symbolic::Planner::Node> {
+  size_t operator()(const symbolic::Planner::Node& node) const noexcept;
+};
+
+}  // namespace std
 
 #endif  // SYMBOLIC_PLANNING_PLANNER_H_

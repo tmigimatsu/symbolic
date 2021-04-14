@@ -10,10 +10,11 @@
 #ifndef SYMBOLIC_PROPOSITION_H_
 #define SYMBOLIC_PROPOSITION_H_
 
-#include <ostream>  // std::ostream
-#include <string>   // std::string
-#include <utility>  // std::tie
-#include <vector>   // std::vector
+#include <functional>  // std::hash
+#include <ostream>     // std::ostream
+#include <string>      // std::string
+#include <utility>     // std::tie
+#include <vector>      // std::vector
 
 #include "symbolic/object.h"
 
@@ -69,4 +70,12 @@ class Proposition {
 
 }  // namespace symbolic
 
+namespace std {
+
+template <>
+struct hash<symbolic::Proposition> {
+  size_t operator()(const symbolic::Proposition& prop) const noexcept;
+};
+
+}  // namespace std
 #endif  // SYMBOLIC_PROPOSITION_H_

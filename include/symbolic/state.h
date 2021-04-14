@@ -13,8 +13,8 @@
 // #define SYMBOLIC_STATE_USE_SET
 
 #include <Eigen/Eigen>
-
 #include <exception>      // std::exception
+#include <functional>     // std::hash
 #include <optional>       // std::optional
 #include <ostream>        // std::ostream
 #include <unordered_set>  // std::unordered_set
@@ -381,5 +381,14 @@ class StateIndex {
 };
 
 }  // namespace symbolic
+
+namespace std {
+
+template <>
+struct hash<symbolic::State> {
+  size_t operator()(const symbolic::State& state) const noexcept;
+};
+
+}  // namespace std
 
 #endif  // SYMBOLIC_STATE_H_

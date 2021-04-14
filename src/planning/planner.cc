@@ -9,14 +9,28 @@
 
 #include "symbolic/planning/planner.h"
 
+// #define SYMBOLIC_PLANNER_USE_ORDERED_CACHE
+
+#ifdef SYMBOLIC_PLANNER_USE_ORDERED_CACHE
+#include <set>            // std::set
+#else                     // SYMBOLIC_PLANNER_USE_ORDERED_CACHE
+#include <unordered_set>  // std::unordered_set
+#endif                    // SYMBOLIC_PLANNER_USE_ORDERED_CACHE
+
 namespace symbolic {
 
 Planner::Planner(const Pddl& pddl) : root_(pddl, pddl.initial_state()) {}
 
 struct Planner::Node::NodeImpl {
+#ifdef SYMBOLIC_PLANNER_USE_ORDERED_CACHE
+  using Cache = std::set<Node>;
+#else   // SYMBOLIC_PLANNER_USE_ORDERED_CACHE
+  using Cache = std::unordered_set<Node>;
+#endif  // SYMBOLIC_PLANNER_USE_ORDERED_CACHE
+
   NodeImpl(const Pddl& pddl, State&& state,
-           const std::shared_ptr<const std::set<Node>>& ancestors,
-           std::string&& action, size_t depth)
+           const std::shared_ptr<const Cache>& ancestors, std::string&& action,
+           size_t depth)
       : pddl_(pddl),
         state_(std::move(state)),
         ancestors_(ancestors),
@@ -26,13 +40,13 @@ struct Planner::Node::NodeImpl {
   NodeImpl(const Pddl& pddl, const State& state, size_t depth = 0)
       : pddl_(pddl),
         state_(state),
-        ancestors_(std::make_shared<const std::set<Node>>()),
+        ancestors_(std::make_shared<const Cache>()),
         depth_(depth) {}
 
   const Pddl& pddl_;
 
   const State state_;
-  const std::shared_ptr<const std::set<Node>> ancestors_;
+  const std::shared_ptr<const Cache> ancestors_;
 
   // For debugging
   const std::string action_;
@@ -45,7 +59,8 @@ Planner::Node::Node(const Pddl& pddl, const State& state, size_t depth)
 Planner::Node::Node(const Node& parent, const Node& sibling, State&& state,
                     std::string&& action) {
   if (!sibling.impl_) {
-    auto ancestors = std::make_shared<std::set<Node>>(*parent->ancestors_);
+    auto ancestors =
+        std::make_shared<Planner::Node::NodeImpl::Cache>(*parent->ancestors_);
     ancestors->insert(parent);
     impl_ = std::make_shared<NodeImpl>(parent->pddl_, std::move(state),
                                        std::move(ancestors), std::move(action),
@@ -84,7 +99,7 @@ Planner::Node::iterator Planner::Node::begin() const {
         Node(parent, it.child_, std::move(state), action.to_string(arguments));
 
     // Return if state hasn't been previously visited
-    const std::shared_ptr<const std::set<Node>> ancestors =
+    const std::shared_ptr<const Planner::Node::NodeImpl::Cache> ancestors =
         it.child_->ancestors_;
     if (ancestors->find(it.child_) == ancestors->end()) return it;
   }
@@ -166,7 +181,7 @@ Planner::Node::iterator& Planner::Node::iterator::operator++() {
           Node(parent_, child_, std::move(state), action.to_string(arguments));
 
       // Return if state hasn't been previously visited
-      const std::shared_ptr<const std::set<Node>> ancestors =
+      const std::shared_ptr<const Planner::Node::NodeImpl::Cache> ancestors =
           child_->ancestors_;
       if (ancestors->find(child_) == ancestors->end()) break;
     }
@@ -192,7 +207,7 @@ Planner::Node::iterator& Planner::Node::iterator::operator--() {
           Node(parent_, child_, std::move(state), action.to_string(arguments));
 
       // Return if state hasn't been previously visited
-      const std::shared_ptr<const std::set<Node>> ancestors =
+      const std::shared_ptr<const Planner::Node::NodeImpl::Cache> ancestors =
           child_->ancestors_;
       if (ancestors->find(child_) == ancestors->end()) return *this;
     }
@@ -223,7 +238,7 @@ Planner::Node::iterator& Planner::Node::iterator::operator--() {
           Node(parent_, child_, std::move(state), action.to_string(arguments));
 
       // Return if state hasn't been previously visited
-      const std::shared_ptr<const std::set<Node>> ancestors =
+      const std::shared_ptr<const Planner::Node::NodeImpl::Cache> ancestors =
           child_->ancestors_;
       if (ancestors->find(child_) == ancestors->end()) break;
     }
@@ -237,3 +252,12 @@ bool Planner::Node::iterator::operator==(const iterator& other) const {
 }
 
 }  // namespace symbolic
+
+namespace std {
+
+size_t hash<symbolic::Planner::Node>::operator()(
+    const symbolic::Planner::Node& node) const noexcept {
+  return hash<symbolic::State>{}(node.state());
+}
+
+}  // namespace std
