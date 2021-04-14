@@ -89,14 +89,24 @@ BreadthFirstSearch<NodeT>::iterator::operator++() {
     }
 
     // Return if node evaluates to true
-    const NodeT& node = ancestors_->back();
     if (node) break;
 
     // Skip children if max depth has been reached
     if (ancestors_->size() > bfs_->max_depth_) continue;
 
     // Add node's children to queue
+    if (bfs_->verbose_) {
+      for (const NodeT& node : *ancestors_) {
+        std::cout << node << std::endl;
+      }
+      std::cout << "====================" << std::endl;
+    }
     for (const NodeT& child : node) {
+      // Print node
+      if (bfs_->verbose_) {
+        std::cout << child << std::endl << std::endl;
+      }
+
       queue_.emplace(child, ancestors_);
     }
   }

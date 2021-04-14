@@ -27,6 +27,7 @@ struct Args {
   std::string filename_domain;
   std::string filename_problem;
   size_t depth = kDefaultDepth;
+  bool verbose = false;
 };
 
 // NOLINTNEXTLINE(modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
@@ -41,11 +42,25 @@ Args ParseArgs(int argc, char* argv[]) {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     parsed_args.filename_problem = argv[2];
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    if (argc > 3) parsed_args.depth = std::stoi(argv[3]);
+    int idx = 3;
+    while (idx < argc) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+      const std::string_view arg(argv[idx]);
+      if (arg == "--depth" && idx + 1 < argc) {
+        idx++;
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        parsed_args.depth = std::stoi(argv[idx]);
+      } else if (arg == "--verbose") {
+        parsed_args.verbose = true;
+      } else {
+        throw std::runtime_error("Could not parse arguments.");
+      }
+      idx++;
+    }
   } catch (const std::runtime_error& e) {
     std::cout << "Usage:" << std::endl
-              << "\t./pddl domain.pddl problem.pddl [search_depth (default "
-              << kDefaultDepth << ")]" << std::endl;
+              << "\t./pddl domain.pddl problem.pddl [--depth INT (default "
+              << kDefaultDepth << ")] [--verbose]" << std::endl;
     throw e;
   }
   return parsed_args;
@@ -67,7 +82,7 @@ int main(int argc, char* argv[]) {  // NOLINT(bugprone-exception-escape)
 
   std::cout << "Planning:" << std::endl;
   const auto t_start = std::chrono::high_resolution_clock::now();
-  symbolic::BreadthFirstSearch bfs(planner.root(), args.depth);
+  symbolic::BreadthFirstSearch bfs(planner.root(), args.depth, args.verbose);
   for (const std::vector<symbolic::Planner::Node>& plan : bfs) {
     std::cout << std::chrono::duration<float>(
                      std::chrono::high_resolution_clock::now() - t_start)

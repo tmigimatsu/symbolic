@@ -111,12 +111,17 @@ bool Planner::Node::operator==(const Node& rhs) const {
   return impl_->state_ == rhs->state_;
 }
 
+std::ostream& bold_on(std::ostream& os) { return os << "\e[1m"; }
+std::ostream& bold_off(std::ostream& os) { return os << "\e[0m"; }
+
 std::ostream& operator<<(std::ostream& os,
                          const symbolic::Planner::Node& node) {
+  os << bold_on;
   for (size_t i = 0; i < node.depth(); i++) {
     os << "-";
   }
   os << (node.depth() > 0 ? " " : "") << node.action() << " -> ";
+  os << bold_off;
   std::string separator;
   for (const Proposition& P : node.state()) {
     // if (P.name() == "=") continue;
