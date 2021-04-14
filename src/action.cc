@@ -26,6 +26,7 @@ using ::symbolic::Formula;
 using ::symbolic::Object;
 using ::symbolic::Pddl;
 using ::symbolic::Proposition;
+using ::symbolic::SignedProposition;
 using ::symbolic::State;
 
 template <typename T>

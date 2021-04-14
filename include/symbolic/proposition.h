@@ -64,8 +64,28 @@ class Proposition {
   friend std::ostream& operator<<(std::ostream& os, const Proposition& P);
 
  private:
+  // TODO(tmigimatsu) reference to name string.
   std::string name_;
   std::vector<Object> arguments_;
+};
+
+class SignedProposition : public Proposition {
+ public:
+  SignedProposition(Proposition&& prop, bool is_pos)
+      : Proposition(std::move(prop)), is_pos_(is_pos) {}
+
+  SignedProposition(const std::string& name_predicate,
+                    std::vector<Object>&& arguments, bool is_pos)
+      : Proposition(name_predicate, std::move(arguments)), is_pos_(is_pos) {}
+
+  bool is_pos() const { return is_pos_; }
+
+  std::string sign() const { return Sign(is_pos()); };
+
+  static std::string Sign(bool is_pos) { return is_pos ? "+" : "-"; };
+
+ private:
+  bool is_pos_;
 };
 
 }  // namespace symbolic

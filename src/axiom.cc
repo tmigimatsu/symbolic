@@ -22,6 +22,8 @@ using ::symbolic::Formula;
 using ::symbolic::Object;
 using ::symbolic::ParameterGenerator;
 using ::symbolic::Pddl;
+using ::symbolic::Proposition;
+using ::symbolic::SignedProposition;
 
 /**
  * Prepares list of possible arguments given axiom parameters.
@@ -65,16 +67,19 @@ std::string StringifyFormula(const Pddl& pddl, const Formula& preconditions,
 /**
  * Extracts the predicate name used in the context.
  */
-std::string ExtractContextPredicate(const Formula& preconditions) {
+SignedProposition ExtractContextPredicate(const Pddl& pddl,
+                                          const Formula& preconditions) {
   const VAL::goal* goal = preconditions.symbol();
 
   // Try simple predicate.
+  bool is_pos = true;
   const auto* simple_goal = dynamic_cast<const VAL::simple_goal*>(goal);
 
   // Try negation of simple predicate.
   if (simple_goal == nullptr) {
     const auto* neg_goal = dynamic_cast<const VAL::neg_goal*>(goal);
     if (neg_goal != nullptr) {
+      is_pos = false;
       simple_goal = dynamic_cast<const VAL::simple_goal*>(neg_goal->getGoal());
     }
   }
@@ -86,7 +91,11 @@ std::string ExtractContextPredicate(const Formula& preconditions) {
               << std::endl;
   }
 
-  return simple_goal->getProp()->head->getName();
+  std::string name_predicate = simple_goal->getProp()->head->getName();
+  std::vector<Object> args =
+      Object::CreateList(pddl, simple_goal->getProp()->args);
+
+  return SignedProposition(name_predicate, std::move(args), is_pos);
 }
 
 }  // namespace
@@ -100,7 +109,7 @@ Axiom::Axiom(const Pddl& pddl, const VAL::operator_* symbol)
     : Action(pddl, symbol),
       arguments_(PrepareArguments(pddl, parameter_generator(), preconditions(),
                                   parameters())),
-      context_(ExtractContextPredicate(preconditions())),
+      context_(ExtractContextPredicate(pddl, preconditions())),
       formula_(StringifyFormula(pddl, preconditions(), postconditions(),
                                 parameters())) {}
 

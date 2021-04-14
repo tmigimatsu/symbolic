@@ -393,7 +393,7 @@ ApplicationFunction Formula::CreateApplicationFunction(
       const size_t idx_action_arg = key_val.first;
       const std::vector<size_t>& idx_prop_params = key_val.second;
       for (size_t idx_prop_param : idx_prop_params) {
-        prop_args[idx_prop_param] = action_args[idx_action_arg];
+        prop_args[idx_prop_param] = action_args.at(idx_action_arg);
       }
     }
     return prop_args;

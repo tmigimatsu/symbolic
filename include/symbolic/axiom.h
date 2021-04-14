@@ -66,7 +66,7 @@ class Axiom : public Action {
   /**
    * Predicate used in the axiom context.
    */
-  const std::string& context() const { return context_; }
+  const SignedProposition& context() const { return context_; }
 
   friend std::ostream& operator<<(std::ostream& os, const Axiom& axiom);
 
@@ -74,7 +74,7 @@ class Axiom : public Action {
   bool IsConsistent(PartialState* state, bool* is_changed) const;
 
   std::vector<std::vector<Object>> arguments_;
-  std::string context_;
+  SignedProposition context_;
   std::string formula_;
 };
 

@@ -62,7 +62,7 @@ class Formula {
   friend std::ostream& operator<<(std::ostream& os, const Formula& F);
 
   /**
-   * Create a function that takes action_args and returns prop_args based on the
+   * Creates a function that takes action_args and returns prop_args based on the
    * mapping (action_params -> prop_params).
    */
   static std::function<std::vector<Object>(const std::vector<Object>&)>
