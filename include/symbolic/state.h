@@ -52,13 +52,13 @@ class State : private std::set<Proposition> {
   /**
    * Returns whether the state contains the given proposition.
    */
-  bool contains(const Proposition& prop) const;
+  bool contains(const PropositionBase& prop) const;
 
   /**
    * Inserts a proposition into the state, and returns whether or not the state
    * has changed.
    */
-  bool insert(const Proposition& prop);
+  bool insert(const PropositionBase& prop);
   bool insert(Proposition&& prop);
 
   template <class InputIt>
@@ -77,7 +77,7 @@ class State : private std::set<Proposition> {
    * Removes a proposition from the state, and returns whether or not the state
    * has changed.
    */
-  bool erase(const Proposition& prop);
+  bool erase(const PropositionBase& prop);
 
   iterator begin() { return Base::begin(); }
   iterator end() { return Base::end(); }
@@ -127,7 +127,7 @@ class PartialState {
  public:
   class UnknownEvaluation : public std::exception {
    public:
-    explicit UnknownEvaluation(const Proposition& prop)
+    explicit UnknownEvaluation(const PropositionBase& prop)
         : prop_(prop), str_prop_(prop.to_string()) {}
 
     const char* what() const noexcept override { return str_prop_.c_str(); }
@@ -159,8 +159,8 @@ class PartialState {
   bool empty() const { return pos_.empty() && neg_.empty(); }
   size_t size() const { return pos_.size() + neg_.size(); }
 
-  bool contains(const Proposition& prop) const;
-  bool does_not_contain(const Proposition& prop) const;
+  bool contains(const PropositionBase& prop) const;
+  bool does_not_contain(const PropositionBase& prop) const;
 
   /**
    * Inserts the proposition into the positive state.
@@ -168,7 +168,7 @@ class PartialState {
    * If the proposition is negated, returns 2. If the proposition is simply
    * inserted, returns 1. If the proposition already exists, returns 0.
    */
-  int insert(const Proposition& prop);
+  int insert(const PropositionBase& prop);
   int insert(Proposition&& prop);
 
   template <class... Args>
@@ -182,7 +182,7 @@ class PartialState {
    * If the proposition is negated, returns 2. If the proposition is simply
    * inserted, returns 1. If the proposition already exists, returns 0.
    */
-  int erase(const Proposition& prop);
+  int erase(const PropositionBase& prop);
   int erase(Proposition&& prop);
 
   /**
@@ -195,6 +195,10 @@ class PartialState {
 
   friend bool operator==(const PartialState& lhs, const PartialState& rhs) {
     return lhs.pos_ == rhs.pos_ && lhs.neg_ == rhs.neg_;
+  }
+
+  friend bool operator!=(const PartialState& lhs, const PartialState& rhs) {
+    return lhs.pos_ != rhs.pos_ || lhs.neg_ != rhs.neg_;
   }
 
   friend bool operator<(const PartialState& lhs, const PartialState& rhs) {

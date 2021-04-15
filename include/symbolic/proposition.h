@@ -22,7 +22,37 @@ namespace symbolic {
 
 class Pddl;
 
-class Proposition {
+class PropositionBase {
+ public:
+  virtual const std::string& name() const = 0;
+
+  virtual const std::vector<Object>& arguments() const = 0;
+
+  virtual std::string to_string() const;
+
+  static std::string ParseHead(const std::string& atom) {
+    return atom.substr(0, atom.find_first_of('('));
+  }
+
+  friend bool operator<(const PropositionBase& lhs,
+                        const PropositionBase& rhs) {
+    return std::tie(lhs.name(), lhs.arguments()) <
+           std::tie(rhs.name(), rhs.arguments());
+  }
+  friend bool operator==(const PropositionBase& lhs,
+                         const PropositionBase& rhs) {
+    return std::tie(lhs.name(), lhs.arguments()) ==
+           std::tie(rhs.name(), rhs.arguments());
+  }
+  friend bool operator!=(const PropositionBase& lhs,
+                         const PropositionBase& rhs) {
+    return !(lhs == rhs);
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const PropositionBase& P);
+};
+
+class Proposition : public PropositionBase {
  public:
   Proposition() = default;
 
@@ -34,39 +64,39 @@ class Proposition {
               const std::vector<Object>& arguments)
       : name_(name_predicate), arguments_(arguments) {}
 
-  Proposition(const Pddl& pddl, const std::string& str_prop);
+  Proposition(const Pddl& pddl, const std::string& str_prop)
+      : name_(ParseHead(str_prop)),
+        arguments_(Object::ParseArguments(pddl, str_prop)) {}
 
-  explicit Proposition(const std::string& str_prop);
+  explicit Proposition(const std::string& str_prop)
+      : name_(ParseHead(str_prop)),
+        arguments_(Object::ParseArguments(str_prop)) {}
 
-  // Properties
-  const std::string& name() const { return name_; }
+  explicit Proposition(const PropositionBase& other)
+      : name_(other.name()), arguments_(other.arguments()) {}
 
-  const std::vector<Object>& arguments() const { return arguments_; }
+  const std::string& name() const override { return name_; }
 
-  std::string to_string() const;
-
-  static std::string ParseHead(const std::string& atom) {
-    return atom.substr(0, atom.find_first_of('('));
-  }
-
-  friend bool operator<(const Proposition& lhs, const Proposition& rhs) {
-    return std::tie(lhs.name(), lhs.arguments()) <
-           std::tie(rhs.name(), rhs.arguments());
-  }
-  friend bool operator==(const Proposition& lhs, const Proposition& rhs) {
-    return std::tie(lhs.name(), lhs.arguments()) ==
-           std::tie(rhs.name(), rhs.arguments());
-  }
-  friend bool operator!=(const Proposition& lhs, const Proposition& rhs) {
-    return !(lhs == rhs);
-  }
-
-  friend std::ostream& operator<<(std::ostream& os, const Proposition& P);
+  const std::vector<Object>& arguments() const override { return arguments_; }
 
  private:
-  // TODO(tmigimatsu) reference to name string.
   std::string name_;
   std::vector<Object> arguments_;
+};
+
+class PropositionRef : public PropositionBase {
+ public:
+  PropositionRef(const std::string* name_predicate,
+                 const std::vector<Object>* arguments)
+      : name_(name_predicate), arguments_(arguments) {}
+
+  const std::string& name() const override { return *name_; }
+
+  const std::vector<Object>& arguments() const override { return *arguments_; }
+
+ private:
+  const std::string* name_;
+  const std::vector<Object>* arguments_;
 };
 
 class SignedProposition : public Proposition {
@@ -93,8 +123,8 @@ class SignedProposition : public Proposition {
 namespace std {
 
 template <>
-struct hash<symbolic::Proposition> {
-  size_t operator()(const symbolic::Proposition& prop) const noexcept;
+struct hash<symbolic::PropositionBase> {
+  size_t operator()(const symbolic::PropositionBase& prop) const noexcept;
 };
 
 }  // namespace std

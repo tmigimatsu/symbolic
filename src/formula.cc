@@ -27,13 +27,14 @@ using ::symbolic::ParameterGenerator;
 using ::symbolic::PartialState;
 using ::symbolic::Pddl;
 using ::symbolic::Proposition;
+using ::symbolic::PropositionRef;
 
 template <typename T>
 using FormulaFunction =
     std::function<bool(const T& state, const std::vector<Object>& arguments)>;
 
 using ApplicationFunction =
-    std::function<std::vector<Object>(const std::vector<Object>&)>;
+    std::function<const std::vector<Object>&(const std::vector<Object>&)>;
 
 template <typename T>
 using NamedFormulaFunction = std::pair<FormulaFunction<T>, std::string>;
@@ -47,7 +48,7 @@ NamedFormulaFunction<T> CreateProposition(
     const Pddl& pddl, const VAL::simple_goal* symbol,
     const std::vector<Object>& parameters) {
   const VAL::proposition* prop = symbol->getProp();
-  std::string name_predicate = prop->head->getName();
+  const std::string& name_predicate = prop->head->getNameRef();
   const std::vector<Object> prop_params = Object::CreateList(pddl, prop->args);
   ApplicationFunction Apply =
       Formula::CreateApplicationFunction(parameters, prop_params);
@@ -57,7 +58,7 @@ NamedFormulaFunction<T> CreateProposition(
                                // NOLINTNEXTLINE(misc-unused-parameters)
                                const T& state,
                                const std::vector<Object>& arguments) -> bool {
-      const std::vector<Object> prop_args = Apply(arguments);
+      const std::vector<Object>& prop_args = Apply(arguments);
       assert(prop_args.size() == 2);
       return prop_args[0] == prop_args[1];
     };
@@ -72,7 +73,7 @@ NamedFormulaFunction<T> CreateProposition(
                                // NOLINTNEXTLINE(misc-unused-parameters)
                                const T& state,
                                const std::vector<Object>& arguments) -> bool {
-      const std::vector<Object> prop_args = Apply(arguments);
+      const std::vector<Object>& prop_args = Apply(arguments);
       assert(prop_args.size() == 1);
       return prop_args[0].type().IsSubtype(name_predicate);
     };
@@ -80,10 +81,10 @@ NamedFormulaFunction<T> CreateProposition(
     return {std::move(F), Proposition(name_predicate, prop_params).to_string()};
   }
 
-  FormulaFunction<T> F = [name_predicate, Apply = std::move(Apply)](
-                             const T& state,
-                             const std::vector<Object>& arguments) -> bool {
-    Proposition P(name_predicate, Apply(arguments));
+  FormulaFunction<T> F =
+      [ptr_name_predicate = &name_predicate, Apply = std::move(Apply)](
+          const T& state, const std::vector<Object>& arguments) -> bool {
+    PropositionRef P(ptr_name_predicate, &Apply(arguments));
     return state.contains(P);
   };
 
@@ -179,7 +180,7 @@ NamedFormulaFunction<PartialState> CreateNegation(
       dynamic_cast<const VAL::simple_goal*>(goal);
   if (simple_goal != nullptr) {
     const VAL::proposition* prop = simple_goal->getProp();
-    std::string name_predicate = prop->head->getName();
+    const std::string& name_predicate = prop->head->getNameRef();
     if (name_predicate != "=" &&
         pddl.object_map().find(name_predicate) == pddl.object_map().end()) {
       // Proposition is a simple goal, so evaluate its negation.
@@ -190,10 +191,10 @@ NamedFormulaFunction<PartialState> CreateNegation(
           Formula::CreateApplicationFunction(parameters, prop_params);
 
       FormulaFunction<PartialState> F =
-          [name_predicate, Apply = std::move(Apply)](
+          [ptr_name_predicate = &name_predicate, Apply = std::move(Apply)](
               const PartialState& state,
               const std::vector<Object>& arguments) -> bool {
-        Proposition P(name_predicate, Apply(arguments));
+        PropositionRef P(ptr_name_predicate, &Apply(arguments));
         return state.does_not_contain(P);
       };
 
@@ -375,26 +376,28 @@ ostream& operator<<(ostream& os, const Formula& F) {
 ApplicationFunction Formula::CreateApplicationFunction(
     const std::vector<Object>& action_params,
     const std::vector<Object>& prop_params) {
-  // Map action parameter index to vector of proposition parameter indices
-  std::unordered_map<size_t, std::vector<size_t>> idx_params;
+  auto prop_args = std::make_shared<std::vector<Object>>(prop_params);
+
+  // List of (prop parameter index, action parameter index) pairs.
+  std::vector<std::pair<size_t, size_t>> idx_params;
   for (size_t i = 0; i < prop_params.size(); i++) {
     for (size_t j = 0; j < action_params.size(); j++) {
       if (prop_params[i] == action_params[j]) {
-        idx_params[j].push_back(i);
-        break;
+        idx_params.emplace_back(i, j);
       }
     }
   }
-  return [prop_params, idx_params = std::move(idx_params)](
-             const std::vector<Object>& action_args) {
-    // Replace proposition parameters with corresponding action arguments
-    std::vector<Object> prop_args = prop_params;
-    for (const auto& key_val : idx_params) {
-      const size_t idx_action_arg = key_val.first;
-      const std::vector<size_t>& idx_prop_params = key_val.second;
-      for (size_t idx_prop_param : idx_prop_params) {
-        prop_args[idx_prop_param] = action_args.at(idx_action_arg);
-      }
+
+  // TODO(tmigimatsu): shared_ptr makes this not thread-safe.
+  return [ptr_prop_args = std::move(prop_args),
+          idx_params =
+              std::move(idx_params)](const std::vector<Object>& action_args)
+             -> const std::vector<Object>& {
+    std::vector<Object>& prop_args = *ptr_prop_args;
+    for (const std::pair<size_t, size_t>& idx_prop_action : idx_params) {
+      const size_t idx_prop = idx_prop_action.first;
+      const size_t idx_action = idx_prop_action.second;
+      prop_args[idx_prop] = action_args[idx_action];
     }
     return prop_args;
   };

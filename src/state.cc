@@ -60,7 +60,7 @@ State::State(const Pddl& pddl,
   }
 }
 
-bool State::contains(const Proposition& prop) const {
+bool State::contains(const PropositionBase& prop) const {
 #ifndef SYMBOLIC_STATE_USE_SET
   assert(std::is_sorted(begin(), end()));
   const auto it = std::lower_bound(begin(), end(), prop);
@@ -70,12 +70,12 @@ bool State::contains(const Proposition& prop) const {
 #endif  // SYMBOLIC_STATE_USE_SET
 }
 
-bool State::insert(const Proposition& prop) {
+bool State::insert(const PropositionBase& prop) {
 #ifndef SYMBOLIC_STATE_USE_SET
   assert(std::is_sorted(begin(), end()));
   const auto it = std::lower_bound(begin(), end(), prop);
   if (it != end() && *it == prop) return false;
-  Base::insert(it, prop);
+  Base::emplace(it, prop);
   return true;
 #else   // SYMBOLIC_STATE_USE_SET
   return Base::insert(prop).second;
@@ -94,7 +94,7 @@ bool State::insert(Proposition&& prop) {
 #endif  // SYMBOLIC_STATE_USE_SET
 }
 
-bool State::erase(const Proposition& prop) {
+bool State::erase(const PropositionBase& prop) {
 #ifndef SYMBOLIC_STATE_USE_SET
   assert(std::is_sorted(begin(), end()));
   const auto it = std::lower_bound(begin(), end(), prop);
@@ -126,18 +126,18 @@ std::ostream& operator<<(std::ostream& os, const State& state) {
   return os;
 }
 
-bool PartialState::contains(const Proposition& prop) const {
+bool PartialState::contains(const PropositionBase& prop) const {
   if (pos_.contains(prop)) return true;
   if (neg_.contains(prop)) return false;
   throw UnknownEvaluation(prop);
 }
-bool PartialState::does_not_contain(const Proposition& prop) const {
+bool PartialState::does_not_contain(const PropositionBase& prop) const {
   if (pos_.contains(prop)) return false;
   if (neg_.contains(prop)) return true;
   throw UnknownEvaluation(prop);
 }
 
-int PartialState::insert(const Proposition& prop) {
+int PartialState::insert(const PropositionBase& prop) {
   const int was_negated = static_cast<int>(neg_.erase(prop));
   const int was_added = static_cast<int>(pos_.insert(prop));
   return was_negated + was_added;
@@ -149,7 +149,7 @@ int PartialState::insert(Proposition&& prop) {
   return was_negated + was_added;
 }
 
-int PartialState::erase(const Proposition& prop) {
+int PartialState::erase(const PropositionBase& prop) {
   const int was_negated = static_cast<int>(pos_.erase(prop));
   const int was_erased = static_cast<int>(neg_.insert(prop));
   return was_negated + was_erased;
@@ -285,7 +285,7 @@ size_t hash<symbolic::State>::operator()(
     const symbolic::State& state) const noexcept {
   size_t seed = 0;
   for (const symbolic::Proposition& prop : state) {
-    seed ^= hash<symbolic::Proposition>{}(prop) + 0x9e3779b9 + (seed << 6) +
+    seed ^= hash<symbolic::PropositionBase>{}(prop) + 0x9e3779b9 + (seed << 6) +
             (seed >> 2);
   }
   return seed;

@@ -75,8 +75,8 @@ class Axiom : public Action {
    * positional indices of the axiom context proposition. If the action_args are
    * not consistent with the axiom context, returns an empty vector.
    */
-  static std::optional<std::function<std::optional<std::vector<Object>>(
-      const std::vector<Object>&)>>
+  static std::optional<
+      std::function<const std::vector<Object>*(const std::vector<Object>&)>>
   CreateApplicationFunction(const std::vector<Object>& action_params,
                             const std::vector<Object>& action_prop_params,
                             const std::vector<Object>& axiom_params,

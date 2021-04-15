@@ -65,7 +65,7 @@ class Formula {
    * Creates a function that takes action_args and returns prop_args based on the
    * mapping (action_params -> prop_params).
    */
-  static std::function<std::vector<Object>(const std::vector<Object>&)>
+  static std::function<const std::vector<Object>&(const std::vector<Object>&)>
   CreateApplicationFunction(const std::vector<Object>& action_params,
                             const std::vector<Object>& prop_params);
 

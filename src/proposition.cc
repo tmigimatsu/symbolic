@@ -13,21 +13,15 @@
 
 namespace symbolic {
 
-Proposition::Proposition(const Pddl& pddl, const std::string& str_prop)
-    : name_(ParseHead(str_prop)),
-      arguments_(Object::ParseArguments(pddl, str_prop)) {}
 
-Proposition::Proposition(const std::string& str_prop)
-    : name_(ParseHead(str_prop)),
-      arguments_(Object::ParseArguments(str_prop)) {}
 
-std::string Proposition::to_string() const {
+std::string PropositionBase::to_string() const {
   std::stringstream ss;
   ss << *this;
   return ss.str();
 }
 
-std::ostream& operator<<(std::ostream& os, const symbolic::Proposition& P) {
+std::ostream& operator<<(std::ostream& os, const symbolic::PropositionBase& P) {
   os << P.name() << "(";
   std::string separator;
   for (const Object& arg : P.arguments()) {
@@ -42,8 +36,8 @@ std::ostream& operator<<(std::ostream& os, const symbolic::Proposition& P) {
 
 namespace std {
 
-size_t hash<symbolic::Proposition>::operator()(
-    const symbolic::Proposition& prop) const noexcept {
+size_t hash<symbolic::PropositionBase>::operator()(
+    const symbolic::PropositionBase& prop) const noexcept {
   size_t seed = hash<string>{}(prop.name());
   for (const symbolic::Object& arg : prop.arguments()) {
     seed ^= hash<string>{}(arg.name()) + 0x9e3779b9 + (seed << 6) + (seed >> 2);

@@ -26,6 +26,7 @@ using ::symbolic::Formula;
 using ::symbolic::Object;
 using ::symbolic::Pddl;
 using ::symbolic::Proposition;
+using ::symbolic::PropositionRef;
 using ::symbolic::SignedProposition;
 using ::symbolic::State;
 
@@ -33,11 +34,10 @@ template <typename T>
 using EffectsFunction = std::function<int(const std::vector<Object>&, T*)>;
 
 using ApplicationFunction =
-    std::function<std::vector<Object>(const std::vector<Object>&)>;
+    std::function<const std::vector<Object>&(const std::vector<Object>&)>;
 
 using AxiomApplicationFunction =
-    std::function<std::optional<std::vector<Object>>(
-        const std::vector<Object>&)>;
+    std::function<const std::vector<Object>*(const std::vector<Object>&)>;
 
 template <typename T>
 EffectsFunction<T> CreateEffectsFunction(const Pddl& pddl,
@@ -83,18 +83,18 @@ EffectsFunction<T> CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
   ApplicationFunction Apply =
       Formula::CreateApplicationFunction(parameters, effect_params);
 
-  std::string name_predicate = effect->prop->head->getName();
+  const std::string& name_predicate = effect->prop->head->getNameRef();
   if (name_predicate == "=") {
     // Equality predicate
     return [Apply = std::move(Apply)](const std::vector<Object>& arguments,
                                       // NOLINTNEXTLINE(misc-unused-parameters)
                                       T* state) -> int {
-      std::vector<Object> prop_args = Apply(arguments);
+      const std::vector<Object>& prop_args = Apply(arguments);
       assert(prop_args.size() == 2);
       if (prop_args[0] != prop_args[1]) {
         std::stringstream ss;
         ss << "Action::Apply(): Cannot add effect: "
-           << Proposition("=", std::move(prop_args)) << ".";
+           << Proposition("=", prop_args) << ".";
         throw std::runtime_error(ss.str());
       }
       return false;
@@ -102,24 +102,24 @@ EffectsFunction<T> CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
   }
   if (pddl.object_map().count(name_predicate) > 0) {
     // Type predicate
-    return
-        [name_predicate = std::move(name_predicate), Apply = std::move(Apply)](
-            // NOLINTNEXTLINE(misc-unused-parameters)
-            const std::vector<Object>& arguments, T* state) -> int {
-          std::vector<Object> prop_args = Apply(arguments);
-          assert(prop_args.size() == 1);
-          if (!prop_args[0].type().IsSubtype(name_predicate)) {
-            std::stringstream ss;
-            ss << "Action::Apply(): Cannot add effect: "
-               << Proposition(name_predicate, std::move(prop_args)) << ".";
-            throw std::runtime_error(ss.str());
-          }
-          return false;
-        };
+    return [&name_predicate, Apply = std::move(Apply)](
+               // NOLINTNEXTLINE(misc-unused-parameters)
+               const std::vector<Object>& arguments, T* state) -> int {
+      const std::vector<Object>& prop_args = Apply(arguments);
+      assert(prop_args.size() == 1);
+      if (!prop_args[0].type().IsSubtype(name_predicate)) {
+        std::stringstream ss;
+        ss << "Action::Apply(): Cannot add effect: "
+           << Proposition(name_predicate, prop_args) << ".";
+        throw std::runtime_error(ss.str());
+      }
+      return false;
+    };
   }
 
   // Prepare axioms.
-  const std::string axiom_context = SignedProposition::Sign(true) + name_predicate;
+  const std::string axiom_context =
+      SignedProposition::Sign(true) + name_predicate;
   std::vector<std::pair<std::weak_ptr<Axiom>, AxiomApplicationFunction>> axioms;
   if (pddl.axiom_map().count(axiom_context) > 0) {
     for (const std::weak_ptr<Axiom>& ptr_axiom :
@@ -136,10 +136,11 @@ EffectsFunction<T> CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
   }
 
   // Add normal predicate
-  return [name_predicate = std::move(name_predicate), Apply = std::move(Apply),
+  return [ptr_name_predicate = &name_predicate, Apply = std::move(Apply),
           axioms = std::move(axioms)](const std::vector<Object>& arguments,
                                       T* state) -> int {
-    int status = state->emplace(name_predicate, Apply(arguments));
+    int status =
+        state->insert(PropositionRef(ptr_name_predicate, &Apply(arguments)));
     // Return early to avoid infinite loop of axiom application.
     if (status == 0) return status;
 
@@ -147,14 +148,13 @@ EffectsFunction<T> CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
     for (const auto& axiom_apply : axioms) {
       const Axiom& axiom = *axiom_apply.first.lock();
       const AxiomApplicationFunction& AxiomApply = axiom_apply.second;
-      const std::optional<std::vector<Object>> axiom_args =
-          AxiomApply(arguments);
+      const std::vector<Object>* axiom_args = AxiomApply(arguments);
 
       // std::cout << axiom << std::endl;
-      if (!axiom_args.has_value()) continue;
+      if (axiom_args == nullptr) continue;
 
-      // std::cout << "+" << name_predicate << ": " << *axiom_args << std::endl;
-      // std::cout << "[" << *state << std::endl;
+      // std::cout << "+" << *name_predicate << ": " << *axiom_args <<
+      // std::endl; std::cout << "[" << *state << std::endl;
       axiom.Action::Apply(*axiom_args, state);
       // std::cout << "]" << *state << std::endl << std::endl;
     }
@@ -171,18 +171,18 @@ EffectsFunction<T> CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
   ApplicationFunction Apply =
       Formula::CreateApplicationFunction(parameters, effect_params);
 
-  std::string name_predicate = effect->prop->head->getName();
+  const std::string& name_predicate = effect->prop->head->getNameRef();
   if (name_predicate == "=") {
     // Equality predicate
     return [Apply = std::move(Apply)](const std::vector<Object>& arguments,
                                       // NOLINTNEXTLINE(misc-unused-parameters)
                                       T* state) -> int {
-      std::vector<Object> prop_args = Apply(arguments);
+      const std::vector<Object>& prop_args = Apply(arguments);
       assert(prop_args.size() == 2);
       if (prop_args[0] == prop_args[1]) {
         std::stringstream ss;
         ss << "Action::Apply(): Cannot delete effect: "
-           << Proposition("=", std::move(prop_args)) << ".";
+           << Proposition("=", prop_args) << ".";
         throw std::runtime_error(ss.str());
       }
       return false;
@@ -190,24 +190,24 @@ EffectsFunction<T> CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
   }
   if (pddl.object_map().count(name_predicate) > 0) {
     // Type predicate
-    return
-        [name_predicate = std::move(name_predicate), Apply = std::move(Apply)](
-            // NOLINTNEXTLINE(misc-unused-parameters)
-            const std::vector<Object>& arguments, T* state) -> int {
-          std::vector<Object> prop_args = Apply(arguments);
-          assert(prop_args.size() == 1);
-          if (prop_args[0].type().IsSubtype(name_predicate)) {
-            std::stringstream ss;
-            ss << "Action::Apply(): Cannot delete effect: "
-               << Proposition(name_predicate, std::move(prop_args)) << ".";
-            throw std::runtime_error(ss.str());
-          }
-          return false;
-        };
+    return [&name_predicate, Apply = std::move(Apply)](
+               // NOLINTNEXTLINE(misc-unused-parameters)
+               const std::vector<Object>& arguments, T* state) -> int {
+      const std::vector<Object>& prop_args = Apply(arguments);
+      assert(prop_args.size() == 1);
+      if (prop_args[0].type().IsSubtype(name_predicate)) {
+        std::stringstream ss;
+        ss << "Action::Apply(): Cannot delete effect: "
+           << Proposition(name_predicate, prop_args) << ".";
+        throw std::runtime_error(ss.str());
+      }
+      return false;
+    };
   }
 
   // Prepare axioms.
-  const std::string axiom_context = SignedProposition::Sign(false) + name_predicate;
+  const std::string axiom_context =
+      SignedProposition::Sign(false) + name_predicate;
   std::vector<std::pair<std::weak_ptr<Axiom>, AxiomApplicationFunction>> axioms;
   if (pddl.axiom_map().count(axiom_context) > 0) {
     for (const std::weak_ptr<Axiom>& ptr_axiom :
@@ -224,10 +224,11 @@ EffectsFunction<T> CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
   }
 
   // Remove normal predicate
-  return [name_predicate = std::move(name_predicate), Apply = std::move(Apply),
+  return [ptr_name_predicate = &name_predicate, Apply = std::move(Apply),
           axioms = std::move(axioms)](const std::vector<Object>& arguments,
                                       T* state) -> int {
-    int status = state->erase(Proposition(name_predicate, Apply(arguments)));
+    int status =
+        state->erase(PropositionRef(ptr_name_predicate, &Apply(arguments)));
     // Return early to avoid infinite loop of axiom application.
     if (status == 0) return status;
 
@@ -235,14 +236,13 @@ EffectsFunction<T> CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
     for (const auto& axiom_apply : axioms) {
       const Axiom& axiom = *axiom_apply.first.lock();
       const AxiomApplicationFunction& AxiomApply = axiom_apply.second;
-      const std::optional<std::vector<Object>> axiom_args =
-          AxiomApply(arguments);
+      const std::vector<Object>* axiom_args = AxiomApply(arguments);
 
       // std::cout << axiom << std::endl;
-      if (!axiom_args.has_value()) continue;
+      if (axiom_args == nullptr) continue;
 
-      // std::cout << "-" << name_predicate << ": " << *axiom_args << std::endl;
-      // std::cout << "[" << *state << std::endl;
+      // std::cout << "-" << *name_predicate << ": " << *axiom_args <<
+      // std::endl; std::cout << "[" << *state << std::endl;
       axiom.Action::Apply(*axiom_args, state);
       // std::cout << "]" << *state << std::endl << std::endl;
     }
@@ -314,7 +314,7 @@ const VAL::operator_* GetSymbol(const Pddl& pddl,
   assert(pddl.symbol()->the_domain->ops != nullptr);
   for (const VAL::operator_* op : *pddl.symbol()->the_domain->ops) {
     assert(op != nullptr && op->name != nullptr);
-    if (op->name->getName() == name_action) return op;
+    if (op->name->getNameRef() == name_action) return op;
   }
   throw std::runtime_error("Action::Action(): Could not find action symbol " +
                            name_action + ".");
@@ -327,7 +327,7 @@ namespace symbolic {
 
 Action::Action(const Pddl& pddl, const VAL::operator_* symbol)
     : symbol_(symbol),
-      name_(symbol_->name->getName()),
+      name_(symbol_->name->getNameRef()),
       parameters_(Object::CreateList(pddl, symbol_->parameters)),
       param_gen_(pddl.object_map(), parameters_),
       Preconditions_(pddl, symbol_->precondition, parameters_),
