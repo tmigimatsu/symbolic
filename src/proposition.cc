@@ -13,7 +13,13 @@
 
 namespace symbolic {
 
-
+size_t PropositionBase::Hash(const PropositionBase& prop) {
+  size_t seed = std::hash<std::string>{}(prop.name());
+  for (const symbolic::Object& arg : prop.arguments()) {
+    seed ^= std::hash<std::string>{}(arg.name()) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+  }
+  return seed;
+}
 
 std::string PropositionBase::to_string() const {
   std::stringstream ss;
@@ -38,11 +44,17 @@ namespace std {
 
 size_t hash<symbolic::PropositionBase>::operator()(
     const symbolic::PropositionBase& prop) const noexcept {
-  size_t seed = hash<string>{}(prop.name());
-  for (const symbolic::Object& arg : prop.arguments()) {
-    seed ^= hash<string>{}(arg.name()) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-  }
-  return seed;
+  return prop.hash();
+}
+
+size_t hash<symbolic::Proposition>::operator()(
+    const symbolic::Proposition& prop) const noexcept {
+  return prop.hash();
+}
+
+size_t hash<symbolic::PropositionRef>::operator()(
+    const symbolic::PropositionRef& prop) const noexcept {
+  return prop.hash();
 }
 
 };  // namespace std

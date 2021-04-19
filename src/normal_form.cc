@@ -240,22 +240,12 @@ std::vector<DisjunctiveFormula> Convert(ConjunctiveFormula&& cnf) {
   for (ConjunctiveFormula::Disjunction& disj : cnf.disjunctions) {
     DisjunctiveFormula dnf;
     dnf.conjunctions.reserve(disj.size());
-#ifndef SYMBOLIC_STATE_USE_SET
     for (Proposition& prop : disj.pos()) {
       dnf.conjunctions.push_back(PartialState({std::move(prop)}, {}));
     }
     for (Proposition& prop : disj.neg()) {
       dnf.conjunctions.push_back(PartialState({}, {std::move(prop)}));
     }
-#else  // SYMBOLIC_STATE_USE_SET
-    // Cannot modify elements in unordered_set.
-    for (const Proposition& prop : disj.pos()) {
-      dnf.conjunctions.push_back(PartialState({prop}, {}));
-    }
-    for (const Proposition& prop : disj.neg()) {
-      dnf.conjunctions.push_back(PartialState({}, {prop}));
-    }
-#endif  // SYMBOLIC_STATE_USE_SET
     dnfs.push_back(std::move(dnf));
   }
   return dnfs;

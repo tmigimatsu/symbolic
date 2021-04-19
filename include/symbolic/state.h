@@ -10,7 +10,7 @@
 #ifndef SYMBOLIC_STATE_H_
 #define SYMBOLIC_STATE_H_
 
-// #define SYMBOLIC_STATE_USE_SET
+#define SYMBOLIC_STATE_USE_SET
 
 #include <Eigen/Eigen>
 #include <exception>      // std::exception
@@ -21,10 +21,10 @@
 #include <utility>        // std::pair
 
 #ifndef SYMBOLIC_STATE_USE_SET
-#include <vector>  // std::vector
-#else              // SYMBOLIC_STATE_USE_SET
-#include <set>     // std::set
-#endif             // SYMBOLIC_STATE_USE_SET
+#include "symbolic/utils/unique_vector.h"
+#else  // SYMBOLIC_STATE_USE_SET
+#include "symbolic/utils/hash_set.h"
+#endif  // SYMBOLIC_STATE_USE_SET
 
 #include "symbolic/proposition.h"
 
@@ -33,11 +33,11 @@ namespace symbolic {
 class Predicate;
 
 #ifndef SYMBOLIC_STATE_USE_SET
-class State : private std::vector<Proposition> {
-  using Base = std::vector<Proposition>;
+class State : private UniqueVector<Proposition> {
+  using Base = UniqueVector<Proposition>;
 #else   // SYMBOLIC_STATE_USE_SET
-class State : private std::set<Proposition> {
-  using Base = std::set<Proposition>;
+class State : private HashSet<Proposition> {
+  using Base = HashSet<Proposition>;
 #endif  // SYMBOLIC_STATE_USE_SET
 
  public:
@@ -45,21 +45,23 @@ class State : private std::set<Proposition> {
   using const_iterator = Base::const_iterator;
 
   State() = default;
-  State(std::initializer_list<Proposition> l);
+  State(std::initializer_list<Proposition> l) : Base(l){};
 
   State(const Pddl& pddl, const std::unordered_set<std::string>& str_state);
 
   /**
    * Returns whether the state contains the given proposition.
    */
-  bool contains(const PropositionBase& prop) const;
+  bool contains(const PropositionBase& prop) const {
+    return Base::contains(prop);
+  }
 
   /**
    * Inserts a proposition into the state, and returns whether or not the state
    * has changed.
    */
-  bool insert(const PropositionBase& prop);
-  bool insert(Proposition&& prop);
+  bool insert(const PropositionBase& prop) { return Base::insert(prop); }
+  bool insert(Proposition&& prop) { return Base::insert(std::move(prop)); }
 
   template <class InputIt>
   bool insert(InputIt first, InputIt last);
@@ -77,13 +79,13 @@ class State : private std::set<Proposition> {
    * Removes a proposition from the state, and returns whether or not the state
    * has changed.
    */
-  bool erase(const PropositionBase& prop);
-
-  iterator begin() { return Base::begin(); }
-  iterator end() { return Base::end(); }
+  bool erase(const PropositionBase& prop) { return Base::erase(prop); }
 
   const_iterator begin() const { return Base::begin(); }
   const_iterator end() const { return Base::end(); };
+
+  iterator begin() { return Base::begin(); }
+  iterator end() { return Base::end(); }
 
   bool empty() const { return Base::empty(); }
   size_t size() const { return Base::size(); }
@@ -105,9 +107,6 @@ class State : private std::set<Proposition> {
 
   friend bool operator<(const State& lhs, const State& rhs) {
     return static_cast<const Base&>(lhs) < static_cast<const Base&>(rhs);
-  }
-  friend bool operator>(const State& lhs, const State& rhs) {
-    return !(lhs < rhs);
   }
 
   friend std::ostream& operator<<(std::ostream& os, const State& state);

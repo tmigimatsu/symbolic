@@ -30,6 +30,8 @@ class PropositionBase {
 
   virtual std::string to_string() const;
 
+  size_t hash() const { return hash_; }
+
   static std::string ParseHead(const std::string& atom) {
     return atom.substr(0, atom.find_first_of('('));
   }
@@ -50,6 +52,13 @@ class PropositionBase {
   }
 
   friend std::ostream& operator<<(std::ostream& os, const PropositionBase& P);
+
+ protected:
+  static size_t Hash(const PropositionBase& prop);
+
+  void PrecomputeHash() { hash_ = Hash(*this); }
+
+  size_t hash_;
 };
 
 class Proposition : public PropositionBase {
@@ -58,22 +67,32 @@ class Proposition : public PropositionBase {
 
   Proposition(const std::string& name_predicate,
               std::vector<Object>&& arguments)
-      : name_(name_predicate), arguments_(std::move(arguments)) {}
+      : name_(name_predicate), arguments_(std::move(arguments)) {
+    PrecomputeHash();
+  }
 
   Proposition(const std::string& name_predicate,
               const std::vector<Object>& arguments)
-      : name_(name_predicate), arguments_(arguments) {}
+      : name_(name_predicate), arguments_(arguments) {
+    PrecomputeHash();
+  }
 
   Proposition(const Pddl& pddl, const std::string& str_prop)
       : name_(ParseHead(str_prop)),
-        arguments_(Object::ParseArguments(pddl, str_prop)) {}
+        arguments_(Object::ParseArguments(pddl, str_prop)) {
+    PrecomputeHash();
+  }
 
   explicit Proposition(const std::string& str_prop)
       : name_(ParseHead(str_prop)),
-        arguments_(Object::ParseArguments(str_prop)) {}
+        arguments_(Object::ParseArguments(str_prop)) {
+    PrecomputeHash();
+  }
 
   explicit Proposition(const PropositionBase& other)
-      : name_(other.name()), arguments_(other.arguments()) {}
+      : PropositionBase(other),
+        name_(other.name()),
+        arguments_(other.arguments()) {}
 
   const std::string& name() const override { return name_; }
 
@@ -88,7 +107,9 @@ class PropositionRef : public PropositionBase {
  public:
   PropositionRef(const std::string* name_predicate,
                  const std::vector<Object>* arguments)
-      : name_(name_predicate), arguments_(arguments) {}
+      : name_(name_predicate), arguments_(arguments) {
+    PrecomputeHash();
+  }
 
   const std::string& name() const override { return *name_; }
 
@@ -125,6 +146,16 @@ namespace std {
 template <>
 struct hash<symbolic::PropositionBase> {
   size_t operator()(const symbolic::PropositionBase& prop) const noexcept;
+};
+
+template <>
+struct hash<symbolic::Proposition> {
+  size_t operator()(const symbolic::Proposition& prop) const noexcept;
+};
+
+template <>
+struct hash<symbolic::PropositionRef> {
+  size_t operator()(const symbolic::PropositionRef& prop) const noexcept;
 };
 
 }  // namespace std

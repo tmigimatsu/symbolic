@@ -7,17 +7,17 @@
  * Authors: Toki Migimatsu
  */
 
-#include <chrono>    // std::chrono
-#include <iostream>  // std::cout
-#include <set>       // std::set
-#include <string>    // std::stoi
-#include <vector>    // std::vector
-
 #include <symbolic/pddl.h>
 #include <symbolic/planning/a_star.h>
 #include <symbolic/planning/breadth_first_search.h>
 #include <symbolic/planning/depth_first_search.h>
 #include <symbolic/planning/planner.h>
+
+#include <chrono>    // std::chrono
+#include <iostream>  // std::cout
+#include <set>       // std::set
+#include <string>    // std::stoi
+#include <vector>    // std::vector
 
 namespace {
 
@@ -83,6 +83,7 @@ int main(int argc, char* argv[]) {  // NOLINT(bugprone-exception-escape)
   std::cout << "Planning:" << std::endl;
   const auto t_start = std::chrono::high_resolution_clock::now();
   symbolic::BreadthFirstSearch bfs(planner.root(), args.depth, args.verbose);
+  size_t num_plans = 0;
   for (const std::vector<symbolic::Planner::Node>& plan : bfs) {
     std::cout << std::chrono::duration<float>(
                      std::chrono::high_resolution_clock::now() - t_start)
@@ -92,9 +93,10 @@ int main(int argc, char* argv[]) {  // NOLINT(bugprone-exception-escape)
       std::cout << node << std::endl;
     }
     std::cout << std::endl;
+    num_plans++;
   }
 
-  std::cout << "Finished in "
+  std::cout << "Found " << num_plans << " plans in "
             << std::chrono::duration<float>(
                    std::chrono::high_resolution_clock::now() - t_start)
                    .count()
