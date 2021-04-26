@@ -11,12 +11,21 @@
 
 #include <sstream>  // std::stringstream
 
+namespace {
+
+constexpr size_t kHashOffset = 0x9e3779b9;
+constexpr size_t kHashL = 6;
+constexpr size_t kHashR = 2;
+
+}  // namespace
+
 namespace symbolic {
 
 size_t PropositionBase::Hash(const PropositionBase& prop) {
   size_t seed = std::hash<std::string>{}(prop.name());
   for (const symbolic::Object& arg : prop.arguments()) {
-    seed ^= std::hash<std::string>{}(arg.name()) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    seed ^= std::hash<std::string>{}(arg.name()) + kHashOffset +
+            (seed << kHashL) + (seed >> kHashR);
   }
   return seed;
 }

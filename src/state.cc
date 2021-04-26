@@ -224,14 +224,22 @@ StateIndex::IndexedState StateIndex::GetIndexedState(const State& state) const {
 
 }  // namespace symbolic
 
+namespace {
+
+constexpr size_t kHashOffset = 0x9e3779b9;
+constexpr size_t kHashL = 6;
+constexpr size_t kHashR = 2;
+
+}  // namespace
+
 namespace std {
 
 size_t hash<symbolic::State>::operator()(
     const symbolic::State& state) const noexcept {
   size_t seed = 0;
   for (const symbolic::Proposition& prop : state) {
-    seed ^= hash<symbolic::PropositionBase>{}(prop) + 0x9e3779b9 + (seed << 6) +
-            (seed >> 2);
+    seed ^= hash<symbolic::PropositionBase>{}(prop) + kHashOffset +
+            (seed << kHashL) + (seed >> kHashR);
   }
   return seed;
 }

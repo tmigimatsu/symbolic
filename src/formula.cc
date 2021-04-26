@@ -176,8 +176,7 @@ NamedFormulaFunction<PartialState> CreateNegation(
   const VAL::goal* goal = symbol->getGoal();
 
   // Check if goal is a simple proposition.
-  const VAL::simple_goal* simple_goal =
-      dynamic_cast<const VAL::simple_goal*>(goal);
+  const auto* simple_goal = dynamic_cast<const VAL::simple_goal*>(goal);
   if (simple_goal != nullptr) {
     const VAL::proposition* prop = simple_goal->getProp();
     const std::string& name_predicate = prop->head->getNameRef();

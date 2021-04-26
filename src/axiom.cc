@@ -11,7 +11,8 @@
 
 #include <VAL/ptree.h>
 
-#include <sstream>  // std::stringstream
+#include <exception>  // std::domain_error
+#include <sstream>    // std::stringstream
 
 #include "symbolic/normal_form.h"
 
@@ -22,7 +23,6 @@ using ::symbolic::Formula;
 using ::symbolic::Object;
 using ::symbolic::ParameterGenerator;
 using ::symbolic::Pddl;
-using ::symbolic::Proposition;
 using ::symbolic::SignedProposition;
 
 using AxiomApplicationFunction =
@@ -89,9 +89,9 @@ SignedProposition ExtractContextPredicate(const Pddl& pddl,
 
   // Context is more complex.
   if (simple_goal == nullptr) {
-    std::cerr << "Axiom::Axiom(): Context must be a simple positive or "
-                 "negative predicate."
-              << std::endl;
+    throw std::domain_error(
+        "Axiom::Axiom(): Context must be a simple positive or negative "
+        "predicate.");
   }
 
   const std::string& name_predicate =

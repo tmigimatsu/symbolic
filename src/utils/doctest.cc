@@ -7,6 +7,7 @@
  * Authors: Toki Migimatsu
  */
 
+// NOLINTNEXTLINE(clang-diagnostic-header-guard)
 #ifndef DOCTEST_CONFIG_DISABLE
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest.h"

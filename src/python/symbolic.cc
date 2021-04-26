@@ -525,16 +525,16 @@ PYBIND11_MODULE(pysymbolic, m) {
               ((or
                   (and
                       inworkspace(hook)
-                      not inhand(box)
                       not inhand(hook)
+                      not inhand(box)
                   )
               )
               , (or
                   (and
                       inhand(hook)
+                      not on(hook, shelf)
                       not on(hook, box)
                       not on(hook, hook)
-                      not on(hook, shelf)
                       not on(hook, table)
                   )
               )
