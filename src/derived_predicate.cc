@@ -20,7 +20,7 @@ DerivedPredicate::DerivedPredicate(const Pddl& pddl,
     : symbol_(symbol) {
   name_ = symbol_->get_head()->head->getName();
   parameters_ = Object::CreateList(pddl, symbol_->get_head()->args);
-  param_gen_ = ParameterGenerator(pddl.object_map(), parameters_);
+  param_gen_ = ParameterGenerator(pddl, parameters_);
   Preconditions_ = Formula(pddl, symbol_->get_body(), parameters_);
 }
 

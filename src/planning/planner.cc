@@ -101,7 +101,7 @@ Planner::Node::iterator Planner::Node::begin() const {
     // Return if state hasn't been previously visited
     const std::shared_ptr<const Planner::Node::NodeImpl::Cache> ancestors =
         it.child_->ancestors_;
-    if (ancestors->find(it.child_) == ancestors->end()) return it;
+    if (ancestors->count(it.child_) == 0) return it;
   }
 
   ++it;
@@ -183,7 +183,7 @@ Planner::Node::iterator& Planner::Node::iterator::operator++() {
       // Return if state hasn't been previously visited
       const std::shared_ptr<const Planner::Node::NodeImpl::Cache> ancestors =
           child_->ancestors_;
-      if (ancestors->find(child_) == ancestors->end()) break;
+      if (ancestors->count(child_) == 0) break;
     }
   }
 
@@ -209,7 +209,7 @@ Planner::Node::iterator& Planner::Node::iterator::operator--() {
       // Return if state hasn't been previously visited
       const std::shared_ptr<const Planner::Node::NodeImpl::Cache> ancestors =
           child_->ancestors_;
-      if (ancestors->find(child_) == ancestors->end()) return *this;
+      if (ancestors->count(child_) == 0) return *this;
     }
   }
 
@@ -240,7 +240,7 @@ Planner::Node::iterator& Planner::Node::iterator::operator--() {
       // Return if state hasn't been previously visited
       const std::shared_ptr<const Planner::Node::NodeImpl::Cache> ancestors =
           child_->ancestors_;
-      if (ancestors->find(child_) == ancestors->end()) break;
+      if (ancestors->count(child_) == 0) break;
     }
   }
 

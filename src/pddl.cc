@@ -406,7 +406,7 @@ bool Pddl::IsValidPlan(const std::vector<std::string>& action_skeleton) const {
 std::vector<std::vector<Object>> Pddl::ListValidArguments(
     const State& state, const Action& action) const {
   std::vector<std::vector<Object>> arguments;
-  ParameterGenerator param_gen(object_map(), action.parameters());
+  ParameterGenerator param_gen(*this, action.parameters());
   for (const std::vector<Object>& args : param_gen) {
     if (action.IsValid(state, args)) arguments.push_back(args);
   }

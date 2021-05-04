@@ -27,7 +27,7 @@ class ParameterGenerator
   ParameterGenerator() = default;
   ~ParameterGenerator() override = default;
 
-  ParameterGenerator(const ObjectTypeMap& object_map,
+  ParameterGenerator(const Pddl& pddl,
                      const std::vector<Object>& params);
 
   ParameterGenerator(const ParameterGenerator& other);
@@ -35,11 +35,11 @@ class ParameterGenerator
   ParameterGenerator& operator=(const ParameterGenerator& rhs);
   ParameterGenerator& operator=(ParameterGenerator&& rhs) noexcept;
 
-
-  // ParameterGenerator(ObjectTypeMap&& object_map,
-  //                    const std::vector<Object>& params);
+  const Pddl& pddl() const { return *pddl_; }
 
  private:
+  const Pddl* pddl_ = nullptr;
+
   // Store parameter types for portability
   std::vector<std::vector<Object>> param_types_;
 };

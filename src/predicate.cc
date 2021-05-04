@@ -21,7 +21,7 @@ Predicate::Predicate(const Pddl& pddl, const VAL::pred_decl* symbol)
     : symbol_(symbol),
       name_(symbol_->getPred()->getName()),
       parameters_(Object::CreateList(pddl, symbol_->getArgs())),
-      param_gen_(ParameterGenerator(pddl.object_map(), parameters_)) {}
+      param_gen_(ParameterGenerator(pddl, parameters_)) {}
 
 std::string Predicate::to_string() const {
   std::stringstream ss;

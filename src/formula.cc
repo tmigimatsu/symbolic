@@ -81,10 +81,13 @@ NamedFormulaFunction<T> CreateProposition(
     return {std::move(F), Proposition(name_predicate, prop_params).to_string()};
   }
 
-  FormulaFunction<T> F =
-      [ptr_name_predicate = &name_predicate, Apply = std::move(Apply)](
-          const T& state, const std::vector<Object>& arguments) -> bool {
-    PropositionRef P(ptr_name_predicate, &Apply(arguments));
+  const size_t predicate_hash = std::hash<std::string>{}(name_predicate);
+  FormulaFunction<T> F = [ptr_name_predicate = &name_predicate, predicate_hash,
+                          Apply = std::move(Apply)](
+                             const T& state,
+                             const std::vector<Object>& arguments) -> bool {
+    const PropositionRef P(ptr_name_predicate, &Apply(arguments),
+                           predicate_hash);
     return state.contains(P);
   };
 
@@ -189,11 +192,14 @@ NamedFormulaFunction<PartialState> CreateNegation(
       ApplicationFunction Apply =
           Formula::CreateApplicationFunction(parameters, prop_params);
 
+      const size_t predicate_hash = std::hash<std::string>{}(name_predicate);
       FormulaFunction<PartialState> F =
-          [ptr_name_predicate = &name_predicate, Apply = std::move(Apply)](
+          [ptr_name_predicate = &name_predicate, predicate_hash,
+           Apply = std::move(Apply)](
               const PartialState& state,
               const std::vector<Object>& arguments) -> bool {
-        PropositionRef P(ptr_name_predicate, &Apply(arguments));
+        const PropositionRef P(ptr_name_predicate, &Apply(arguments),
+                               predicate_hash);
         return state.does_not_contain(P);
       };
 
@@ -229,7 +235,7 @@ NamedFormulaFunction<T> CreateForall(const Pddl& pddl,
   const VAL::goal* goal = symbol->getGoal();
   NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, forall_params);
 
-  FormulaFunction<T> F = [gen = ParameterGenerator(pddl.object_map(), types),
+  FormulaFunction<T> F = [gen = ParameterGenerator(pddl, types),
                           types = std::move(types), P = std::move(P_str.first)](
                              const T& state,
                              const std::vector<Object>& arguments) -> bool {
@@ -268,7 +274,7 @@ NamedFormulaFunction<T> CreateExists(const Pddl& pddl,
   const VAL::goal* goal = symbol->getGoal();
   NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, exists_params);
 
-  FormulaFunction<T> F = [gen = ParameterGenerator(pddl.object_map(), types),
+  FormulaFunction<T> F = [gen = ParameterGenerator(pddl, types),
                           types = std::move(types), P = std::move(P_str.first)](
                              const T& state,
                              const std::vector<Object>& arguments) -> bool {

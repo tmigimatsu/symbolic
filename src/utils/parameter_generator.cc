@@ -12,6 +12,8 @@
 #include <exception>  // std::runtime_error
 #include <iostream>   // std::cerr
 
+#include "symbolic/pddl.h"
+
 namespace {
 
 using ::symbolic::Object;
@@ -26,8 +28,9 @@ std::vector<std::vector<Object>> ParamTypes(
     try {
       types.push_back(object_map.at(param.type().name()));
     } catch (...) {
-      std::cerr << "ParameterGenerator(): parameter type '" <<
-        param.type().name() << " not found in object map." << std::endl;
+      std::cerr << "ParameterGenerator(): parameter type '"
+                << param.type().name() << " not found in object map."
+                << std::endl;
       types.clear();
       break;
       // throw std::runtime_error("ParameterGenerator(): parameter type '" +
@@ -52,30 +55,36 @@ std::vector<const std::vector<Object>*> Options(
 
 namespace symbolic {
 
-ParameterGenerator::ParameterGenerator(const ObjectTypeMap& object_map,
+ParameterGenerator::ParameterGenerator(const Pddl& pddl,
                                        const std::vector<Object>& params)
-    : param_types_(ParamTypes(object_map, params)) {
+    : param_types_(ParamTypes(pddl.object_map(), params)) {
   Base::operator=(Base(Options(param_types_)));
 }
 
 // NOLINTNEXTLINE(bugprone-copy-constructor-init)
 ParameterGenerator::ParameterGenerator(const ParameterGenerator& other)
-  : param_types_(other.param_types_) {
+    : param_types_(other.param_types_) {
   Base::operator=(Base(Options(param_types_)));
 }
 
 ParameterGenerator::ParameterGenerator(ParameterGenerator&& other) noexcept
-  : param_types_(std::move(other.param_types_)) {
+    : param_types_(std::move(other.param_types_)) {
   Base::operator=(Base(Options(param_types_)));
 }
 
-ParameterGenerator& ParameterGenerator::operator=(const ParameterGenerator& rhs) {
+ParameterGenerator& ParameterGenerator::operator=(
+    const ParameterGenerator& rhs) {
+  if (this == &rhs) return *this;
+
+  pddl_ = rhs.pddl_;
   param_types_ = rhs.param_types_;
   Base::operator=(Base(Options(param_types_)));
   return *this;
 }
 
-ParameterGenerator& ParameterGenerator::operator=(ParameterGenerator&& rhs) noexcept {
+ParameterGenerator& ParameterGenerator::operator=(
+    ParameterGenerator&& rhs) noexcept {
+  pddl_ = rhs.pddl_;
   param_types_ = std::move(rhs.param_types_);
   Base::operator=(Base(Options(param_types_)));
   return *this;

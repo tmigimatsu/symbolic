@@ -10,7 +10,7 @@
 #ifndef SYMBOLIC_PROPOSITION_H_
 #define SYMBOLIC_PROPOSITION_H_
 
-#include <functional>  // std::hash
+#include <functional>  // std::equal_to, std::hash
 #include <ostream>     // std::ostream
 #include <string>      // std::string
 #include <utility>     // std::tie
@@ -43,8 +43,8 @@ class PropositionBase {
   }
   friend bool operator==(const PropositionBase& lhs,
                          const PropositionBase& rhs) {
-    return std::tie(lhs.name(), lhs.arguments()) ==
-           std::tie(rhs.name(), rhs.arguments());
+    return std::tie(lhs.hash_, lhs.name(), lhs.arguments()) ==
+           std::tie(rhs.hash_, rhs.name(), rhs.arguments());
   }
   friend bool operator!=(const PropositionBase& lhs,
                          const PropositionBase& rhs) {
@@ -55,8 +55,10 @@ class PropositionBase {
 
  protected:
   static size_t Hash(const PropositionBase& prop);
+  static size_t Hash(const PropositionBase& prop, size_t predicate_hash);
 
   void PrecomputeHash() { hash_ = Hash(*this); }
+  void PrecomputeHash(size_t predicate_hash) { hash_ = Hash(*this, predicate_hash); }
 
   size_t hash_;
 };
@@ -83,11 +85,11 @@ class Proposition : public PropositionBase {
     PrecomputeHash();
   }
 
-  explicit Proposition(const std::string& str_prop)
-      : name_(ParseHead(str_prop)),
-        arguments_(Object::ParseArguments(str_prop)) {
-    PrecomputeHash();
-  }
+  // explicit Proposition(const std::string& str_prop)
+  //     : name_(ParseHead(str_prop)),
+  //       arguments_(Object::ParseArguments(str_prop)) {
+  //   PrecomputeHash();
+  // }
 
   explicit Proposition(const PropositionBase& other)
       : PropositionBase(other),
@@ -106,9 +108,10 @@ class Proposition : public PropositionBase {
 class PropositionRef : public PropositionBase {
  public:
   PropositionRef(const std::string* name_predicate,
-                 const std::vector<Object>* arguments)
+                 const std::vector<Object>* arguments,
+                 size_t predicate_hash)
       : name_(name_predicate), arguments_(arguments) {
-    PrecomputeHash();
+    PrecomputeHash(predicate_hash);
   }
 
   const std::string& name() const override { return *name_; }
@@ -145,18 +148,28 @@ namespace std {
 
 template <>
 struct hash<symbolic::PropositionBase> {
-  size_t operator()(const symbolic::PropositionBase& prop) const noexcept;
+  using is_transparent = void;
+  size_t operator()(const symbolic::PropositionBase& prop) const noexcept {
+    return prop.hash();
+  }
 };
 
 template <>
 struct hash<symbolic::Proposition> {
-  size_t operator()(const symbolic::Proposition& prop) const noexcept;
+  using is_transparent = void;
+  size_t operator()(const symbolic::Proposition& prop) const noexcept {
+    return prop.hash();
+  }
 };
 
 template <>
 struct hash<symbolic::PropositionRef> {
-  size_t operator()(const symbolic::PropositionRef& prop) const noexcept;
+  using is_transparent = void;
+  size_t operator()(const symbolic::PropositionRef& prop) const noexcept {
+    return prop.hash();
+  }
 };
 
 }  // namespace std
+
 #endif  // SYMBOLIC_PROPOSITION_H_

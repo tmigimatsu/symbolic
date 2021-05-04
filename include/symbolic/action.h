@@ -70,6 +70,8 @@ class Action {
 
   const VAL::operator_* symbol() const { return symbol_; }
 
+  const Pddl& pddl() const { return *pddl_; }
+
   const std::string& name() const { return name_; }
 
   const std::vector<Object>& parameters() const { return parameters_; }
@@ -99,6 +101,7 @@ class Action {
 
  protected:
   const VAL::operator_* symbol_ = nullptr;
+  const Pddl* pddl_ = nullptr;
   std::string name_;
   std::vector<Object> parameters_;
   ParameterGenerator param_gen_;

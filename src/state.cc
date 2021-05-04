@@ -131,7 +131,8 @@ std::ostream& operator<<(std::ostream& os, const PartialState& state) {
 }
 
 StateIndex::StateIndex(const std::vector<Predicate>& predicates, bool use_cache)
-    : predicates_(predicates),
+    : pddl_(&predicates.front().pddl()),
+      predicates_(predicates),
       idx_predicate_group_(PredicateCumSum(predicates_)),
       idx_predicates_(PredicateIndices(predicates_)),
       use_cache_(use_cache) {}
@@ -140,7 +141,7 @@ Proposition StateIndex::GetProposition(size_t idx_proposition) const {
   // Check cache
   if (use_cache_ &&
       cache_propositions_.find(idx_proposition) != cache_propositions_.end()) {
-    return Proposition(cache_propositions_.at(idx_proposition));
+    return cache_propositions_.at(idx_proposition);
   }
 
   // Find index of predicate through bisection
@@ -162,8 +163,7 @@ Proposition StateIndex::GetProposition(size_t idx_proposition) const {
 
   // Cache results
   if (use_cache_) {
-    cache_propositions_[idx_proposition] =
-        Proposition(pred.name(), args).to_string();
+    cache_propositions_[idx_proposition] = Proposition(pred.name(), args);
   }
 
   return Proposition(pred.name(), std::move(args));

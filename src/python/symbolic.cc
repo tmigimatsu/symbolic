@@ -31,20 +31,21 @@ using ::symbolic::State;
 using StringSet = std::set<std::string>;
 using StringVector = std::vector<std::string>;
 
-State ParseState(const StringSet& str_state) {
+State ParseState(const Pddl& pddl, const StringSet& str_state) {
   State state;
   state.reserve(str_state.size());
   for (const std::string& str_prop : str_state) {
-    state.emplace(str_prop);
+    state.emplace(pddl, str_prop);
   }
   return state;
 }
 
-std::vector<Object> ParseObjects(const StringVector& str_objects) {
+std::vector<Object> ParseObjects(const Pddl& pddl,
+                                 const StringVector& str_objects) {
   std::vector<Object> objects;
   objects.reserve(str_objects.size());
   for (const std::string& str_object : str_objects) {
-    objects.emplace_back(str_object);
+    objects.emplace_back(pddl, str_object);
   }
   return objects;
 }
@@ -298,7 +299,7 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def("to_string",
            [](const Action& action,
               const std::vector<std::string>& arguments) -> std::string {
-             return action.to_string(ParseObjects(arguments));
+             return action.to_string(ParseObjects(action.pddl(), arguments));
            })
       .def("__repr__",
            static_cast<std::string (Action::*)() const>(&Action::to_string));
@@ -331,7 +332,7 @@ PYBIND11_MODULE(pysymbolic, m) {
           "to_string",
           [](const Predicate& pred,
              const std::vector<std::string>& arguments) -> std::string {
-            return pred.to_string(ParseObjects(arguments));
+            return pred.to_string(ParseObjects(pred.pddl(), arguments));
           },
           R"pbdoc(
           Creates a string representation of the predicate with the given arguments.
@@ -422,7 +423,8 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def("index",
            [](const ParameterGenerator& param_gen,
               const StringVector& str_args) -> size_t {
-             return param_gen.find(Object::ParseArguments(str_args));
+             return param_gen.find(
+                 Object::ParseArguments(param_gen.pddl(), str_args));
            });
 
   // StateIndex
@@ -434,7 +436,8 @@ PYBIND11_MODULE(pysymbolic, m) {
            })
       .def("get_proposition_index",
            [](const StateIndex& state_index, const std::string& str_prop) {
-             return state_index.GetPropositionIndex(Proposition(str_prop));
+             return state_index.GetPropositionIndex(
+                 Proposition(state_index.pddl(), str_prop));
            })
       .def("get_state",
            [](const StateIndex& state_index,
@@ -444,7 +447,7 @@ PYBIND11_MODULE(pysymbolic, m) {
            })
       .def("get_indexed_state",
            [](const StateIndex& state_index, const StringSet& str_state) {
-             return state_index.GetIndexedState(ParseState(str_state));
+             return state_index.GetIndexedState(ParseState(state_index.pddl(), str_state));
            })
       .def("__len__", &StateIndex::size, R"pbdoc(
           Size of the state index.
@@ -553,14 +556,15 @@ PYBIND11_MODULE(pysymbolic, m) {
           "pos", [](const PartialState& s) { return Stringify(s.pos()); })
       .def_property_readonly(
           "neg", [](const PartialState& s) { return Stringify(s.neg()); })
-      .def(py::pickle(
-          [](const PartialState& s) {
-            return py::make_tuple(Stringify(s.pos()), Stringify(s.neg()));
-          },
-          [](const py::tuple& pos_neg) {
-            return PartialState{ParseState(pos_neg[0].cast<StringSet>()),
-                                ParseState(pos_neg[1].cast<StringSet>())};
-          }))
+      // .def(py::pickle(
+      //     [](const PartialState& s) {
+      //       return py::make_tuple(Stringify(s.pos()), Stringify(s.neg()));
+      //     },
+      //     [](const py::tuple& pos_neg) {
+      //       // TODO: Construct with pddl.
+      //       return PartialState{ParseState(pos_neg[0].cast<StringSet>()),
+      //                           ParseState(pos_neg[1].cast<StringSet>())};
+      //     }))
       .def("__repr__", [](const PartialState& s) {
         std::stringstream ss;
         ss << s;

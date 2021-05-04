@@ -56,7 +56,7 @@ EffectsFunction<T> CreateForall(const Pddl& pddl,
   EffectsFunction<T> ForallEffects =
       CreateEffectsFunction<T>(pddl, effect->getEffects(), forall_params);
 
-  return [gen = symbolic::ParameterGenerator(pddl.object_map(), types),
+  return [gen = symbolic::ParameterGenerator(pddl, types),
           ForallEffects = std::move(ForallEffects)](
              const std::vector<Object>& arguments, T* state) -> int {
     // Loop over forall arguments
@@ -136,11 +136,12 @@ EffectsFunction<T> CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
   }
 
   // Add normal predicate
-  return [ptr_name_predicate = &name_predicate, Apply = std::move(Apply),
-          axioms = std::move(axioms)](const std::vector<Object>& arguments,
-                                      T* state) -> int {
-    int status =
-        state->insert(PropositionRef(ptr_name_predicate, &Apply(arguments)));
+  const size_t predicate_hash = std::hash<std::string>{}(name_predicate);
+  return [ptr_name_predicate = &name_predicate, predicate_hash,
+          Apply = std::move(Apply), axioms = std::move(axioms)](
+             const std::vector<Object>& arguments, T* state) -> int {
+    int status = state->insert(
+        PropositionRef(ptr_name_predicate, &Apply(arguments), predicate_hash));
     // Return early to avoid infinite loop of axiom application.
     if (status == 0) return status;
 
@@ -224,11 +225,12 @@ EffectsFunction<T> CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
   }
 
   // Remove normal predicate
-  return [ptr_name_predicate = &name_predicate, Apply = std::move(Apply),
-          axioms = std::move(axioms)](const std::vector<Object>& arguments,
-                                      T* state) -> int {
-    int status =
-        state->erase(PropositionRef(ptr_name_predicate, &Apply(arguments)));
+  const size_t predicate_hash = std::hash<std::string>{}(name_predicate);
+  return [ptr_name_predicate = &name_predicate, predicate_hash,
+          Apply = std::move(Apply), axioms = std::move(axioms)](
+             const std::vector<Object>& arguments, T* state) -> int {
+    int status = state->erase(
+        PropositionRef(ptr_name_predicate, &Apply(arguments), predicate_hash));
     // Return early to avoid infinite loop of axiom application.
     if (status == 0) return status;
 
@@ -327,9 +329,10 @@ namespace symbolic {
 
 Action::Action(const Pddl& pddl, const VAL::operator_* symbol)
     : symbol_(symbol),
+      pddl_(&pddl),
       name_(symbol_->name->getNameRef()),
       parameters_(Object::CreateList(pddl, symbol_->parameters)),
-      param_gen_(pddl.object_map(), parameters_),
+      param_gen_(pddl, parameters_),
       Preconditions_(pddl, symbol_->precondition, parameters_),
       Apply_(CreateEffectsFunction<State>(pddl, symbol_->effects, parameters_)),
       ApplyPartial_(CreateEffectsFunction<PartialState>(pddl, symbol_->effects,

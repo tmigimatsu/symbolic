@@ -271,7 +271,11 @@ class StateIndex {
   iterator begin() const { return iterator(this, 0); };
   iterator end() const { return iterator(this, size()); };
 
+  const Pddl& pddl() const { return *pddl_; }
+
  private:
+  const Pddl* pddl_ = nullptr;
+
   // Predicates vector stored for portability
   std::vector<Predicate> predicates_;
 
@@ -283,7 +287,7 @@ class StateIndex {
   std::unordered_map<std::string, size_t> idx_predicates_;
 
   // Cache
-  mutable std::unordered_map<size_t, std::string> cache_propositions_;
+  mutable std::unordered_map<size_t, Proposition> cache_propositions_;
   mutable std::unordered_map<std::string, size_t> cache_idx_propositions_;
 
   bool use_cache_;

@@ -344,7 +344,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
 
     // Loop over qfied arguments
     std::vector<DisjunctiveFormula> qfied_terms;
-    symbolic::ParameterGenerator gen(pddl.object_map(), types);
+    symbolic::ParameterGenerator gen(pddl, types);
     for (const std::vector<Object>& qfied_objs : gen) {
       // Create qfied arguments
       std::vector<Object> qfied_args = arguments;
@@ -388,7 +388,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
     forall_params.insert(forall_params.end(), types.begin(), types.end());
 
     // Loop over forall arguments
-    symbolic::ParameterGenerator gen(pddl.object_map(), types);
+    symbolic::ParameterGenerator gen(pddl, types);
     for (const std::vector<Object>& forall_objs : gen) {
       // Create qfied arguments
       std::vector<Object> forall_args = arguments;

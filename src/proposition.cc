@@ -22,10 +22,14 @@ constexpr size_t kHashR = 2;
 namespace symbolic {
 
 size_t PropositionBase::Hash(const PropositionBase& prop) {
-  size_t seed = std::hash<std::string>{}(prop.name());
+  return Hash(prop, std::hash<std::string>{}(prop.name()));
+}
+
+size_t PropositionBase::Hash(const PropositionBase& prop, size_t predicate_hash) {
+  size_t seed = predicate_hash;
   for (const symbolic::Object& arg : prop.arguments()) {
-    seed ^= std::hash<std::string>{}(arg.name()) + kHashOffset +
-            (seed << kHashL) + (seed >> kHashR);
+    seed ^= std::hash<Object>{}(arg) + kHashOffset + (seed << kHashL) +
+            (seed >> kHashR);
   }
   return seed;
 }
@@ -48,22 +52,3 @@ std::ostream& operator<<(std::ostream& os, const symbolic::PropositionBase& P) {
 }
 
 }  // namespace symbolic
-
-namespace std {
-
-size_t hash<symbolic::PropositionBase>::operator()(
-    const symbolic::PropositionBase& prop) const noexcept {
-  return prop.hash();
-}
-
-size_t hash<symbolic::Proposition>::operator()(
-    const symbolic::Proposition& prop) const noexcept {
-  return prop.hash();
-}
-
-size_t hash<symbolic::PropositionRef>::operator()(
-    const symbolic::PropositionRef& prop) const noexcept {
-  return prop.hash();
-}
-
-};  // namespace std
