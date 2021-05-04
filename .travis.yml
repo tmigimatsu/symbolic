@@ -83,6 +83,13 @@ jobs:
         - CXX="g++-10"
         - CMAKE_ARGS="-DPYTHON_EXECUTABLE=/usr/bin/python3.8 -DPYTHON_LIBRARY=/usr/lib/libpython3.8m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.8m"
 
+    # 7. Pip
+    - dist: bionic
+      script:
+        - pip install cmake
+        - pip install symbolic
+
+
     # 7. Docs
     - dist: focal
       python:
