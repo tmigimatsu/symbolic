@@ -14,24 +14,22 @@ class CMakeBuild(build_ext.build_ext):
         import distutils
         import re
 
-        if self.inplace:
-            return
+        if not self.inplace:
+            try:
+                out = subprocess.check_output(["cmake", "--version"])
+            except OSError:
+                raise RuntimeError(
+                    "CMake must be installed to build the following extensions: "
+                    + ", ".join(e.name for e in self.extensions)
+                )
 
-        try:
-            out = subprocess.check_output(["cmake", "--version"])
-        except OSError:
-            raise RuntimeError(
-                "CMake must be installed to build the following extensions: "
-                + ", ".join(e.name for e in self.extensions)
+            cmake_version = distutils.version.LooseVersion(
+                re.search(r"version\s*([\d.]+)", out.decode()).group(1)
             )
-
-        cmake_version = distutils.version.LooseVersion(
-            re.search(r"version\s*([\d.]+)", out.decode()).group(1)
-        )
-        if cmake_version < "3.13.0":
-            raise RuntimeError(
-                "CMake >= 3.13.0 is required. Install the latest CMake with 'pip install cmake'."
-            )
+            if cmake_version < "3.13.0":
+                raise RuntimeError(
+                    "CMake >= 3.13.0 is required. Install the latest CMake with 'pip install cmake'."
+                )
 
         for extension in self.extensions:
             self.build_extension(extension)
@@ -42,66 +40,64 @@ class CMakeBuild(build_ext.build_ext):
         import shutil
         import sys
 
-        # Skip CMake if building in place (pip install -e .).
-        if self.inplace:
-            return
-
-        build_dir = pathlib.Path(self.build_temp)
         extension_dir = pathlib.Path(self.get_ext_fullpath(extension.name)).parent
-        symbolic_dir = str(extension_dir / "symbolic")
-
-        build_dir.mkdir(parents=True, exist_ok=True)
         extension_dir.mkdir(parents=True, exist_ok=True)
+
+        if self.inplace:
+            build_dir = extension_dir / "build"
+        else:
+            build_dir = pathlib.Path(self.build_temp)
+        build_dir.mkdir(parents=True, exist_ok=True)
 
         # Run CMake.
         build_type = "Debug" if self.debug else "Release"
         python_version = ".".join(map(str, sys.version_info[:3]))
-
-        # Use relative paths for install rpath.
-        rpath_origin = "@loader_path" if sys.platform == "darwin" else "$ORIGIN"
-        self.spawn(
-            [
-                "cmake",
-                "-B" + self.build_temp,
-                "-DBUILD_TESTING=OFF",
-                "-DPYBIND11_PYTHON_VERSION=" + python_version,
-                "-DCMAKE_BUILD_TYPE=" + build_type,
+        cmake_command = [
+            "cmake",
+            "-B" + str(build_dir),
+            "-DBUILD_TESTING=OFF",
+            "-DBUILD_EXAMPLES=OFF",
+            "-DPYBIND11_PYTHON_VERSION=" + python_version,
+            "-DCMAKE_BUILD_TYPE=" + build_type,
+        ]
+        if not self.inplace:
+            # Use relative paths for install rpath.
+            rpath_origin = "@loader_path" if sys.platform == "darwin" else "$ORIGIN"
+            cmake_command += [
                 "-DCMAKE_INSTALL_PREFIX=install",
                 "-DCMAKE_INSTALL_RPATH=" + rpath_origin,
             ]
-        )
+        self.spawn(cmake_command)
 
         # Build and install.
+        make_command = ["cmake", "--build", str(build_dir)]
+        if not self.inplace:
+            make_command += ["--target", "install"]
+
         ncpus = (
             subprocess.check_output(["./ncpu.sh"], cwd="cmake").strip().decode("utf-8")
         )
-        self.spawn(
-            [
-                "cmake",
-                "--build",
-                self.build_temp,
-                "--target",
-                "install",
-                "--",
-                "-j" + ncpus,
-            ]
-        )
+        make_command += ["--", "-j" + ncpus]
 
-        # Copy pybind11 library.
-        for file in os.listdir(build_dir / "src" / "python"):
-            if os.path.splitext(file)[1] in (".so", ".dylib"):
-                file = str(build_dir / "src" / "python" / file)
-                shutil.move(file, symbolic_dir)
+        self.spawn(make_command)
 
-        # Copy C++ libraries.
-        for file in os.listdir(os.path.join("install", "lib")):
-            if os.path.splitext(file)[1] in (".so", ".dylib"):
-                file = os.path.join("install", "lib", file)
-                shutil.move(file, symbolic_dir)
+        if not self.inplace:
+            # Copy pybind11 library.
+            symbolic_dir = str(extension_dir / "symbolic")
+            for file in os.listdir(build_dir / "src" / "python"):
+                if os.path.splitext(file)[1] in (".so", ".dylib"):
+                    file = str(build_dir / "src" / "python" / file)
+                    shutil.move(file, symbolic_dir)
+
+            # Copy C++ libraries.
+            for file in os.listdir(os.path.join("install", "lib")):
+                if os.path.splitext(file)[1] in (".so", ".dylib"):
+                    file = os.path.join("install", "lib", file)
+                    shutil.move(file, symbolic_dir)
 
 
 setuptools.setup(
-    name="symbolic",
+    name="pysymbolic",
     version="0.1",
     author="Toki Migimatsu",
     author_email="takatoki@cs.stanford.edu",

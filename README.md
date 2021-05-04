@@ -11,6 +11,30 @@ specifications.
 See the documentation for `symbolic`
 [here](https://tmigimatsu.github.io/symdb/).
 
+## Quick Install
+
+The quickest way to install `symbolic` is through pip.
+
+### Python only
+
+Use this to install `symbolic` in your virtual environment.
+```sh
+git clone https://github.com/tmigimatsu/symbolic.git
+cd symbolic
+pip install cmake
+pip install .
+```
+
+### C++ and Python
+
+This will run the appropriate CMake command to build `symbolic` locally in the `symbolic/build` folder.
+```sh
+git clone https://github.com/tmigimatsu/symbolic.git
+cd symbolic
+pip install cmake
+pip install -e .
+```
+
 ## Installation Requirements
 
 This library is written in C++ with Python bindings automatically generated with
@@ -51,12 +75,19 @@ sudo rm /etc/apt/trusted.gpg.d/kitware.gpg
 
 ## Installation
 
+### C++ only
 To compile `symbolic`, run from the project root directory:
 ```sh
 mkdir build
 cd build
 cmake ..
 make
+```
+
+If CMake attempts to use an incorrect version of Python, specify the correct
+version manually:
+```sh
+cmake .. -DPYBIND11_PYTHON_VERSION=3.8
 ```
 
 By default, `symbolic` will compile with examples from `apps/`. To turn this
