@@ -85,8 +85,9 @@ jobs:
 
     # 7. Pip
     - dist: bionic
-      script:
+      install:
         - pip install cmake
+      script:
         - pip install symbolic
 
 

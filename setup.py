@@ -14,6 +14,9 @@ class CMakeBuild(build_ext.build_ext):
         import distutils
         import re
 
+        if self.inplace:
+            return
+
         try:
             out = subprocess.check_output(["cmake", "--version"])
         except OSError:
