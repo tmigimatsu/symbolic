@@ -78,7 +78,9 @@ install(TARGETS ${LIB_NAME}
 )
 
 # Install dependencies.
-install(TARGETS VAL)
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0")
+    install(TARGETS VAL)
+endif()
 
 # Install the headers.
 install(DIRECTORY "${LIB_INCLUDE_DIR}/${LIB_NAME}"
