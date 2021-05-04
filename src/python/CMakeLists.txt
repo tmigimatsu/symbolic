@@ -22,3 +22,8 @@ target_link_libraries(pysymbolic
   PRIVATE
     VAL::VAL
 )
+
+# Put binary for installation temporarily in build/src/python.
+install(TARGETS pysymbolic
+    LIBRARY DESTINATION "${PROJECT_BINARY_DIR}"
+)
