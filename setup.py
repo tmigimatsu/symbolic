@@ -103,6 +103,7 @@ setuptools.setup(
     author_email="takatoki@cs.stanford.edu",
     description="PDDL symbolic library",
     url="https://github.com/tmigimatsu/symbolic",
+    license="MIT",
     packages=["symbolic"],
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -14,3 +14,7 @@ if(NOT TARGET VAL::VAL)
         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     )
 endif()
+
+function(lib_install_subdirectory_VAL)
+    install(TARGETS VAL)
+endfunction()

@@ -67,7 +67,9 @@ target_link_libraries(${LIB_NAME}
 )
 
 # Build python wrapper.
-add_subdirectory(python)
+if(${LIB_CMAKE_NAME}_BUILD_PYTHON)
+    add_subdirectory(python)
+endif()
 
 # Install the library.
 install(TARGETS ${LIB_NAME}
@@ -77,9 +79,9 @@ install(TARGETS ${LIB_NAME}
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
 
-# Install dependencies.
+# Install dependencies (only works for cmake>=3.13).
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0")
-    install(TARGETS VAL)
+    lib_install_subdirectory_VAL()
 endif()
 
 # Install the headers.
