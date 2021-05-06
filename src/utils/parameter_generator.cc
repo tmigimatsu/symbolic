@@ -28,9 +28,9 @@ std::vector<std::vector<Object>> ParamTypes(
     try {
       types.push_back(object_map.at(param.type().name()));
     } catch (...) {
-      std::cerr << "ParameterGenerator(): parameter type '"
-                << param.type().name() << " not found in object map."
-                << std::endl;
+      // std::cerr << "ParameterGenerator(): parameter type '"
+      //           << param.type().name() << " not found in object map."
+      //           << std::endl;
       types.clear();
       break;
       // throw std::runtime_error("ParameterGenerator(): parameter type '" +

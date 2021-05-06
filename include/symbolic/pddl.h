@@ -47,11 +47,20 @@ class Pddl {
    * Parse the pddl specification from the domain and problem files.
    *
    * @param domain_pddl Path to the domain pddl.
-   * @param problem_pddl Path to the problem pddl.
+   * @param problem_pddl Pddl problem string or path to the problem pddl.
    *
    * @seepython{symbolic.Pddl,__init__}
    */
   Pddl(const std::string& domain_pddl, const std::string& problem_pddl);
+
+  /**
+   * Parse the pddl specification from the domain file without a problem.
+   *
+   * @param domain_pddl Path to the domain pddl.
+   *
+   * @seepython{symbolic.Pddl,__init__}
+   */
+  explicit Pddl(const std::string& domain_pddl);
 
   /**
    * Evaluate whether the pddl specification is valid using VAL.

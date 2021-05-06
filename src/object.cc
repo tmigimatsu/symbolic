@@ -39,10 +39,12 @@ const VAL::const_symbol* GetSymbol(const symbolic::Pddl& pddl,
     assert(obj != nullptr);
     if (obj->getName() == name_object) return obj;
   }
-  assert(pddl.symbol()->the_problem->objects != nullptr);
-  for (const VAL::const_symbol* obj : *pddl.symbol()->the_problem->objects) {
-    assert(obj != nullptr);
-    if (obj->getName() == name_object) return obj;
+  if (pddl.symbol()->the_problem != nullptr) {
+    assert(pddl.symbol()->the_problem->objects != nullptr);
+    for (const VAL::const_symbol* obj : *pddl.symbol()->the_problem->objects) {
+      assert(obj != nullptr);
+      if (obj->getName() == name_object) return obj;
+    }
   }
   throw std::runtime_error("Object::Object(): Could not find object symbol " +
                            name_object + ".");

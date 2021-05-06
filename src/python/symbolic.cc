@@ -84,6 +84,19 @@ PYBIND11_MODULE(pysymbolic, m) {
 
              .. seealso:: C++: :symbolic:`symbolic::Pddl::Pddl`.
             )pbdoc")
+      .def(py::init<const std::string&>(), "domain"_a, R"pbdoc(
+             Parse the pddl specification from the domain file without a problem.
+
+             Args:
+                 domain: Path to the domain pddl.
+
+             Example:
+                 >>> import symbolic
+                 >>> symbolic.Pddl("../resources/domain.pddl")
+                 symbolic.Pddl('../resources/domain.pddl', '')
+
+             .. seealso:: C++: :symbolic:`symbolic::Pddl::Pddl`.
+            )pbdoc")
       .def(
           "is_valid",
           [](const Pddl& pddl, bool verbose) { return pddl.IsValid(verbose); },

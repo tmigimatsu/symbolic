@@ -48,12 +48,13 @@ std::ostream& operator<<(std::ostream& os,
 
 }  // namespace VAL
 
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 const char* current_filename = nullptr;  // Expected in parse_error.h
 
 namespace {
 
 std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
-                                         const std::string& filename_problem) {
+                                         const std::string& problem) {
   std::unique_ptr<VAL::analysis> analysis = std::make_unique<VAL::analysis>();
   yyFlexLexer yfl;
 
@@ -68,18 +69,31 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
   yyparse();
   if (analysis->the_domain == nullptr) {
     throw std::runtime_error("ParsePddl(): Unable to parse domain from file: " +
-                             std::string(filename_domain));
+                             filename_domain);
+  }
+
+  // Return if problem is empty.
+  if (problem.empty()) return analysis;
+
+  // Check if problem is a PDDL string.
+  const size_t idx_last_char = problem.find_last_not_of(" \t\n\r");
+  std::shared_ptr<std::istream> input_problem;
+  if (idx_last_char != std::string::npos && problem[idx_last_char] == ')') {
+    // Pddl string.
+    input_problem = std::make_shared<std::stringstream>(problem);
+    current_filename = "<pddl string>";
+  } else {
+    // Filename.
+    input_problem = std::make_shared<std::ifstream>(problem);
+    current_filename = problem.c_str();
   }
 
   // Parse problem
-  current_filename = filename_problem.c_str();
-  std::ifstream pddl_problem(filename_problem);
-  yfl.switch_streams(&pddl_problem, &std::cout);
+  yfl.switch_streams(input_problem.get(), &std::cout);
   yyparse();
-  if (analysis->the_domain == nullptr) {
-    throw std::runtime_error(
-        "ParsePddl(): Unable to parse problem from file: " +
-        std::string(filename_problem));
+  if (analysis->the_problem == nullptr) {
+    throw std::runtime_error("ParsePddl(): Unable to parse problem from: " +
+                             problem);
   }
 
   return analysis;
@@ -111,12 +125,18 @@ PartialState ParseState(const Pddl& pddl,
 }
 
 std::vector<Object> GetObjects(const VAL::domain& domain,
-                               const VAL::problem& problem) {
+                               const VAL::problem* problem = nullptr) {
+  // Extract domain objects.
   std::vector<Object> objects =
       symbolic::Object::CreateList(domain.types, domain.constants);
+
+  if (problem == nullptr) return objects;
+
+  // Extract problem objects.
   const std::vector<Object> objects_2 =
-      symbolic::Object::CreateList(domain.types, problem.objects);
+      symbolic::Object::CreateList(domain.types, problem->objects);
   objects.insert(objects.end(), objects_2.begin(), objects_2.end());
+
   return objects;
 }
 
@@ -174,7 +194,8 @@ CreateAxiomContextMap(const std::vector<std::shared_ptr<Axiom>>& axioms) {
   std::unordered_map<std::string, std::vector<std::weak_ptr<Axiom>>> axiom_map(
       axioms.size());
   for (const std::shared_ptr<Axiom>& axiom : axioms) {
-    axiom_map[axiom->context().sign() + axiom->context().name()].emplace_back(axiom);
+    axiom_map[axiom->context().sign() + axiom->context().name()].emplace_back(
+        axiom);
   }
   return axiom_map;
 }
@@ -228,7 +249,7 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
     : analysis_(ParsePddl(domain_pddl, problem_pddl)),
       domain_pddl_(domain_pddl),
       problem_pddl_(problem_pddl),
-      objects_(GetObjects(*analysis_->the_domain, *analysis_->the_problem)),
+      objects_(GetObjects(*analysis_->the_domain, analysis_->the_problem)),
       object_map_(CreateObjectTypeMap(objects_)),
       axioms_(GetAxioms(*this, *analysis_->the_domain)),
       predicates_(GetPredicates(*this, *analysis_->the_domain)),
@@ -237,6 +258,28 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
       initial_state_(
           GetInitialState(*analysis_->the_domain, *analysis_->the_problem)),
       goal_(*this, analysis_->the_problem->the_goal) {
+  // Create axiom map after initialization list to avoid conflicts with
+  // GetAxioms(), which accesses the axiom map during the construction of DNFs.
+  axiom_map_ = CreateAxiomContextMap(axioms());
+
+  // Recreate axioms with updated axiom map. Axioms need to be pointers so
+  // that they can be updated and remain usable from Action::Apply() lambdas
+  // while handling axiom loops.
+  UpdateAxioms(*this, &axioms_);
+
+  // Create actions after all axioms have settled.
+  actions_ = GetActions(*this, *analysis_->the_domain);
+}
+
+Pddl::Pddl(const std::string& domain_pddl)
+    : analysis_(ParsePddl(domain_pddl, "")),
+      domain_pddl_(domain_pddl),
+      objects_(GetObjects(*analysis_->the_domain)),
+      object_map_(CreateObjectTypeMap(objects_)),
+      axioms_(GetAxioms(*this, *analysis_->the_domain)),
+      predicates_(GetPredicates(*this, *analysis_->the_domain)),
+      derived_predicates_(GetDerivedPredicates(*this, *analysis_->the_domain)),
+      state_index_(predicates_) {
   // Create axiom map after initialization list to avoid conflicts with
   // GetAxioms(), which accesses the axiom map during the construction of DNFs.
   axiom_map_ = CreateAxiomContextMap(axioms());

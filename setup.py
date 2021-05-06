@@ -37,6 +37,7 @@ class CMakeBuild(build_ext.build_ext):
     def build_extension(self, extension: setuptools.Extension):
         import os
         import pathlib
+        import re
         import shutil
         import sys
 
@@ -85,13 +86,13 @@ class CMakeBuild(build_ext.build_ext):
             # Copy pybind11 library.
             symbolic_dir = str(extension_dir / "symbolic")
             for file in os.listdir(build_dir / "src" / "python"):
-                if os.path.splitext(file)[1] in (".so", ".dylib"):
+                if re.match(r".*\.(?:so|dylib)\.?", file) is not None:
                     file = str(build_dir / "src" / "python" / file)
                     shutil.move(file, symbolic_dir)
 
             # Copy C++ libraries.
             for file in os.listdir(os.path.join("install", "lib")):
-                if os.path.splitext(file)[1] in (".so", ".dylib"):
+                if re.match(r".*\.(?:so|dylib)\.?", file) is not None:
                     file = os.path.join("install", "lib", file)
                     shutil.move(file, symbolic_dir)
 
