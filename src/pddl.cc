@@ -245,7 +245,7 @@ bool Apply(const Action& action, const std::vector<Object>& arguments,
 
 namespace symbolic {
 
-Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
+Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl, bool apply_axioms)
     : analysis_(ParsePddl(domain_pddl, problem_pddl)),
       domain_pddl_(domain_pddl),
       problem_pddl_(problem_pddl),
@@ -269,6 +269,10 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
 
   // Create actions after all axioms have settled.
   actions_ = GetActions(*this, *analysis_->the_domain);
+
+  if (apply_axioms) {
+    initial_state_ = ConsistentState(initial_state_);
+  }
 }
 
 Pddl::Pddl(const std::string& domain_pddl)

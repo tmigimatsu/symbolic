@@ -48,10 +48,12 @@ class Pddl {
    *
    * @param domain_pddl Path to the domain pddl.
    * @param problem_pddl Pddl problem string or path to the problem pddl.
+   * @param apply_axioms Whether to apply axioms to the initial state.
    *
    * @seepython{symbolic.Pddl,__init__}
    */
-  Pddl(const std::string& domain_pddl, const std::string& problem_pddl);
+  Pddl(const std::string& domain_pddl, const std::string& problem_pddl,
+       bool apply_axioms = true);
 
   /**
    * Parse the pddl specification from the domain file without a problem.

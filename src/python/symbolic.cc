@@ -69,13 +69,14 @@ PYBIND11_MODULE(pysymbolic, m) {
 
   // Pddl
   py::class_<Pddl>(m, "Pddl")
-      .def(py::init<const std::string&, const std::string&>(), "domain"_a,
-           "problem"_a, R"pbdoc(
+      .def(py::init<const std::string&, const std::string&, bool>(), "domain"_a,
+           "problem"_a, "apply_axioms"_a, R"pbdoc(
              Parse the pddl specification from the domain and problem files.
 
              Args:
                  domain: Path to the domain pddl.
                  problem: Path to the problem pddl.
+                 apply_axioms: Whether to apply axioms to the initial state.
 
              Example:
                  >>> import symbolic
