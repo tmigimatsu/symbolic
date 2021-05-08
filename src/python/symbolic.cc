@@ -246,11 +246,14 @@ PYBIND11_MODULE(pysymbolic, m) {
 
           :type: str
       )pbdoc")
-      .def_property_readonly(
+      .def_property(
           "initial_state",
           [](const Pddl& pddl) { return Stringify(pddl.initial_state()); },
+          [](Pddl& pddl, const std::unordered_set<std::string>& state) {
+            pddl.set_initial_state(State(pddl, state));
+          },
           R"pbdoc(
-            Initial state.
+            Initial state for planning.
           )pbdoc")
       .def_property_readonly("object_map", &Pddl::object_map)
       .def_property_readonly("objects", &Pddl::objects)
@@ -464,7 +467,8 @@ PYBIND11_MODULE(pysymbolic, m) {
            })
       .def("get_indexed_state",
            [](const StateIndex& state_index, const StringSet& str_state) {
-             return state_index.GetIndexedState(ParseState(state_index.pddl(), str_state));
+             return state_index.GetIndexedState(
+                 ParseState(state_index.pddl(), str_state));
            })
       .def("__len__", &StateIndex::size, R"pbdoc(
           Size of the state index.

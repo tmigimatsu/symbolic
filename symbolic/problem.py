@@ -55,6 +55,43 @@ def _when(condition: Formula, implies: Formula):
     return create_group("when", condition, implies)
 
 
+def parse_proposition(str_prop: str) -> typing.Tuple[str, typing.List[str]]:
+    """Parses the head and arguments of a proposition string.
+
+    For example, 'on(box, table)' becomes ('on', ['box', 'table']).
+    """
+    import re
+
+    matches = re.match("([^\(]*)\(([^\)]*)", str_prop)
+    if matches is None:
+        raise ValueError(f"Unable to parse proposition from '{str_prop}'.")
+    name_pred = matches.group(1)
+    str_args = matches.group(2).replace(" ", "").split(",")
+    return name_pred, str_args
+
+
+def parse_head(str_prop: str) -> str:
+    """Parses the head of a proposition string."""
+    import re
+
+    matches = re.match("([^\(]*)\([^\)]*", str_prop)
+    if matches is None:
+        raise ValueError(f"Unable to parse proposition from '{str_prop}'.")
+    name_pred = matches.group(1)
+    return name_pred
+
+
+def parse_args(str_prop: str) -> typing.List[str]:
+    """Parses the arguments of a proposition string."""
+    import re
+
+    matches = re.match("[^\(]*\(([^\)]*)", str_prop)
+    if matches is None:
+        raise ValueError(f"Unable to parse objects from '{str_prop}'.")
+    str_args = matches.group(1).replace(" ", "").split(",")
+    return str_args
+
+
 class Problem:
     def __init__(self, name: str, domain: str = ""):
         self._name = name
@@ -68,7 +105,14 @@ class Problem:
         self._objects.append(Object(name, object_type))
 
     def add_initial_prop(self, prop: str):
+        if prop and prop[0] != "(":
+            head, args = parse_proposition(prop)
+            prop = _P(head, *args)
         self._initial_state.append(prop)
+
+    def set_initial_state(self, state: typing.Set[str]):
+        for prop in state:
+            self.add_initial_prop(prop)
 
     def set_goal(self, goal: Formula):
         self._goal = goal

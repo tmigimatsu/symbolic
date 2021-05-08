@@ -192,11 +192,21 @@ class Pddl {
    */
   const std::string& name() const;
 
+  /**
+   * Domain filename.
+   */
   const std::string& domain_pddl() const { return domain_pddl_; }
 
+  /**
+   * Problem filename.
+   */
   const std::string& problem_pddl() const { return problem_pddl_; }
 
+  /**
+   * Initial state for planning.
+   */
   const State& initial_state() const { return initial_state_; }
+  void set_initial_state(State&& state) { initial_state_ = std::move(state); }
 
   const ObjectTypeMap& object_map() const { return object_map_; }
 
