@@ -26,6 +26,7 @@ namespace {
 
 using ::symbolic::Object;
 using ::symbolic::Pddl;
+using ::symbolic::Planner;
 using ::symbolic::State;
 
 using StringSet = std::set<std::string>;
@@ -49,6 +50,15 @@ std::vector<Object> ParseObjects(const Pddl& pddl,
   }
   return objects;
 }
+
+struct BreadthFirstSearch {
+  BreadthFirstSearch(const Planner::Node& root, size_t max_depth, bool verbose)
+      : bfs(root, max_depth, verbose) {}
+
+  ::symbolic::BreadthFirstSearch<Planner::Node> bfs;
+  ::symbolic::BreadthFirstSearch<Planner::Node>::iterator it;
+  bool initialized = false;
+};
 
 }  // namespace
 
@@ -429,6 +439,11 @@ PYBIND11_MODULE(pysymbolic, m) {
         return ss.str();
       });
 
+  // Formula
+  py::class_<Formula>(m, "Formula").def("__repr__", [](const Formula& formula) {
+    return formula.to_string();
+  });
+
   // ParameterGenerator
   py::class_<ParameterGenerator>(m, "ParameterGenerator")
       .def("__getitem__", &ParameterGenerator::at)
@@ -513,15 +528,37 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def_property_readonly("root", &Planner::root);
 
   // BreadthFirstSearch
-  py::class_<BreadthFirstSearch<Planner::Node>>(m, "BreadthFirstSearch")
+  // py::class_<BreadthFirstSearch<Planner::Node>>(m, "BreadthFirstSearch")
+  //     .def(py::init<const Planner::Node&, size_t, bool>(), "root"_a,
+  //          "max_depth"_a, "verbose"_a = false)
+  //     .def(
+  //         "__iter__",
+  //         [](const BreadthFirstSearch<Planner::Node>& bfs) {
+  //           return BreadthFirstSearch<Planner::Node>::iterator(&bfs);
+  //         },
+  //         py::keep_alive<0, 1>());
+  // .def(
+  //     "__iter__",
+  //     [](const BreadthFirstSearch<Planner::Node>& bfs) {
+  //       return py::make_iterator(bfs.begin(), bfs.end());
+  //     },
+  //     py::keep_alive<0, 1>());
+  py::class_<::BreadthFirstSearch>(m, "BreadthFirstSearch")
       .def(py::init<const Planner::Node&, size_t, bool>(), "root"_a,
            "max_depth"_a, "verbose"_a = false)
-      .def(
-          "__iter__",
-          [](const BreadthFirstSearch<Planner::Node>& bfs) {
-            return py::make_iterator(bfs.begin(), bfs.end());
-          },
-          py::keep_alive<0, 1>());
+      .def("__iter__", [](::BreadthFirstSearch& it) { return it; })
+      .def("__next__", [](::BreadthFirstSearch& it) {
+        if (!it.initialized) {
+          it.it = it.bfs.begin();
+          it.initialized = true;
+        }
+
+        if (it.it == it.bfs.end()) {
+          throw pybind11::stop_iteration();
+        }
+
+        return *it.it;
+      });
 
   py::class_<DisjunctiveFormula>(m, "DisjunctiveFormula")
       .def_readonly("conjunctions", &DisjunctiveFormula::conjunctions)

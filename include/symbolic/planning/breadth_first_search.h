@@ -56,14 +56,18 @@ class BreadthFirstSearch<NodeT>::iterator {
         queue_({{bfs_->root_, std::make_shared<std::vector<NodeT>>()}}) {}
 
   iterator& operator++();
+
   bool operator==(const iterator& other) const {
-    return queue_.empty() && other.queue_.empty();
+    return IsFinished() && other.IsFinished();
   }
+
   bool operator!=(const iterator& other) const { return !(*this == other); }
+
   reference operator*() const { return *ancestors_; }
 
  private:
   const BreadthFirstSearch<NodeT>* bfs_ = nullptr;
+  bool IsFinished() const { return queue_.empty() && !ancestors_; }
 
   std::queue<std::pair<NodeT, std::shared_ptr<std::vector<NodeT>>>> queue_;
   std::shared_ptr<std::vector<NodeT>> ancestors_;
@@ -90,7 +94,12 @@ BreadthFirstSearch<NodeT>::iterator::operator++() {
     }
 
     // Return if node evaluates to true
-    if (node) break;
+    if (node) {
+      if (bfs_->verbose_) {
+        std::cout << "Goal state reached: " << node << std::endl;
+      }
+      return *this;
+    }
 
     // Skip children if max depth has been reached
     if (ancestors_->size() > bfs_->max_depth_) continue;
@@ -111,6 +120,7 @@ BreadthFirstSearch<NodeT>::iterator::operator++() {
       queue_.emplace(child, ancestors_);
     }
   }
+  ancestors_.reset();
   return *this;
 }
 
