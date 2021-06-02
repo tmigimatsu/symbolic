@@ -10,6 +10,7 @@
 #ifndef SYMBOLIC_PLANNING_BREADTH_FIRST_SEARCH_H_
 #define SYMBOLIC_PLANNING_BREADTH_FIRST_SEARCH_H_
 
+#include <chrono>    // std::chrono
 #include <cstddef>   // ptrdiff_t
 #include <iostream>  // std::cout
 #include <iterator>  // std::input_iterator_tag
@@ -25,8 +26,13 @@ class BreadthFirstSearch {
  public:
   class iterator;
 
-  BreadthFirstSearch(const NodeT& root, size_t max_depth, bool verbose = false)
-      : max_depth_(max_depth), verbose_(verbose), root_(root) {}
+  BreadthFirstSearch(
+      const NodeT& root, size_t max_depth, bool verbose = false,
+      std::chrono::microseconds us_timeout = std::chrono::microseconds(0))
+      : max_depth_(max_depth),
+        verbose_(verbose),
+        root_(root),
+        timeout_(us_timeout) {}
 
   iterator begin() const {
     iterator it(this);
@@ -37,6 +43,7 @@ class BreadthFirstSearch {
  private:
   const size_t max_depth_;
   const bool verbose_;
+  const std::chrono::microseconds timeout_;
 
   const NodeT& root_;
 };
@@ -76,8 +83,17 @@ class BreadthFirstSearch<NodeT>::iterator {
 template <typename NodeT>
 typename BreadthFirstSearch<NodeT>::iterator&
 BreadthFirstSearch<NodeT>::iterator::operator++() {
+  const auto t_start = std::chrono::high_resolution_clock::now();
   size_t depth = 0;
   while (!queue_.empty()) {
+    // Abort on timeout.
+    if (bfs_->timeout_.count() > 0 &&
+        std::chrono::high_resolution_clock::now() - t_start > bfs_->timeout_) {
+      std::queue<std::pair<NodeT, std::shared_ptr<std::vector<NodeT>>>> empty;
+      std::swap(queue_, empty);
+      break;
+    }
+
     std::pair<NodeT, std::shared_ptr<std::vector<NodeT>>>& front =
         queue_.front();
 
