@@ -83,7 +83,7 @@ PYBIND11_MODULE(pysymbolic, m) {
   // Pddl
   py::class_<Pddl>(m, "Pddl")
       .def(py::init<const std::string&, const std::string&, bool>(), "domain"_a,
-           "problem"_a, "apply_axioms"_a, R"pbdoc(
+           "problem"_a, "apply_axioms"_a=true, R"pbdoc(
              Parse the pddl specification from the domain and problem files.
 
              Args:
