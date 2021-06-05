@@ -1,5 +1,10 @@
 bin/
 build/
+build_dbg/
+
+.cache/
+.clangd/
+.clang-tidy
 
 compile_commands.json
 *.so

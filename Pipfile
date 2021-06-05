@@ -10,7 +10,6 @@ sphinx-autodoc-typehints = "*"
 sphinx-bootstrap-theme = "*"
 
 [packages]
-symbolic = {editable = true, path = "."}
 
 [requires]
 python_version = "3"
