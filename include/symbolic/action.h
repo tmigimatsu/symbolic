@@ -29,7 +29,7 @@ class effect_lists;
 
 }  // namespace VAL
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 class Pddl;
 
@@ -108,6 +108,6 @@ class Action {
   std::function<int(const std::vector<Object>&, PartialState*)> ApplyPartial_;
 };
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_ACTION_H_

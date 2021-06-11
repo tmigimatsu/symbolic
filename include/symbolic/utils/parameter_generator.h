@@ -16,7 +16,7 @@
 #include "symbolic/object.h"
 #include "symbolic/utils/combination_generator.h"
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 class ParameterGenerator
     : public CombinationGenerator<const std::vector<Object>> {
@@ -44,6 +44,6 @@ class ParameterGenerator
   std::vector<std::vector<Object>> param_types_;
 };
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_UTILS_PARAMETER_GENERATOR_H_

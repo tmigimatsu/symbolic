@@ -20,7 +20,7 @@
 #include "symbolic/formula.h"
 #include "symbolic/state.h"
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 struct ConjunctiveFormula;
 
@@ -135,6 +135,6 @@ std::optional<DisjunctiveFormula> Negate(const Pddl& pddl,
 
 // ConjunctiveFormula Flip(DisjunctiveFormula&& cnf);
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_NORMAL_FORM_H_

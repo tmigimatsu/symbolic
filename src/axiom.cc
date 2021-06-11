@@ -13,7 +13,7 @@
 
 #include "symbolic/normal_form.h"
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 Axiom::Axiom(const Pddl& pddl, const VAL::operator_* symbol)
     : Action(pddl, symbol) {
@@ -151,4 +151,4 @@ std::ostream& operator<<(std::ostream& os, const Axiom& axiom) {
   return os;
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1

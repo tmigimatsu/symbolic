@@ -16,7 +16,7 @@
 
 namespace {
 
-using symbolic::Predicate;
+using ::symbolic_v1::Predicate;
 
 std::vector<size_t> PredicateCumSum(const std::vector<Predicate>& predicates) {
   std::vector<size_t> idx_pred;
@@ -41,7 +41,7 @@ std::unordered_map<std::string, size_t> PredicateIndices(
 
 }  // namespace
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 State::State(std::initializer_list<Proposition> l) : Base(l) {
 #ifndef SYMBOLIC_STATE_USE_SET
@@ -276,4 +276,4 @@ StateIndex::IndexedState StateIndex::GetIndexedState(const State& state) const {
   return indexed_state;
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1

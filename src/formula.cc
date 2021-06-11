@@ -21,12 +21,12 @@
 
 namespace {
 
-using ::symbolic::Formula;
-using ::symbolic::Object;
-using ::symbolic::ParameterGenerator;
-using ::symbolic::PartialState;
-using ::symbolic::Pddl;
-using ::symbolic::Proposition;
+using ::symbolic_v1::Formula;
+using ::symbolic_v1::Object;
+using ::symbolic_v1::ParameterGenerator;
+using ::symbolic_v1::PartialState;
+using ::symbolic_v1::Pddl;
+using ::symbolic_v1::Proposition;
 
 template <typename T>
 using FormulaFunction =
@@ -338,7 +338,7 @@ NamedFormulaFunction<T> CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
 
 }  // namespace
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 Formula::Formula(const Pddl& pddl, const VAL::goal* symbol,
                  const std::vector<Object>& parameters)
@@ -400,4 +400,4 @@ ApplicationFunction Formula::CreateApplicationFunction(
   };
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1

@@ -13,7 +13,7 @@
 
 #include "symbolic/pddl.h"
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 DerivedPredicate::DerivedPredicate(const Pddl& pddl,
                                    const VAL::derivation_rule* symbol)
@@ -62,4 +62,4 @@ State DerivedPredicate::Apply(const State& state,
   return next_state;
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1

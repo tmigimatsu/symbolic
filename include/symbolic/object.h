@@ -26,7 +26,7 @@ using pddl_type_list = class typed_symbol_list<pddl_type>;
 
 }  // namespace VAL
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 class Pddl;
 
@@ -152,6 +152,6 @@ std::vector<Object> Object::CreateList(
   return objects;
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_OBJECTS_H_

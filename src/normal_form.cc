@@ -21,11 +21,12 @@
 
 namespace {
 
-using ::symbolic::DisjunctiveFormula;
-using ::symbolic::Object;
-using ::symbolic::PartialState;
-using ::symbolic::Pddl;
-using ::symbolic::Proposition;
+using ::symbolic_v1::DisjunctiveFormula;
+using ::symbolic_v1::Object;
+using ::symbolic_v1::ParameterGenerator;
+using ::symbolic_v1::PartialState;
+using ::symbolic_v1::Pddl;
+using ::symbolic_v1::Proposition;
 
 std::optional<bool> Negate(const std::optional<bool>& x) {
   return x.has_value() ? !*x : std::optional<bool>{};
@@ -125,7 +126,7 @@ bool TryInsertSubset(
 
 }  // namespace
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 std::optional<bool> Evaluate(const Pddl& pddl,
                              const DisjunctiveFormula::Conjunction& conj) {
@@ -280,7 +281,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
     const VAL::proposition* prop = simple_goal->getProp();
     const std::string name_predicate = prop->head->getName();
     const std::vector<Object> prop_params =
-        symbolic::Object::CreateList(pddl, prop->args);
+        Object::CreateList(pddl, prop->args);
     const auto Apply =
         Formula::CreateApplicationFunction(parameters, prop_params);
     return {
@@ -336,13 +337,12 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
 
     // Create qfied parameters
     std::vector<Object> qfied_params = parameters;
-    std::vector<Object> types =
-        symbolic::Object::CreateList(pddl, qfied_goal->getVars());
+    std::vector<Object> types = Object::CreateList(pddl, qfied_goal->getVars());
     qfied_params.insert(qfied_params.end(), types.begin(), types.end());
 
     // Loop over qfied arguments
     std::vector<DisjunctiveFormula> qfied_terms;
-    symbolic::ParameterGenerator gen(pddl.object_map(), types);
+    ParameterGenerator gen(pddl.object_map(), types);
     for (const std::vector<Object>& qfied_objs : gen) {
       // Create qfied arguments
       std::vector<Object> qfied_args = arguments;
@@ -382,11 +382,11 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   for (const VAL::forall_effect* effect : symbol->forall_effects) {
     std::vector<Object> forall_params = parameters;
     const std::vector<Object> types =
-        symbolic::Object::CreateList(pddl, effect->getVarsList());
+        Object::CreateList(pddl, effect->getVarsList());
     forall_params.insert(forall_params.end(), types.begin(), types.end());
 
     // Loop over forall arguments
-    symbolic::ParameterGenerator gen(pddl.object_map(), types);
+    ParameterGenerator gen(pddl.object_map(), types);
     for (const std::vector<Object>& forall_objs : gen) {
       // Create qfied arguments
       std::vector<Object> forall_args = arguments;
@@ -406,7 +406,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   for (const VAL::simple_effect* effect : symbol->add_effects) {
     const std::string name_predicate = effect->prop->head->getName();
     const std::vector<Object> effect_params =
-        symbolic::Object::CreateList(pddl, effect->prop->args);
+        Object::CreateList(pddl, effect->prop->args);
     const auto Apply =
         Formula::CreateApplicationFunction(parameters, effect_params);
 
@@ -419,7 +419,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   for (const VAL::simple_effect* effect : symbol->del_effects) {
     const std::string name_predicate = effect->prop->head->getName();
     const std::vector<Object> effect_params =
-        symbolic::Object::CreateList(pddl, effect->prop->args);
+        Object::CreateList(pddl, effect->prop->args);
     const auto Apply =
         Formula::CreateApplicationFunction(parameters, effect_params);
 
@@ -502,9 +502,10 @@ DisjunctiveFormula::NormalizeConditions(const Pddl& pddl,
   return std::make_pair(std::move(*pre), std::move(*post));
 }
 
-std::optional<DisjunctiveFormula>
-DisjunctiveFormula::NormalizeGoal(const Pddl& pddl, bool apply_axioms) {
-  std::optional<DisjunctiveFormula> goal = DisjunctiveFormula::Create(pddl, pddl.goal(), {}, {});
+std::optional<DisjunctiveFormula> DisjunctiveFormula::NormalizeGoal(
+    const Pddl& pddl, bool apply_axioms) {
+  std::optional<DisjunctiveFormula> goal =
+      DisjunctiveFormula::Create(pddl, pddl.goal(), {}, {});
   if (!goal.has_value()) return goal;
 
   if (apply_axioms) {
@@ -549,4 +550,4 @@ std::ostream& operator<<(std::ostream& os, const ConjunctiveFormula& cnf) {
   return os;
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1

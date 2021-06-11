@@ -10,7 +10,7 @@
 cmake_minimum_required(VERSION 3.11)
 
 # Define project.
-project(symbolic
+project(symbolic_v1
     VERSION 1.0.0
     DESCRIPTION "Library for manipulating PDDL symbols"
     LANGUAGES CXX)
@@ -36,8 +36,8 @@ endif()
 
 # Define CMake options.
 lib_option(BUILD_DOCS "Build docs." OFF)
-lib_option(BUILD_EXAMPLES "Build examples." ON)
-lib_option(BUILD_TESTING "Build tests." ON)
+lib_option(BUILD_EXAMPLES "Build examples." OFF)
+lib_option(BUILD_TESTING "Build tests." OFF)
 lib_option(CLANG_TIDY "Perform clang-tidy checks." OFF)
 
 # Set default build type to release.

@@ -18,7 +18,7 @@ class pred_decl;
 
 }  // namespace VAL
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 class Predicate : public Action {
  public:
@@ -71,6 +71,6 @@ class Predicate : public Action {
   ParameterGenerator param_gen_;
 };
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_PREDICATE_H_

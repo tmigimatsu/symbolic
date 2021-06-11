@@ -18,7 +18,7 @@
 #include <utility>   // std::pair
 #include <vector>    // std::vector
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 template <typename NodeT>
 class BreadthFirstSearch {
@@ -103,6 +103,6 @@ BreadthFirstSearch<NodeT>::iterator::operator++() {
   return *this;
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_PLANNING_BREADTH_FIRST_SEARCH_H_

@@ -28,7 +28,7 @@
 
 #include "symbolic/proposition.h"
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 class Predicate;
 
@@ -353,6 +353,6 @@ class StateIndex {
   };
 };
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_STATE_H_

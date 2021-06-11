@@ -20,7 +20,7 @@
 #include <type_traits>  // std::conditional_t, std::is_const
 #include <vector>       // std::vector
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 /**
  * Class for generating all combinations of a collection of sequences.
@@ -451,6 +451,6 @@ class CombinationGenerator<ContainerT>::ReverseIterator {
   IteratorT it_;
 };
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_UTILS_COMBINATION_GENERATOR_H_

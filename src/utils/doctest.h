@@ -19,7 +19,7 @@
 
 #include "symbolic/pddl.h"
 
-namespace symbolic {
+namespace symbolic_v1 {
 namespace testing {
 
 struct Fixture {
@@ -27,6 +27,6 @@ struct Fixture {
 };
 
 }  // namespace testing
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_UTILS_DOCTEST_H_

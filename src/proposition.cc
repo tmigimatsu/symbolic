@@ -11,7 +11,7 @@
 
 #include <sstream>  // std::stringstream
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 Proposition::Proposition(const Pddl& pddl, const std::string& str_prop)
     : name_(ParseHead(str_prop)), arguments_(Object::ParseArguments(pddl, str_prop)) {}
@@ -25,7 +25,7 @@ std::string Proposition::to_string() const {
   return ss.str();
 }
 
-std::ostream& operator<<(std::ostream& os, const symbolic::Proposition& P) {
+std::ostream& operator<<(std::ostream& os, const Proposition& P) {
   os << P.name() << "(";
   std::string separator;
   for (const Object& arg : P.arguments()) {
@@ -36,4 +36,4 @@ std::ostream& operator<<(std::ostream& os, const symbolic::Proposition& P) {
   return os;
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1

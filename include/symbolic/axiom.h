@@ -13,7 +13,7 @@
 #include "symbolic/action.h"
 #include "symbolic/normal_form.h"
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 class Axiom : public Action {
  public:
@@ -72,6 +72,6 @@ class Axiom : public Action {
   std::string formula_;
 };
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_AXIOM_H_

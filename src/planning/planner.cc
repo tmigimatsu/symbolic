@@ -9,7 +9,7 @@
 
 #include "symbolic/planning/planner.h"
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 Planner::Planner(const Pddl& pddl) : root_(pddl, pddl.initial_state()) {}
 
@@ -112,7 +112,7 @@ bool Planner::Node::operator==(const Node& rhs) const {
 }
 
 std::ostream& operator<<(std::ostream& os,
-                         const symbolic::Planner::Node& node) {
+                         const Planner::Node& node) {
   for (size_t i = 0; i < node.depth(); i++) {
     os << "-";
   }
@@ -231,4 +231,4 @@ bool Planner::Node::iterator::operator==(const iterator& other) const {
   return it_action_ == other.it_action_ && it_action_ == pddl_.actions().end();
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1

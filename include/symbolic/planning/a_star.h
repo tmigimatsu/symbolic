@@ -15,7 +15,7 @@
 #include <queue>     // std::priority_queue
 #include <vector>    // std::vector
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 template <typename NodeT>
 struct SearchNode {
@@ -107,6 +107,6 @@ AStar<NodeT, Compare>::iterator::operator++() {
   return *this;
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_PLANNING_A_STAR_H_

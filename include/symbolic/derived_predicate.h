@@ -18,7 +18,7 @@ class derivation_rule;
 
 }  // namespace VAL
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 class DerivedPredicate : public Action {
  public:
@@ -42,6 +42,6 @@ class DerivedPredicate : public Action {
   const VAL::derivation_rule* symbol_;
 };
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_DERIVED_PREDICATE_H_

@@ -16,7 +16,7 @@
 #include <vector>    // std::vector
 #include <utility>   // std::pair
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 template<typename NodeT>
 class DepthFirstSearch {
@@ -93,6 +93,6 @@ typename DepthFirstSearch<NodeT>::iterator& DepthFirstSearch<NodeT>::iterator::o
   return *this;
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_PLANNING_DEPTH_FIRST_SEARCH_H_

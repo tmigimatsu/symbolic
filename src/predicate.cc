@@ -15,7 +15,7 @@
 
 #include "symbolic/pddl.h"
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 Predicate::Predicate(const Pddl& pddl, const VAL::pred_decl* symbol)
     : symbol_(symbol),
@@ -52,4 +52,4 @@ std::ostream& operator<<(std::ostream& os, const Predicate& pred) {
   return os;
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1

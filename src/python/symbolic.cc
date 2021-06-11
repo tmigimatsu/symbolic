@@ -24,9 +24,9 @@
 
 namespace {
 
-using ::symbolic::Object;
-using ::symbolic::Pddl;
-using ::symbolic::State;
+using ::symbolic_v1::Object;
+using ::symbolic_v1::Pddl;
+using ::symbolic_v1::State;
 
 using StringSet = std::set<std::string>;
 using StringVector = std::vector<std::string>;
@@ -51,12 +51,12 @@ std::vector<Object> ParseObjects(const StringVector& str_objects) {
 
 }  // namespace
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 namespace py = pybind11;
 using namespace pybind11::literals;  // NOLINT(google-build-using-namespace)
 
-PYBIND11_MODULE(pysymbolic, m) {
+PYBIND11_MODULE(pysymbolic_v1, m) {
   m.doc() = R"pbdoc(
     symbolic Python API
     ===================
@@ -566,4 +566,4 @@ PYBIND11_MODULE(pysymbolic, m) {
   py::add_ostream_redirect(m);
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1

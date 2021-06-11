@@ -85,15 +85,15 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
   return analysis;
 }
 
-using ::symbolic::Action;
-using ::symbolic::Axiom;
-using ::symbolic::DerivedPredicate;
-using ::symbolic::Object;
-using ::symbolic::PartialState;
-using ::symbolic::Pddl;
-using ::symbolic::Predicate;
-using ::symbolic::Proposition;
-using ::symbolic::State;
+using ::symbolic_v1::Action;
+using ::symbolic_v1::Axiom;
+using ::symbolic_v1::DerivedPredicate;
+using ::symbolic_v1::Object;
+using ::symbolic_v1::PartialState;
+using ::symbolic_v1::Pddl;
+using ::symbolic_v1::Predicate;
+using ::symbolic_v1::Proposition;
+using ::symbolic_v1::State;
 
 State ParseState(const Pddl& pddl, const std::set<std::string>& str_state) {
   State state;
@@ -113,9 +113,9 @@ PartialState ParseState(const Pddl& pddl,
 std::vector<Object> GetObjects(const VAL::domain& domain,
                                const VAL::problem& problem) {
   std::vector<Object> objects =
-      symbolic::Object::CreateList(domain.types, domain.constants);
+      Object::CreateList(domain.types, domain.constants);
   const std::vector<Object> objects_2 =
-      symbolic::Object::CreateList(domain.types, problem.objects);
+      Object::CreateList(domain.types, problem.objects);
   objects.insert(objects.end(), objects_2.begin(), objects_2.end());
   return objects;
 }
@@ -204,7 +204,7 @@ bool Apply(const Action& action, const std::vector<Object>& arguments,
 
 }  // namespace
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 // Empty destructor needs to be implemented here because VAL::analysis is not
 // fully defined in the header.
@@ -476,7 +476,7 @@ std::ostream& operator<<(std::ostream& os, const Pddl& pddl) {
   return os;
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 namespace {
 

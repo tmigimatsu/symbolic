@@ -15,7 +15,7 @@
 
 #include "symbolic/pddl.h"
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 class Planner {
  public:
@@ -47,7 +47,7 @@ class Planner {
     bool operator==(const Node& rhs) const;
 
     friend std::ostream& operator<<(std::ostream& os,
-                                    const symbolic::Planner::Node& node);
+                                    const Planner::Node& node);
 
    private:
     NodeImpl* operator->() { return impl_.get(); }
@@ -92,6 +92,6 @@ class Planner::Node::iterator {
   friend class Node;
 };
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_PLANNING_PLANNER_H_

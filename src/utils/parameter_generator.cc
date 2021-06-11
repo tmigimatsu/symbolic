@@ -14,8 +14,8 @@
 
 namespace {
 
-using ::symbolic::Object;
-using ::symbolic::ParameterGenerator;
+using ::symbolic_v1::Object;
+using ::symbolic_v1::ParameterGenerator;
 
 std::vector<std::vector<Object>> ParamTypes(
     const ParameterGenerator::ObjectTypeMap& object_map,
@@ -50,7 +50,7 @@ std::vector<const std::vector<Object>*> Options(
 
 }  // namespace
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 ParameterGenerator::ParameterGenerator(const ObjectTypeMap& object_map,
                                        const std::vector<Object>& params)
@@ -81,4 +81,4 @@ ParameterGenerator& ParameterGenerator::operator=(ParameterGenerator&& rhs) noex
   return *this;
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1

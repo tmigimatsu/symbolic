@@ -32,7 +32,7 @@ class analysis;
 
 }  // namespace VAL
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 /**
  * Main class for manipulating the pddl specification.
@@ -261,6 +261,6 @@ std::vector<std::string> Stringify(const std::vector<Object>& objects);
 
 std::ostream& operator<<(std::ostream& os, const Pddl& pddl);
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_PDDL_H_

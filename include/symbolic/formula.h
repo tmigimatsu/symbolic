@@ -27,7 +27,7 @@ class goal;
 
 }  // namespace VAL
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 class Pddl;
 
@@ -82,6 +82,6 @@ class Formula {
   std::string str_formula_;
 };
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_FORMULA_H_

@@ -17,7 +17,7 @@
 
 #include "symbolic/object.h"
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 class Pddl;
 
@@ -67,6 +67,6 @@ class Proposition {
   std::vector<Object> arguments_;
 };
 
-}  // namespace symbolic
+}  // namespace symbolic_v1
 
 #endif  // SYMBOLIC_PROPOSITION_H_

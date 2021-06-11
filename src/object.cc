@@ -19,6 +19,8 @@
 
 namespace {
 
+using ::symbolic_v1::Pddl;
+
 const VAL::pddl_type* GetTypeSymbol(const VAL::pddl_type_list* types,
                                     const VAL::pddl_type* symbol = nullptr) {
   if (symbol != nullptr) return symbol;
@@ -32,7 +34,7 @@ const VAL::pddl_type* GetTypeSymbol(const VAL::pddl_type_list* types,
   return nullptr;
 }
 
-const VAL::const_symbol* GetSymbol(const symbolic::Pddl& pddl,
+const VAL::const_symbol* GetSymbol(const Pddl& pddl,
                                    const std::string& name_object) {
   assert(pddl.symbol()->the_domain->constants != nullptr);
   for (const VAL::const_symbol* obj : *pddl.symbol()->the_domain->constants) {
@@ -67,7 +69,7 @@ std::vector<std::string> TokenizeArguments(const std::string& proposition) {
 
 }  // namespace
 
-namespace symbolic {
+namespace symbolic_v1 {
 
 Object::Type::Type(const VAL::pddl_type* symbol)
     : symbol_(symbol), name_(symbol->getName()) {}
@@ -131,4 +133,4 @@ std::vector<Object> Object::ParseArguments(
   return args;
 }
 
-}  // namespace symbolic
+}  // namespace symbolic_v1

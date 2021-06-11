@@ -7,18 +7,18 @@
 # Authors: Toki Migimatsu
 ############################################################
 
-project(pysymbolic)
+project(pysymbolic_v1)
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${LIB_SOURCE_DIR}/symbolic")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${LIB_SOURCE_DIR}/symbolic_v1")
 
 ctrl_utils_add_subdirectory(pybind11)
 
-pybind11_add_module(pysymbolic symbolic.cc)
+pybind11_add_module(pysymbolic_v1 symbolic.cc)
 
-target_link_libraries(pysymbolic
+target_link_libraries(pysymbolic_v1
   PUBLIC
     pybind11::pybind11
-    symbolic::symbolic
+    symbolic_v1::symbolic_v1
   PRIVATE
     VAL::VAL
 )
