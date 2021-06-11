@@ -19,8 +19,6 @@
 
 namespace symbolic {
 
-Planner::Planner(const Pddl& pddl) : root_(pddl, pddl.initial_state()) {}
-
 struct Planner::Node::NodeImpl {
 #ifdef SYMBOLIC_PLANNER_USE_ORDERED_CACHE
   using Cache = std::set<Node>;
@@ -129,20 +127,14 @@ bool Planner::Node::operator==(const Node& rhs) const {
 std::ostream& bold_on(std::ostream& os) { return os << "\e[1m"; }
 std::ostream& bold_off(std::ostream& os) { return os << "\e[0m"; }
 
-std::ostream& operator<<(std::ostream& os,
-                         const symbolic::Planner::Node& node) {
+std::ostream& operator<<(std::ostream& os, const Planner::Node& node) {
   os << bold_on;
   for (size_t i = 0; i < node.depth(); i++) {
     os << "-";
   }
   os << (node.depth() > 0 ? " " : "") << node.action() << " -> ";
   os << bold_off;
-  std::string separator;
-  for (const Proposition& P : node.state()) {
-    // if (P.name() == "=") continue;
-    os << separator << P;
-    if (separator.empty()) separator = ", ";
-  }
+  os << node.state();
 
   return os;
 }
@@ -255,9 +247,9 @@ bool Planner::Node::iterator::operator==(const iterator& other) const {
 
 namespace std {
 
-size_t hash<symbolic::Planner::Node>::operator()(
-    const symbolic::Planner::Node& node) const noexcept {
-  return hash<symbolic::State>{}(node.state());
+size_t hash<::symbolic::Planner::Node>::operator()(
+    const ::symbolic::Planner::Node& node) const noexcept {
+  return hash<::symbolic::State>{}(node.state());
 }
 
 }  // namespace std

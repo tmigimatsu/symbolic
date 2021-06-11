@@ -57,7 +57,24 @@ class Planner {
     std::shared_ptr<NodeImpl> impl_;
   };
 
-  explicit Planner(const Pddl& pddl);
+  /**
+   * Planner class to find a state that satisfies the goal condition from the initial state.
+   *
+   * @param pddl Pddl instance.
+   *
+   * @seepython{symbolic.Planner,__init__}
+   */
+  explicit Planner(const Pddl& pddl) : Planner(pddl, pddl.initial_state()) {}
+
+  /**
+   * Planner class to find a state that satisfies the goal condition from the given state.
+   *
+   * @param pddl Pddl instance.
+   * @param state State from which to search.
+   *
+   * @seepython{symbolic.Planner,__init__}
+   */
+  Planner(const Pddl& pddl, const State& state) : root_(pddl, state) {}
 
   const Node& root() const { return root_; }
 

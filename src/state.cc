@@ -13,10 +13,11 @@
 #include <cassert>    // assert
 
 #include "symbolic/pddl.h"
+#include "symbolic/utils/unique_vector.h"
 
 namespace {
 
-using symbolic::Predicate;
+using ::symbolic::Predicate;
 
 std::vector<size_t> PredicateCumSum(const std::vector<Predicate>& predicates) {
   std::vector<size_t> idx_pred;
@@ -234,11 +235,11 @@ constexpr size_t kHashR = 2;
 
 namespace std {
 
-size_t hash<symbolic::State>::operator()(
-    const symbolic::State& state) const noexcept {
+size_t hash<::symbolic::State>::operator()(
+    const ::symbolic::State& state) const noexcept {
   size_t seed = 0;
-  for (const symbolic::Proposition& prop : state) {
-    seed ^= hash<symbolic::PropositionBase>{}(prop) + kHashOffset +
+  for (const ::symbolic::Proposition& prop : state) {
+    seed ^= hash<::symbolic::PropositionBase>{}(prop) + kHashOffset +
             (seed << kHashL) + (seed >> kHashR);
   }
   return seed;

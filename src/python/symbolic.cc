@@ -83,7 +83,7 @@ PYBIND11_MODULE(pysymbolic, m) {
   // Pddl
   py::class_<Pddl>(m, "Pddl")
       .def(py::init<const std::string&, const std::string&, bool>(), "domain"_a,
-           "problem"_a, "apply_axioms"_a=true, R"pbdoc(
+           "problem"_a, "apply_axioms"_a = true, R"pbdoc(
              Parse the pddl specification from the domain and problem files.
 
              Args:
@@ -527,7 +527,26 @@ PYBIND11_MODULE(pysymbolic, m) {
 
   // Planner
   py::class_<Planner>(m, "Planner")
-      .def(py::init<const Pddl&>(), "pddl"_a)
+      .def(py::init<const Pddl&>(), "pddl"_a, R"pbdoc(
+        Planner class to find a state that satisfies the goal condition from the initial state.
+
+        Args:
+          pddl: Pddl instance.
+
+        .. seealso:: C++: :symbolic:`symbolic::Planner::Planner`.
+       )pbdoc")
+      .def(py::init([](const Pddl& pddl, const StringSet& state) {
+             return Planner(pddl, ParseState(pddl, state));
+           }),
+           "pddl"_a, "state"_a, R"pbdoc(
+        Planner class to find a state that satisfies the goal condition from the given state.
+
+        Args:
+          pddl: Pddl instance.
+          state: State from which to search.
+
+        .. seealso:: C++: :symbolic:`symbolic::Planner::Planner`.
+       )pbdoc")
       .def_property_readonly("root", &Planner::root);
 
   // BreadthFirstSearch

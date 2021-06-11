@@ -25,9 +25,10 @@ size_t PropositionBase::Hash(const PropositionBase& prop) {
   return Hash(prop, std::hash<std::string>{}(prop.name()));
 }
 
-size_t PropositionBase::Hash(const PropositionBase& prop, size_t predicate_hash) {
+size_t PropositionBase::Hash(const PropositionBase& prop,
+                             size_t predicate_hash) {
   size_t seed = predicate_hash;
-  for (const symbolic::Object& arg : prop.arguments()) {
+  for (const Object& arg : prop.arguments()) {
     seed ^= std::hash<Object>{}(arg) + kHashOffset + (seed << kHashL) +
             (seed >> kHashR);
   }
@@ -40,7 +41,7 @@ std::string PropositionBase::to_string() const {
   return ss.str();
 }
 
-std::ostream& operator<<(std::ostream& os, const symbolic::PropositionBase& P) {
+std::ostream& operator<<(std::ostream& os, const PropositionBase& P) {
   os << P.name() << "(";
   std::string separator;
   for (const Object& arg : P.arguments()) {

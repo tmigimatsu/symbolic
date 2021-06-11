@@ -24,6 +24,7 @@ namespace {
 using ::symbolic::Axiom;
 using ::symbolic::Formula;
 using ::symbolic::Object;
+using ::symbolic::ParameterGenerator;
 using ::symbolic::Pddl;
 using ::symbolic::Proposition;
 using ::symbolic::PropositionRef;
@@ -51,12 +52,12 @@ EffectsFunction<T> CreateForall(const Pddl& pddl,
   // Create forall parameters
   std::vector<Object> forall_params = parameters;
   const std::vector<Object> types =
-      symbolic::Object::CreateList(pddl, effect->getVarsList());
+      Object::CreateList(pddl, effect->getVarsList());
   forall_params.insert(forall_params.end(), types.begin(), types.end());
   EffectsFunction<T> ForallEffects =
       CreateEffectsFunction<T>(pddl, effect->getEffects(), forall_params);
 
-  return [gen = symbolic::ParameterGenerator(pddl, types),
+  return [gen = ParameterGenerator(pddl, types),
           ForallEffects = std::move(ForallEffects)](
              const std::vector<Object>& arguments, T* state) -> int {
     // Loop over forall arguments
@@ -79,7 +80,7 @@ EffectsFunction<T> CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
                              const std::vector<Object>& parameters) {
   // Prepare effect argument application functions
   const std::vector<Object> effect_params =
-      symbolic::Object::CreateList(pddl, effect->prop->args);
+      Object::CreateList(pddl, effect->prop->args);
   ApplicationFunction Apply =
       Formula::CreateApplicationFunction(parameters, effect_params);
 
@@ -168,7 +169,7 @@ EffectsFunction<T> CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
                              const std::vector<Object>& parameters) {
   // Prepare effect argument application functions
   const std::vector<Object> effect_params =
-      symbolic::Object::CreateList(pddl, effect->prop->args);
+      Object::CreateList(pddl, effect->prop->args);
   ApplicationFunction Apply =
       Formula::CreateApplicationFunction(parameters, effect_params);
 
@@ -261,7 +262,7 @@ bool EvaluateCondition(const std::optional<bool>& cond) {
 template <typename T>
 EffectsFunction<T> CreateCond(const Pddl& pddl, const VAL::cond_effect* effect,
                               const std::vector<Object>& parameters) {
-  symbolic::Formula Condition(pddl, effect->getCondition(), parameters);
+  Formula Condition(pddl, effect->getCondition(), parameters);
   EffectsFunction<T> CondEffects =
       CreateEffectsFunction<T>(pddl, effect->getEffects(), parameters);
   return

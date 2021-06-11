@@ -35,16 +35,15 @@ yyFlexLexer* yfl = nullptr;
 bool Verbose = false;
 std::ostream* report = nullptr;
 
-std::ostream& operator<<(std::ostream& os, const VAL::domain& domain);
+std::ostream& operator<<(std::ostream& os, const domain& domain);
 
-std::ostream& operator<<(std::ostream& os, const VAL::problem& problem);
+std::ostream& operator<<(std::ostream& os, const problem& problem);
 
-std::ostream& operator<<(std::ostream& os, const VAL::simple_effect& effect);
+std::ostream& operator<<(std::ostream& os, const simple_effect& effect);
 
-std::ostream& operator<<(std::ostream& os, const VAL::var_symbol_list& args);
+std::ostream& operator<<(std::ostream& os, const var_symbol_list& args);
 
-std::ostream& operator<<(std::ostream& os,
-                         const VAL::parameter_symbol_list& args);
+std::ostream& operator<<(std::ostream& os, const parameter_symbol_list& args);
 
 }  // namespace VAL
 
@@ -128,13 +127,13 @@ std::vector<Object> GetObjects(const VAL::domain& domain,
                                const VAL::problem* problem = nullptr) {
   // Extract domain objects.
   std::vector<Object> objects =
-      symbolic::Object::CreateList(domain.types, domain.constants);
+      Object::CreateList(domain.types, domain.constants);
 
   if (problem == nullptr) return objects;
 
   // Extract problem objects.
   const std::vector<Object> objects_2 =
-      symbolic::Object::CreateList(domain.types, problem->objects);
+      Object::CreateList(domain.types, problem->objects);
   objects.insert(objects.end(), objects_2.begin(), objects_2.end());
 
   return objects;
@@ -245,7 +244,8 @@ bool Apply(const Action& action, const std::vector<Object>& arguments,
 
 namespace symbolic {
 
-Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl, bool apply_axioms)
+Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl,
+           bool apply_axioms)
     : analysis_(ParsePddl(domain_pddl, problem_pddl)),
       domain_pddl_(domain_pddl),
       problem_pddl_(problem_pddl),
@@ -663,16 +663,16 @@ void PrintArgs(std::ostream& os, const VAL::typed_symbol_list<T>& args) {
 
 namespace VAL {
 
-std::ostream& operator<<(std::ostream& os, const VAL::domain& domain) {
+std::ostream& operator<<(std::ostream& os, const domain& domain) {
   os << "DOMAIN" << std::endl;
   os << "======" << std::endl;
   os << "Name: " << domain.name << std::endl;
 
-  os << "Requirements: " << VAL::pddl_req_flags_string(domain.req) << std::endl;
+  os << "Requirements: " << pddl_req_flags_string(domain.req) << std::endl;
 
   os << "Types: " << std::endl;
   if (domain.types != nullptr) {
-    for (const VAL::pddl_type* type : *domain.types) {
+    for (const pddl_type* type : *domain.types) {
       os << "\t" << type->getName() << ": " << type->type->getName() << " ["
          << type << "]" << std::endl;
     }
@@ -680,7 +680,7 @@ std::ostream& operator<<(std::ostream& os, const VAL::domain& domain) {
 
   os << "Constants: " << std::endl;
   if (domain.constants != nullptr) {
-    for (const VAL::const_symbol* c : *domain.constants) {
+    for (const const_symbol* c : *domain.constants) {
       os << "\t" << c->getName() << " [" << c << "]"
          << ": " << c->type->getName() << std::endl;
     }
@@ -688,7 +688,7 @@ std::ostream& operator<<(std::ostream& os, const VAL::domain& domain) {
 
   os << "Predicates:" << std::endl;
   if (domain.predicates != nullptr) {
-    for (const VAL::pred_decl* pred : *domain.predicates) {
+    for (const pred_decl* pred : *domain.predicates) {
       os << "\t" << pred->getPred()->getName() << *pred->getArgs() << " ["
          << pred << "]" << std::endl;
     }
@@ -696,7 +696,7 @@ std::ostream& operator<<(std::ostream& os, const VAL::domain& domain) {
 
   os << "Actions: " << std::endl;
   if (domain.ops != nullptr) {
-    for (const VAL::operator_* op : *domain.ops) {
+    for (const operator_* op : *domain.ops) {
       os << "\t" << op->name->getName() << *op->parameters << std::endl;
 
       os << "\t\tPreconditions:" << std::endl;
@@ -710,18 +710,17 @@ std::ostream& operator<<(std::ostream& os, const VAL::domain& domain) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const VAL::problem& problem) {
+std::ostream& operator<<(std::ostream& os, const problem& problem) {
   os << "PROBLEM" << std::endl;
   os << "=======" << std::endl;
   os << "Name: " << problem.name << std::endl;
 
   os << "Domain: " << problem.domain_name << std::endl;
 
-  os << "Requirements: " << VAL::pddl_req_flags_string(problem.req)
-     << std::endl;
+  os << "Requirements: " << pddl_req_flags_string(problem.req) << std::endl;
 
   os << "Objects:" << std::endl;
-  for (const VAL::const_symbol* object : *problem.objects) {
+  for (const const_symbol* object : *problem.objects) {
     os << "\t" << object->getName() << " [" << object << "]"
        << ": " << object->type->getName() << std::endl;
   }
@@ -735,19 +734,18 @@ std::ostream& operator<<(std::ostream& os, const VAL::problem& problem) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const VAL::simple_effect& effect) {
+std::ostream& operator<<(std::ostream& os, const simple_effect& effect) {
   os << effect.prop->head->getName() << *effect.prop->args << " ["
      << effect.prop->head << "]";
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const VAL::var_symbol_list& args) {
+std::ostream& operator<<(std::ostream& os, const var_symbol_list& args) {
   PrintArgs(os, args);
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os,
-                         const VAL::parameter_symbol_list& args) {
+std::ostream& operator<<(std::ostream& os, const parameter_symbol_list& args) {
   PrintArgs(os, args);
   return os;
 }
