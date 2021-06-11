@@ -1,0 +1,38 @@
+name: Docs
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/workflows/builds.yaml'
+      - '.github/workflows/tests.yaml'
+      - '*.md'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  generate_docs:
+    name: Generate Docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt install doxygen
+          pip install pipenv
+          pipenv install --dev
+
+      - name: Build
+        run: |
+          mkdir -p build
+          cmake -B build -DBUILD_PYTHON=ON -DBUILD_DOCS=ON
+          # symbolic needs to be in the virtual environment.
+          pipenv run pip install -e .
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/_build/html

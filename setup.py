@@ -99,7 +99,7 @@ class CMakeBuild(build_ext.build_ext):
 
 setuptools.setup(
     name="pysymbolic",
-    version="0.1",
+    version="1.0.0",
     author="Toki Migimatsu",
     author_email="takatoki@cs.stanford.edu",
     description="PDDL symbolic library",

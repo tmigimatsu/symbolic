@@ -1,0 +1,31 @@
+name: Tests
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/workflows/builds.yaml'
+      - '.github/workflows/docs.yaml'
+      - '*.md'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DBUILD_PYTHON=ON -DBUILD_DOCS=ON -DBUILD_TESTING=ON
+          make
+
+      - name: Test
+        run: |
+          cd build
+          ctest --output-on-failure
