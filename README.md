@@ -1,4 +1,6 @@
-[![Build Status](https://travis-ci.com/tmigimatsu/symbolic.svg?branch=master)](https://travis-ci.com/tmigimatsu/symbolic)
+[![Builds](https://github.com/tmigimatsu/symbolic/actions/workflows/builds.yaml/badge.svg)](https://github.com/tmigimatsu/symbolic/actions/workflows/builds.yaml)
+[![Tests](https://github.com/tmigimatsu/symbolic/actions/workflows/tests.yaml/badge.svg)](https://github.com/tmigimatsu/symbolic/actions/workflows/tests.yaml)
+[![Docs](https://github.com/tmigimatsu/symbolic/actions/workflows/docs.yaml/badge.svg)](https://github.com/tmigimatsu/symbolic/actions/workflows/docs.yaml)
 
 # symbolic
 
