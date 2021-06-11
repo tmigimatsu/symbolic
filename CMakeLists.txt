@@ -37,7 +37,7 @@ endif()
 # Define CMake options.
 lib_option(BUILD_DOCS "Build docs." OFF)
 lib_option(BUILD_EXAMPLES "Build examples." ON)
-lib_option(BUILD_PYTHON "Build Python library." ON)
+lib_option(BUILD_PYTHON "Build Python library." OFF)
 lib_option(BUILD_TESTING "Build tests." OFF)
 lib_option(CLANG_TIDY "Perform clang-tidy checks." OFF)
 

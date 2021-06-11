@@ -11,63 +11,63 @@ symbols for AI planning. This library is built upon
 specifications.
 
 See the documentation for `symbolic`
-[here](https://tmigimatsu.github.io/symdb/).
+[here](https://tmigimatsu.github.io/symbolic/).
 
-## Quick Install
+## Installation
 
-The quickest way to install `symbolic` is through pip.
+This library is written in C++ with Python bindings automatically generated with
+[pybind11](https://github.com/pybind/pybind11). It has been tested on
+Ubuntu 18.04, Ubuntu 20.04, and macOS 10.15 Catalina.
+
+Compilation requirements:
+- `cmake >= 3.11`
+- C++17 support (`gcc >= 7`, `clang >= 7`).
+
+See [Updating CMake](#updating-cmake) for details on how to install the latest
+`cmake`. Ubuntu 20.04 comes with a sufficient version of `cmake` out of the box.
+
+### C++ only
+
+The C++ portion of `symbolic` is header-only, but to add `symbolic` as a
+`cmake` dependency, you can run the following:
+```sh
+mkdir build
+cmake -B build
+```
 
 ### Python only
 
-Use this to install `symbolic` in your virtual environment.
+Use `pip` to install `symbolic` in your virtual environment.
 ```sh
-git clone https://github.com/tmigimatsu/symbolic.git
-cd symbolic
-pip install cmake
 pip install .
+```
+
+You can now import the `symbolic` package in Python.
+```py
+import symbolic
 ```
 
 ### C++ and Python
 
-This will run the appropriate CMake command to build `symbolic` locally in the `symbolic/build` folder.
+An in-place `pip` install will run the appropriate CMake command to build
+`symbolic` locally in the `./build` folder. This will give you access to the
+`cmake` configuration files for C++ as well as the `symbolic` package in
+Python.
 ```sh
-git clone https://github.com/tmigimatsu/symbolic.git
-cd symbolic
-pip install cmake
 pip install -e .
 ```
 
-## Installation Requirements
-
-This library is written in C++ with Python bindings automatically generated with
-[pybind11](https://github.com/pybind/pybind11). Compiling requires `cmake >=
-3.11` and support for C++17 (`gcc >= 7`). It will compile out of the box for
-Ubuntu 20.04, but older systems require updating:
-
-### Ubuntu 16.04
-
-```sh
-# Install gcc 7.
-sudo apt-get update && sudo apt-get install -y software-properties-common
-sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test
-sudo apt-get update && sudo apt-get -y install build-essential gcc-7 g++-7
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 5
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 7
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 5
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 7
-
-# Install the latest CMake.
-sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates gnupg wget
-wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
-sudo apt-add-repository -y 'deb https://apt.kitware.com/ubuntu/ xenial main'
-sudo apt-get update && sudo apt-get install -y cmake kitware-archive-keyring
-sudo rm /etc/apt/trusted.gpg.d/kitware.gpg
-```
+## Updating CMake
 
 ### Ubuntu 18.04
 
+The simplest way to install the latest version of `cmake` is through `pip`:
 ```sh
-# Install the latest CMake.
+pip install cmake
+```
+
+You can also install it through `apt`:
+```sh
 sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates gnupg wget
 wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
 sudo apt-add-repository -y 'deb https://apt.kitware.com/ubuntu/ bionic main'
@@ -75,36 +75,14 @@ sudo apt-get update && sudo apt-get install -y cmake kitware-archive-keyring
 sudo rm /etc/apt/trusted.gpg.d/kitware.gpg
 ```
 
-## Installation
+### macOS
 
-### C++ only
-To compile `symbolic`, run from the project root directory:
+Install `cmake` through Homebrew:
 ```sh
-mkdir build
-cd build
-cmake ..
-make
+brew install cmake
 ```
 
-If CMake attempts to use an incorrect version of Python, specify the correct
-version manually:
+Or through `pip`:
 ```sh
-cmake .. -DPYBIND11_PYTHON_VERSION=3.8
+pip3 install cmake
 ```
-
-By default, `symbolic` will compile with examples from `apps/`. To turn this
-off, run the cmake command with a different flag:
-```sh
-cmake .. -DBUILD_EXAMPLES=OFF
-```
-
-### Python Library
-
-To install the Python library (after building the C++ binaries above), activate
-your virtual environment and navigate to the `symbolic` root directory. Then
-run:
-```sh
-pip install -e .
-```
-
-You should now be able to `import symbolic` in your virtual environment.

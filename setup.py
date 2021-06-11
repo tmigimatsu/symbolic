@@ -58,6 +58,7 @@ class CMakeBuild(build_ext.build_ext):
             "-B" + str(build_dir),
             "-DBUILD_TESTING=OFF",
             "-DBUILD_EXAMPLES=OFF",
+            "-DBUILD_PYTHON=ON",
             "-DPYBIND11_PYTHON_VERSION=" + python_version,
             "-DCMAKE_BUILD_TYPE=" + build_type,
         ]
