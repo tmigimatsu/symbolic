@@ -1,0 +1,6 @@
+symbolic.parse\_args
+====================
+
+.. currentmodule:: symbolic
+
+.. autofunction:: parse_args
