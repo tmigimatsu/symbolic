@@ -17,6 +17,7 @@
 #include <functional>     // std::hash
 #include <optional>       // std::optional
 #include <ostream>        // std::ostream
+#include <unordered_map>  // std::unordered_map
 #include <unordered_set>  // std::unordered_set
 #include <utility>        // std::pair
 

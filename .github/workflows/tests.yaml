@@ -18,12 +18,17 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install dependencies
+        run: |
+          pip install pipenv
+          pipenv install --dev
+
       - name: Build
         run: |
           mkdir -p build
-          cd build
-          cmake .. -DBUILD_PYTHON=ON -DBUILD_DOCS=ON -DBUILD_TESTING=ON
-          make
+          cmake -B build -DBUILD_PYTHON=ON -DBUILD_DOCS=ON -DBUILD_TESTING=ON
+          # symbolic needs to be in the virtual environment.
+          pipenv run pip install -e .
 
       - name: Test
         run: |

@@ -58,7 +58,8 @@ class Planner {
   };
 
   /**
-   * Planner class to find a state that satisfies the goal condition from the initial state.
+   * Planner class to find a state that satisfies the goal condition from the
+   * initial state.
    *
    * @param pddl Pddl instance.
    *
@@ -67,14 +68,16 @@ class Planner {
   explicit Planner(const Pddl& pddl) : Planner(pddl, pddl.initial_state()) {}
 
   /**
-   * Planner class to find a state that satisfies the goal condition from the given state.
+   * Planner class to find a state that satisfies the goal condition from the
+   * given state.
    *
    * @param pddl Pddl instance.
    * @param state State from which to search.
    *
    * @seepython{symbolic.Planner,__init__}
    */
-  Planner(const Pddl& pddl, const State& state) : root_(pddl, state) {}
+  Planner(const Pddl& pddl, const State& state)
+      : root_(pddl, pddl.ConsistentState(state)) {}
 
   const Node& root() const { return root_; }
 
