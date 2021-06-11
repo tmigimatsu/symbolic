@@ -12,21 +12,21 @@
 
 #include "symbolic/action.h"
 
-namespace VAL {
+namespace VAL_v1 {
 
 class derivation_rule;
 
-}  // namespace VAL
+}  // namespace VAL_v1
 
 namespace symbolic_v1 {
 
 class DerivedPredicate : public Action {
  public:
-  DerivedPredicate(const Pddl& pddl, const VAL::derivation_rule* symbol);
+  DerivedPredicate(const Pddl& pddl, const VAL_v1::derivation_rule* symbol);
 
-  const VAL::derivation_rule* symbol() const { return symbol_; }
+  const VAL_v1::derivation_rule* symbol() const { return symbol_; }
 
-  const VAL::effect_lists* postconditions() const = delete;
+  const VAL_v1::effect_lists* postconditions() const = delete;
 
   bool Apply(State* state) const;
 
@@ -39,7 +39,7 @@ class DerivedPredicate : public Action {
   static bool Apply(const std::vector<DerivedPredicate>& predicates, State* state);
 
  private:
-  const VAL::derivation_rule* symbol_;
+  const VAL_v1::derivation_rule* symbol_;
 };
 
 }  // namespace symbolic_v1

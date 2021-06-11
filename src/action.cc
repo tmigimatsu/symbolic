@@ -36,12 +36,12 @@ using ApplicationFunction =
 
 template <typename T>
 EffectsFunction<T> CreateEffectsFunction(const Pddl& pddl,
-                                         const VAL::effect_lists* effects,
+                                         const VAL_v1::effect_lists* effects,
                                          const std::vector<Object>& parameters);
 
 template <typename T>
 EffectsFunction<T> CreateForall(const Pddl& pddl,
-                                const VAL::forall_effect* effect,
+                                const VAL_v1::forall_effect* effect,
                                 const std::vector<Object>& parameters) {
   // Create forall parameters
   std::vector<Object> forall_params = parameters;
@@ -70,7 +70,7 @@ EffectsFunction<T> CreateForall(const Pddl& pddl,
 }
 
 template <typename T>
-EffectsFunction<T> CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
+EffectsFunction<T> CreateAdd(const Pddl& pddl, const VAL_v1::simple_effect* effect,
                              const std::vector<Object>& parameters) {
   // Prepare effect argument application functions
   const std::vector<Object> effect_params =
@@ -121,7 +121,7 @@ EffectsFunction<T> CreateAdd(const Pddl& pddl, const VAL::simple_effect* effect,
 }
 
 template <typename T>
-EffectsFunction<T> CreateDel(const Pddl& pddl, const VAL::simple_effect* effect,
+EffectsFunction<T> CreateDel(const Pddl& pddl, const VAL_v1::simple_effect* effect,
                              const std::vector<Object>& parameters) {
   // Prepare effect argument application functions
   const std::vector<Object> effect_params =
@@ -179,7 +179,7 @@ bool EvaluateCondition(const std::optional<bool>& cond) {
 }
 
 template <typename T>
-EffectsFunction<T> CreateCond(const Pddl& pddl, const VAL::cond_effect* effect,
+EffectsFunction<T> CreateCond(const Pddl& pddl, const VAL_v1::cond_effect* effect,
                               const std::vector<Object>& parameters) {
   Formula Condition(pddl, effect->getCondition(), parameters);
   EffectsFunction<T> CondEffects =
@@ -198,26 +198,26 @@ EffectsFunction<T> CreateCond(const Pddl& pddl, const VAL::cond_effect* effect,
 
 template <typename T>
 EffectsFunction<T> CreateEffectsFunction(
-    const Pddl& pddl, const VAL::effect_lists* effects,
+    const Pddl& pddl, const VAL_v1::effect_lists* effects,
     const std::vector<Object>& parameters) {
   std::vector<EffectsFunction<T>> effect_functions;
   // Forall effects
-  for (const VAL::forall_effect* effect : effects->forall_effects) {
+  for (const VAL_v1::forall_effect* effect : effects->forall_effects) {
     effect_functions.emplace_back(CreateForall<T>(pddl, effect, parameters));
   }
 
   // Add effects
-  for (const VAL::simple_effect* effect : effects->add_effects) {
+  for (const VAL_v1::simple_effect* effect : effects->add_effects) {
     effect_functions.emplace_back(CreateAdd<T>(pddl, effect, parameters));
   }
 
   // Del effects
-  for (const VAL::simple_effect* effect : effects->del_effects) {
+  for (const VAL_v1::simple_effect* effect : effects->del_effects) {
     effect_functions.emplace_back(CreateDel<T>(pddl, effect, parameters));
   }
 
   // Cond effects
-  for (const VAL::cond_effect* effect : effects->cond_effects) {
+  for (const VAL_v1::cond_effect* effect : effects->cond_effects) {
     effect_functions.emplace_back(CreateCond<T>(pddl, effect, parameters));
   }
 
@@ -231,10 +231,10 @@ EffectsFunction<T> CreateEffectsFunction(
   };
 }
 
-const VAL::operator_* GetSymbol(const Pddl& pddl,
+const VAL_v1::operator_* GetSymbol(const Pddl& pddl,
                                 const std::string& name_action) {
-  assert(pddl.domain().ops != nullptr);
-  for (const VAL::operator_* op : *pddl.symbol()->the_domain->ops) {
+  assert(pddl.symbol()->the_domain != nullptr);
+  for (const VAL_v1::operator_* op : *pddl.symbol()->the_domain->ops) {
     assert(op != nullptr && op->name != nullptr);
     if (op->name->getName() == name_action) return op;
   }
@@ -247,7 +247,7 @@ const VAL::operator_* GetSymbol(const Pddl& pddl,
 
 namespace symbolic_v1 {
 
-Action::Action(const Pddl& pddl, const VAL::operator_* symbol)
+Action::Action(const Pddl& pddl, const VAL_v1::operator_* symbol)
     : symbol_(symbol),
       name_(symbol_->name->getName()),
       parameters_(Object::CreateList(pddl, symbol_->parameters)),
@@ -274,7 +274,7 @@ PartialState Action::Apply(const PartialState& state,
   return next_state;
 }
 
-const VAL::effect_lists* Action::postconditions() const {
+const VAL_v1::effect_lists* Action::postconditions() const {
   return symbol_->effects;
 }
 

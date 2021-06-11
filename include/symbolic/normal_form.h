@@ -39,13 +39,13 @@ struct DisjunctiveFormula {
                      const std::vector<Object>& arguments)
       : DisjunctiveFormula(pddl, formula.symbol(), parameters, arguments) {}
 
-  DisjunctiveFormula(const Pddl& pddl, const VAL::goal* symbol,
+  DisjunctiveFormula(const Pddl& pddl, const VAL_v1::goal* symbol,
                      const std::vector<Object>& parameters,
                      const std::vector<Object>& arguments)
       : DisjunctiveFormula(
             Create(pddl, symbol, parameters, arguments).value()) {}
 
-  DisjunctiveFormula(const Pddl& pddl, const VAL::effect_lists* symbol,
+  DisjunctiveFormula(const Pddl& pddl, const VAL_v1::effect_lists* symbol,
                      const std::vector<Object>& parameters,
                      const std::vector<Object>& arguments)
       : DisjunctiveFormula(
@@ -64,12 +64,12 @@ struct DisjunctiveFormula {
   }
 
   static std::optional<DisjunctiveFormula> Create(
-      const Pddl& pddl, const VAL::goal* symbol,
+      const Pddl& pddl, const VAL_v1::goal* symbol,
       const std::vector<Object>& parameters,
       const std::vector<Object>& arguments);
 
   static std::optional<DisjunctiveFormula> Create(
-      const Pddl& pddl, const VAL::effect_lists* symbol,
+      const Pddl& pddl, const VAL_v1::effect_lists* symbol,
       const std::vector<Object>& parameters,
       const std::vector<Object>& arguments);
 

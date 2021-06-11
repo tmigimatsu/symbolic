@@ -87,7 +87,7 @@ PYBIND11_MODULE(pysymbolic_v1, m) {
           "is_valid",
           [](const Pddl& pddl, bool verbose) { return pddl.IsValid(verbose); },
           "verbose"_a = false, R"pbdoc(
-            Evaluate whether the pddl specification is valid using VAL.
+            Evaluate whether the pddl specification is valid using VAL_v1.
 
             Args:
                 verbose: Print diagnostic information.

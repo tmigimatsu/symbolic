@@ -39,14 +39,14 @@ template <typename T>
 using NamedFormulaFunction = std::pair<FormulaFunction<T>, std::string>;
 
 template <typename T>
-NamedFormulaFunction<T> CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
+NamedFormulaFunction<T> CreateFormula(const Pddl& pddl, const VAL_v1::goal* symbol,
                                       const std::vector<Object>& parameters);
 
 template <typename T>
 NamedFormulaFunction<T> CreateProposition(
-    const Pddl& pddl, const VAL::simple_goal* symbol,
+    const Pddl& pddl, const VAL_v1::simple_goal* symbol,
     const std::vector<Object>& parameters) {
-  const VAL::proposition* prop = symbol->getProp();
+  const VAL_v1::proposition* prop = symbol->getProp();
   std::string name_predicate = prop->head->getName();
   const std::vector<Object> prop_params = Object::CreateList(pddl, prop->args);
   ApplicationFunction Apply =
@@ -92,15 +92,15 @@ NamedFormulaFunction<T> CreateProposition(
 
 template <typename T>
 NamedFormulaFunction<T> CreateConjunction(
-    const Pddl& pddl, const VAL::conj_goal* symbol,
+    const Pddl& pddl, const VAL_v1::conj_goal* symbol,
     const std::vector<Object>& parameters) {
   std::stringstream ss("(");
   std::string delim;
 
   std::vector<FormulaFunction<T>> subformulas;
-  const VAL::goal_list* goals = symbol->getGoals();
+  const VAL_v1::goal_list* goals = symbol->getGoals();
   subformulas.reserve(goals->size());
-  for (const VAL::goal* goal : *goals) {
+  for (const VAL_v1::goal* goal : *goals) {
     NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, parameters);
     subformulas.push_back(std::move(P_str.first));
 
@@ -123,15 +123,15 @@ NamedFormulaFunction<T> CreateConjunction(
 
 template <typename T>
 NamedFormulaFunction<T> CreateDisjunction(
-    const Pddl& pddl, const VAL::disj_goal* symbol,
+    const Pddl& pddl, const VAL_v1::disj_goal* symbol,
     const std::vector<Object>& parameters) {
   std::stringstream ss("(");
   std::string delim;
 
   std::vector<FormulaFunction<T>> subformulas;
-  const VAL::goal_list* goals = symbol->getGoals();
+  const VAL_v1::goal_list* goals = symbol->getGoals();
   subformulas.reserve(goals->size());
-  for (const VAL::goal* goal : *goals) {
+  for (const VAL_v1::goal* goal : *goals) {
     NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, parameters);
     subformulas.push_back(std::move(P_str.first));
 
@@ -154,9 +154,9 @@ NamedFormulaFunction<T> CreateDisjunction(
 
 template <typename T>
 NamedFormulaFunction<T> CreateNegation(const Pddl& pddl,
-                                       const VAL::neg_goal* symbol,
+                                       const VAL_v1::neg_goal* symbol,
                                        const std::vector<Object>& parameters) {
-  const VAL::goal* goal = symbol->getGoal();
+  const VAL_v1::goal* goal = symbol->getGoal();
   NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, parameters);
 
   FormulaFunction<T> F = [P = std::move(P_str.first)](
@@ -170,15 +170,15 @@ NamedFormulaFunction<T> CreateNegation(const Pddl& pddl,
 }
 template <>
 NamedFormulaFunction<PartialState> CreateNegation(
-    const Pddl& pddl, const VAL::neg_goal* symbol,
+    const Pddl& pddl, const VAL_v1::neg_goal* symbol,
     const std::vector<Object>& parameters) {
-  const VAL::goal* goal = symbol->getGoal();
+  const VAL_v1::goal* goal = symbol->getGoal();
 
   // Check if goal is a simple proposition.
-  const VAL::simple_goal* simple_goal =
-      dynamic_cast<const VAL::simple_goal*>(goal);
+  const VAL_v1::simple_goal* simple_goal =
+      dynamic_cast<const VAL_v1::simple_goal*>(goal);
   if (simple_goal != nullptr) {
-    const VAL::proposition* prop = simple_goal->getProp();
+    const VAL_v1::proposition* prop = simple_goal->getProp();
     std::string name_predicate = prop->head->getName();
     if (name_predicate != "=" &&
         pddl.object_map().find(name_predicate) == pddl.object_map().end()) {
@@ -219,14 +219,14 @@ NamedFormulaFunction<PartialState> CreateNegation(
 
 template <typename T>
 NamedFormulaFunction<T> CreateForall(const Pddl& pddl,
-                                     const VAL::qfied_goal* symbol,
+                                     const VAL_v1::qfied_goal* symbol,
                                      const std::vector<Object>& parameters) {
   // Create forall parameters
   std::vector<Object> forall_params = parameters;
   std::vector<Object> types = Object::CreateList(pddl, symbol->getVars());
   forall_params.insert(forall_params.end(), types.begin(), types.end());
 
-  const VAL::goal* goal = symbol->getGoal();
+  const VAL_v1::goal* goal = symbol->getGoal();
   NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, forall_params);
 
   FormulaFunction<T> F = [gen = ParameterGenerator(pddl.object_map(), types),
@@ -258,14 +258,14 @@ NamedFormulaFunction<T> CreateForall(const Pddl& pddl,
 
 template <typename T>
 NamedFormulaFunction<T> CreateExists(const Pddl& pddl,
-                                     const VAL::qfied_goal* symbol,
+                                     const VAL_v1::qfied_goal* symbol,
                                      const std::vector<Object>& parameters) {
   // Create exists parameters
   std::vector<Object> exists_params = parameters;
   std::vector<Object> types = Object::CreateList(pddl, symbol->getVars());
   exists_params.insert(exists_params.end(), types.begin(), types.end());
 
-  const VAL::goal* goal = symbol->getGoal();
+  const VAL_v1::goal* goal = symbol->getGoal();
   NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, exists_params);
 
   FormulaFunction<T> F = [gen = ParameterGenerator(pddl.object_map(), types),
@@ -296,39 +296,39 @@ NamedFormulaFunction<T> CreateExists(const Pddl& pddl,
 }
 
 template <typename T>
-NamedFormulaFunction<T> CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
+NamedFormulaFunction<T> CreateFormula(const Pddl& pddl, const VAL_v1::goal* symbol,
                                       const std::vector<Object>& parameters) {
   // Proposition
-  const auto* simple_goal = dynamic_cast<const VAL::simple_goal*>(symbol);
+  const auto* simple_goal = dynamic_cast<const VAL_v1::simple_goal*>(symbol);
   if (simple_goal != nullptr) {
     return CreateProposition<T>(pddl, simple_goal, parameters);
   }
 
   // Conjunction
-  const auto* conj_goal = dynamic_cast<const VAL::conj_goal*>(symbol);
+  const auto* conj_goal = dynamic_cast<const VAL_v1::conj_goal*>(symbol);
   if (conj_goal != nullptr) {
     return CreateConjunction<T>(pddl, conj_goal, parameters);
   }
 
   // Disjunction
-  const auto* disj_goal = dynamic_cast<const VAL::disj_goal*>(symbol);
+  const auto* disj_goal = dynamic_cast<const VAL_v1::disj_goal*>(symbol);
   if (disj_goal != nullptr) {
     return CreateDisjunction<T>(pddl, disj_goal, parameters);
   }
 
   // Negation
-  const auto* neg_goal = dynamic_cast<const VAL::neg_goal*>(symbol);
+  const auto* neg_goal = dynamic_cast<const VAL_v1::neg_goal*>(symbol);
   if (neg_goal != nullptr) {
     return CreateNegation<T>(pddl, neg_goal, parameters);
   }
 
   // Forall
-  const auto* qfied_goal = dynamic_cast<const VAL::qfied_goal*>(symbol);
+  const auto* qfied_goal = dynamic_cast<const VAL_v1::qfied_goal*>(symbol);
   if (qfied_goal != nullptr) {
     switch (qfied_goal->getQuantifier()) {
-      case VAL::quantifier::E_FORALL:
+      case VAL_v1::quantifier::E_FORALL:
         return CreateForall<T>(pddl, qfied_goal, parameters);
-      case VAL::quantifier::E_EXISTS:
+      case VAL_v1::quantifier::E_EXISTS:
         return CreateExists<T>(pddl, qfied_goal, parameters);
     }
   }
@@ -340,7 +340,7 @@ NamedFormulaFunction<T> CreateFormula(const Pddl& pddl, const VAL::goal* symbol,
 
 namespace symbolic_v1 {
 
-Formula::Formula(const Pddl& pddl, const VAL::goal* symbol,
+Formula::Formula(const Pddl& pddl, const VAL_v1::goal* symbol,
                  const std::vector<Object>& parameters)
     : symbol_(symbol),
       P_(CreateFormula<State>(pddl, symbol, parameters).first) {

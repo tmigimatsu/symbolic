@@ -20,5 +20,5 @@ target_link_libraries(pysymbolic_v1
     pybind11::pybind11
     symbolic_v1::symbolic_v1
   PRIVATE
-    VAL::VAL
+    VAL_v1::VAL_v1
 )

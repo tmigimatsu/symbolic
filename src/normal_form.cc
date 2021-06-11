@@ -37,8 +37,8 @@ std::optional<bool> EvaluateEquals(const Proposition& prop) {
   assert(prop.arguments().size() == 2);
   const Object& a = prop.arguments()[0];
   const Object& b = prop.arguments()[1];
-  if (dynamic_cast<const VAL::var_symbol*>(a.symbol()) !=
-      dynamic_cast<const VAL::var_symbol*>(b.symbol())) {
+  if (dynamic_cast<const VAL_v1::var_symbol*>(a.symbol()) !=
+      dynamic_cast<const VAL_v1::var_symbol*>(b.symbol())) {
     // Cannot evaluate if one is a parameter (var_symbol) and the other is an
     // argument (parameter_symbol)
     return {};
@@ -272,13 +272,13 @@ std::optional<DisjunctiveFormula> Negate(const Pddl& pddl,
 }
 
 std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
-    const Pddl& pddl, const VAL::goal* symbol,
+    const Pddl& pddl, const VAL_v1::goal* symbol,
     const std::vector<Object>& parameters,
     const std::vector<Object>& arguments) {
   // Proposition
-  const auto* simple_goal = dynamic_cast<const VAL::simple_goal*>(symbol);
+  const auto* simple_goal = dynamic_cast<const VAL_v1::simple_goal*>(symbol);
   if (simple_goal != nullptr) {
-    const VAL::proposition* prop = simple_goal->getProp();
+    const VAL_v1::proposition* prop = simple_goal->getProp();
     const std::string name_predicate = prop->head->getName();
     const std::vector<Object> prop_params =
         Object::CreateList(pddl, prop->args);
@@ -291,12 +291,12 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   }
 
   // Conjunction
-  const auto* conj_goal = dynamic_cast<const VAL::conj_goal*>(symbol);
+  const auto* conj_goal = dynamic_cast<const VAL_v1::conj_goal*>(symbol);
   if (conj_goal != nullptr) {
-    const VAL::goal_list* goals = conj_goal->getGoals();
+    const VAL_v1::goal_list* goals = conj_goal->getGoals();
     std::vector<DisjunctiveFormula> conj_terms;
     conj_terms.reserve(goals->size());
-    for (const VAL::goal* goal : *goals) {
+    for (const VAL_v1::goal* goal : *goals) {
       std::optional<DisjunctiveFormula> conj =
           Create(pddl, goal, parameters, arguments);
       if (!conj.has_value()) return {};
@@ -306,12 +306,12 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   }
 
   // Disjunction
-  const auto* disj_goal = dynamic_cast<const VAL::disj_goal*>(symbol);
+  const auto* disj_goal = dynamic_cast<const VAL_v1::disj_goal*>(symbol);
   if (disj_goal != nullptr) {
-    const VAL::goal_list* goals = disj_goal->getGoals();
+    const VAL_v1::goal_list* goals = disj_goal->getGoals();
     std::vector<DisjunctiveFormula> disj_terms;
     disj_terms.reserve(goals->size());
-    for (const VAL::goal* goal : *goals) {
+    for (const VAL_v1::goal* goal : *goals) {
       std::optional<DisjunctiveFormula> disj =
           Create(pddl, goal, parameters, arguments);
       if (!disj.has_value()) continue;
@@ -321,9 +321,9 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   }
 
   // Negation
-  const auto* neg_goal = dynamic_cast<const VAL::neg_goal*>(symbol);
+  const auto* neg_goal = dynamic_cast<const VAL_v1::neg_goal*>(symbol);
   if (neg_goal != nullptr) {
-    const VAL::goal* goal = neg_goal->getGoal();
+    const VAL_v1::goal* goal = neg_goal->getGoal();
     std::optional<DisjunctiveFormula> neg =
         Create(pddl, goal, parameters, arguments);
     if (!neg.has_value()) return DisjunctiveFormula();
@@ -331,9 +331,9 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   }
 
   // Forall and exists
-  const auto* qfied_goal = dynamic_cast<const VAL::qfied_goal*>(symbol);
+  const auto* qfied_goal = dynamic_cast<const VAL_v1::qfied_goal*>(symbol);
   if (qfied_goal != nullptr) {
-    const VAL::goal* goal = qfied_goal->getGoal();
+    const VAL_v1::goal* goal = qfied_goal->getGoal();
 
     // Create qfied parameters
     std::vector<Object> qfied_params = parameters;
@@ -352,9 +352,9 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
           Create(pddl, goal, qfied_params, qfied_args);
       if (!qfied.has_value()) {
         switch (qfied_goal->getQuantifier()) {
-          case VAL::quantifier::E_FORALL:
+          case VAL_v1::quantifier::E_FORALL:
             return {};
-          case VAL::quantifier::E_EXISTS:
+          case VAL_v1::quantifier::E_EXISTS:
             continue;
         }
       }
@@ -362,9 +362,9 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
     }
 
     switch (qfied_goal->getQuantifier()) {
-      case VAL::quantifier::E_FORALL:
+      case VAL_v1::quantifier::E_FORALL:
         return Conjoin(pddl, qfied_terms);
-      case VAL::quantifier::E_EXISTS:
+      case VAL_v1::quantifier::E_EXISTS:
         return Disjoin(pddl, std::move(qfied_terms));
     }
   }
@@ -373,13 +373,13 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
 }
 
 std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
-    const Pddl& pddl, const VAL::effect_lists* symbol,
+    const Pddl& pddl, const VAL_v1::effect_lists* symbol,
     const std::vector<Object>& parameters,
     const std::vector<Object>& arguments) {
   std::vector<DisjunctiveFormula> dnfs;
 
   // Forall effects
-  for (const VAL::forall_effect* effect : symbol->forall_effects) {
+  for (const VAL_v1::forall_effect* effect : symbol->forall_effects) {
     std::vector<Object> forall_params = parameters;
     const std::vector<Object> types =
         Object::CreateList(pddl, effect->getVarsList());
@@ -403,7 +403,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   // Add effects
   State pos;
   pos.reserve(symbol->add_effects.size());
-  for (const VAL::simple_effect* effect : symbol->add_effects) {
+  for (const VAL_v1::simple_effect* effect : symbol->add_effects) {
     const std::string name_predicate = effect->prop->head->getName();
     const std::vector<Object> effect_params =
         Object::CreateList(pddl, effect->prop->args);
@@ -416,7 +416,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   // Del effects
   State neg;
   neg.reserve(symbol->del_effects.size());
-  for (const VAL::simple_effect* effect : symbol->del_effects) {
+  for (const VAL_v1::simple_effect* effect : symbol->del_effects) {
     const std::string name_predicate = effect->prop->head->getName();
     const std::vector<Object> effect_params =
         Object::CreateList(pddl, effect->prop->args);
@@ -431,7 +431,7 @@ std::optional<DisjunctiveFormula> DisjunctiveFormula::Create(
   }
 
   // Cond effects
-  for (const VAL::cond_effect* effect : symbol->cond_effects) {
+  for (const VAL_v1::cond_effect* effect : symbol->cond_effects) {
     std::optional<DisjunctiveFormula> condition =
         Create(pddl, effect->getCondition(), parameters, arguments);
 

@@ -17,7 +17,7 @@ namespace symbolic_v1 {
 
 class Axiom : public Action {
  public:
-  Axiom(const Pddl& pddl, const VAL::operator_* symbol);
+  Axiom(const Pddl& pddl, const VAL_v1::operator_* symbol);
 
   /**
    * Determine whether the axiom is satisfied in the given state.

@@ -21,11 +21,11 @@ namespace {
 
 using ::symbolic_v1::Pddl;
 
-const VAL::pddl_type* GetTypeSymbol(const VAL::pddl_type_list* types,
-                                    const VAL::pddl_type* symbol = nullptr) {
+const VAL_v1::pddl_type* GetTypeSymbol(const VAL_v1::pddl_type_list* types,
+                                    const VAL_v1::pddl_type* symbol = nullptr) {
   if (symbol != nullptr) return symbol;
   // Iterate over domain types
-  for (const VAL::pddl_type* type : *types) {
+  for (const VAL_v1::pddl_type* type : *types) {
     // Iterate over ancestors of current type
     for (; type != nullptr; type = type->type) {
       if (type->type == nullptr && type->getName() == "object") return type;
@@ -34,15 +34,15 @@ const VAL::pddl_type* GetTypeSymbol(const VAL::pddl_type_list* types,
   return nullptr;
 }
 
-const VAL::const_symbol* GetSymbol(const Pddl& pddl,
+const VAL_v1::const_symbol* GetSymbol(const Pddl& pddl,
                                    const std::string& name_object) {
   assert(pddl.symbol()->the_domain->constants != nullptr);
-  for (const VAL::const_symbol* obj : *pddl.symbol()->the_domain->constants) {
+  for (const VAL_v1::const_symbol* obj : *pddl.symbol()->the_domain->constants) {
     assert(obj != nullptr);
     if (obj->getName() == name_object) return obj;
   }
   assert(pddl.symbol()->the_problem->objects != nullptr);
-  for (const VAL::const_symbol* obj : *pddl.symbol()->the_problem->objects) {
+  for (const VAL_v1::const_symbol* obj : *pddl.symbol()->the_problem->objects) {
     assert(obj != nullptr);
     if (obj->getName() == name_object) return obj;
   }
@@ -71,11 +71,11 @@ std::vector<std::string> TokenizeArguments(const std::string& proposition) {
 
 namespace symbolic_v1 {
 
-Object::Type::Type(const VAL::pddl_type* symbol)
+Object::Type::Type(const VAL_v1::pddl_type* symbol)
     : symbol_(symbol), name_(symbol->getName()) {}
 
 bool Object::Type::IsSubtype(const std::string& type) const {
-  for (const VAL::pddl_type* curr = symbol_; curr != nullptr;
+  for (const VAL_v1::pddl_type* curr = symbol_; curr != nullptr;
        curr = curr->type) {
     if (curr->getName() == type) return true;
   }
@@ -84,20 +84,20 @@ bool Object::Type::IsSubtype(const std::string& type) const {
 
 std::vector<std::string> Object::Type::ListTypes() const {
   std::vector<std::string> types;
-  for (const VAL::pddl_type* curr = symbol_; curr != nullptr;
+  for (const VAL_v1::pddl_type* curr = symbol_; curr != nullptr;
        curr = curr->type) {
     types.push_back(curr->getName());
   }
   return types;
 }
 
-Object::Object(const Pddl& pddl, const VAL::pddl_typed_symbol* symbol)
+Object::Object(const Pddl& pddl, const VAL_v1::pddl_typed_symbol* symbol)
     : symbol_(symbol),
       name_(symbol->getName()),
       type_(GetTypeSymbol(pddl.symbol()->the_domain->types, symbol->type)) {}
 
-Object::Object(const VAL::pddl_type_list* types,
-               const VAL::pddl_typed_symbol* symbol)
+Object::Object(const VAL_v1::pddl_type_list* types,
+               const VAL_v1::pddl_typed_symbol* symbol)
     : symbol_(symbol),
       name_(symbol->getName()),
       type_(GetTypeSymbol(types, symbol->type)) {}

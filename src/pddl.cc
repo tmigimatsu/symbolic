@@ -24,7 +24,7 @@
 extern int yyparse();
 extern int yydebug;
 
-namespace VAL {
+namespace VAL_v1 {
 
 // Expected in pddl+.cpp
 parse_category* top_thing = nullptr;
@@ -35,30 +35,30 @@ yyFlexLexer* yfl = nullptr;
 bool Verbose = false;
 std::ostream* report = nullptr;
 
-std::ostream& operator<<(std::ostream& os, const VAL::domain& domain);
+std::ostream& operator<<(std::ostream& os, const domain& domain);
 
-std::ostream& operator<<(std::ostream& os, const VAL::problem& problem);
+std::ostream& operator<<(std::ostream& os, const problem& problem);
 
-std::ostream& operator<<(std::ostream& os, const VAL::simple_effect& effect);
+std::ostream& operator<<(std::ostream& os, const simple_effect& effect);
 
-std::ostream& operator<<(std::ostream& os, const VAL::var_symbol_list& args);
+std::ostream& operator<<(std::ostream& os, const var_symbol_list& args);
 
-std::ostream& operator<<(std::ostream& os,
-                         const VAL::parameter_symbol_list& args);
+std::ostream& operator<<(std::ostream& os, const parameter_symbol_list& args);
 
-}  // namespace VAL
+}  // namespace VAL_v1
 
 const char* current_filename = nullptr;  // Expected in parse_error.h
 
 namespace {
 
-std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
-                                         const std::string& filename_problem) {
-  std::unique_ptr<VAL::analysis> analysis = std::make_unique<VAL::analysis>();
+std::unique_ptr<VAL_v1::analysis> ParsePddl(
+    const std::string& filename_domain, const std::string& filename_problem) {
+  std::unique_ptr<VAL_v1::analysis> analysis =
+      std::make_unique<VAL_v1::analysis>();
   yyFlexLexer yfl;
 
-  VAL::current_analysis = analysis.get();
-  VAL::yfl = &yfl;
+  VAL_v1::current_analysis = analysis.get();
+  VAL_v1::yfl = &yfl;
   yydebug = 0;  // Set to 1 to output yacc trace
 
   // Parse domain
@@ -76,7 +76,7 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
   std::ifstream pddl_problem(filename_problem);
   yfl.switch_streams(&pddl_problem, &std::cout);
   yyparse();
-  if (analysis->the_domain == nullptr) {
+  if (analysis->the_problem == nullptr) {
     throw std::runtime_error(
         "ParsePddl(): Unable to parse problem from file: " +
         std::string(filename_problem));
@@ -110,8 +110,8 @@ PartialState ParseState(const Pddl& pddl,
                       ParseState(pddl, str_state_neg));
 }
 
-std::vector<Object> GetObjects(const VAL::domain& domain,
-                               const VAL::problem& problem) {
+std::vector<Object> GetObjects(const VAL_v1::domain& domain,
+                               const VAL_v1::problem& problem) {
   std::vector<Object> objects =
       Object::CreateList(domain.types, domain.constants);
   const std::vector<Object> objects_2 =
@@ -132,10 +132,10 @@ std::unordered_map<std::string, std::vector<Object>> CreateObjectTypeMap(
   return object_map;
 }
 
-std::vector<Action> GetActions(const Pddl& pddl, const VAL::domain& domain) {
+std::vector<Action> GetActions(const Pddl& pddl, const VAL_v1::domain& domain) {
   std::vector<Action> actions;
-  for (const VAL::operator_* op : *domain.ops) {
-    const auto* a = dynamic_cast<const VAL::action*>(op);
+  for (const VAL_v1::operator_* op : *domain.ops) {
+    const auto* a = dynamic_cast<const VAL_v1::action*>(op);
     if (a == nullptr) continue;
     actions.emplace_back(pddl, op);
   }
@@ -143,40 +143,42 @@ std::vector<Action> GetActions(const Pddl& pddl, const VAL::domain& domain) {
 }
 
 std::vector<Predicate> GetPredicates(const Pddl& pddl,
-                                     const VAL::domain& domain) {
+                                     const VAL_v1::domain& domain) {
   std::vector<Predicate> predicates;
-  for (const VAL::pred_decl* pred : *domain.predicates) {
+  for (const VAL_v1::pred_decl* pred : *domain.predicates) {
     predicates.emplace_back(pddl, pred);
   }
   return predicates;
 }
 
-std::vector<Axiom> GetAxioms(const Pddl& pddl, const VAL::domain& domain) {
+std::vector<Axiom> GetAxioms(const Pddl& pddl, const VAL_v1::domain& domain) {
   std::vector<Axiom> axioms;
-  for (const VAL::operator_* op : *domain.ops) {
-    const auto* a = dynamic_cast<const VAL::axiom*>(op);
+  for (const VAL_v1::operator_* op : *domain.ops) {
+    const auto* a = dynamic_cast<const VAL_v1::axiom*>(op);
     if (a == nullptr) continue;
     axioms.emplace_back(pddl, op);
   }
   return axioms;
 }
 
-std::vector<DerivedPredicate> GetDerivedPredicates(const Pddl& pddl,
-                                                   const VAL::domain& domain) {
+std::vector<DerivedPredicate> GetDerivedPredicates(
+    const Pddl& pddl, const VAL_v1::domain& domain) {
   std::vector<DerivedPredicate> predicates;
   predicates.reserve(domain.drvs->size());
-  for (const VAL::derivation_rule* drv : *domain.drvs) {
+  for (const VAL_v1::derivation_rule* drv : *domain.drvs) {
     predicates.emplace_back(pddl, drv);
   }
   return predicates;
 }
 
-State GetInitialState(const VAL::domain& domain, const VAL::problem& problem) {
+State GetInitialState(const VAL_v1::domain& domain,
+                      const VAL_v1::problem& problem) {
   State initial_state;
-  for (const VAL::simple_effect* effect : problem.initial_state->add_effects) {
+  for (const VAL_v1::simple_effect* effect :
+       problem.initial_state->add_effects) {
     std::vector<Object> arguments;
     arguments.reserve(effect->prop->args->size());
-    for (const VAL::parameter_symbol* arg : *effect->prop->args) {
+    for (const VAL_v1::parameter_symbol* arg : *effect->prop->args) {
       arguments.emplace_back(domain.types, arg);
     }
     initial_state.emplace(effect->prop->head->getName(), std::move(arguments));
@@ -206,7 +208,7 @@ bool Apply(const Action& action, const std::vector<Object>& arguments,
 
 namespace symbolic_v1 {
 
-// Empty destructor needs to be implemented here because VAL::analysis is not
+// Empty destructor needs to be implemented here because VAL_v1::analysis is not
 // fully defined in the header.
 Pddl::~Pddl() {}
 
@@ -226,10 +228,10 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl)
       goal_(*this, analysis_->the_problem->the_goal) {}
 
 bool Pddl::IsValid(bool verbose, std::ostream& os) const {
-  VAL::Verbose = verbose;
-  VAL::report = &os;
+  VAL_v1::Verbose = verbose;
+  VAL_v1::report = &os;
 
-  VAL::TypeChecker tc(analysis_.get());
+  VAL_v1::TypeChecker tc(analysis_.get());
   const bool is_domain_valid = tc.typecheckDomain();
   const bool is_problem_valid = tc.typecheckProblem();
 
@@ -480,40 +482,40 @@ std::ostream& operator<<(std::ostream& os, const Pddl& pddl) {
 
 namespace {
 
-void PrintGoal(std::ostream& os, const VAL::goal* goal, size_t depth) {
+void PrintGoal(std::ostream& os, const VAL_v1::goal* goal, size_t depth) {
   std::string padding(depth, '\t');
 
   // Proposition
-  const auto* simple_goal = dynamic_cast<const VAL::simple_goal*>(goal);
+  const auto* simple_goal = dynamic_cast<const VAL_v1::simple_goal*>(goal);
   if (simple_goal != nullptr) {
-    const VAL::proposition* prop = simple_goal->getProp();
+    const VAL_v1::proposition* prop = simple_goal->getProp();
     os << padding << prop->head->getName() << *prop->args << " [" << prop << "]"
        << std::endl;
     return;
   }
 
   // Conjunction
-  const auto* conj_goal = dynamic_cast<const VAL::conj_goal*>(goal);
+  const auto* conj_goal = dynamic_cast<const VAL_v1::conj_goal*>(goal);
   if (conj_goal != nullptr) {
     os << padding << "and:" << std::endl;
-    for (const VAL::goal* g : *conj_goal->getGoals()) {
+    for (const VAL_v1::goal* g : *conj_goal->getGoals()) {
       PrintGoal(os, g, depth + 1);
     }
     return;
   }
 
   // Disjunction
-  const auto* disj_goal = dynamic_cast<const VAL::disj_goal*>(goal);
+  const auto* disj_goal = dynamic_cast<const VAL_v1::disj_goal*>(goal);
   if (disj_goal != nullptr) {
     os << padding << "or:" << std::endl;
-    for (const VAL::goal* g : *disj_goal->getGoals()) {
+    for (const VAL_v1::goal* g : *disj_goal->getGoals()) {
       PrintGoal(os, g, depth + 1);
     }
     return;
   }
 
   // Negation
-  const auto* neg_goal = dynamic_cast<const VAL::neg_goal*>(goal);
+  const auto* neg_goal = dynamic_cast<const VAL_v1::neg_goal*>(goal);
   if (neg_goal != nullptr) {
     os << padding << "neg:" << std::endl;
     PrintGoal(os, neg_goal->getGoal(), depth + 1);
@@ -521,14 +523,14 @@ void PrintGoal(std::ostream& os, const VAL::goal* goal, size_t depth) {
   }
 
   // Quantification
-  const auto* qfied_goal = dynamic_cast<const VAL::qfied_goal*>(goal);
+  const auto* qfied_goal = dynamic_cast<const VAL_v1::qfied_goal*>(goal);
   if (qfied_goal != nullptr) {
     std::string quantifier;
     switch (qfied_goal->getQuantifier()) {
-      case VAL::quantifier::E_FORALL:
+      case VAL_v1::quantifier::E_FORALL:
         quantifier = "forall";
         break;
-      case VAL::quantifier::E_EXISTS:
+      case VAL_v1::quantifier::E_EXISTS:
         quantifier = "exists";
         break;
     }
@@ -537,12 +539,13 @@ void PrintGoal(std::ostream& os, const VAL::goal* goal, size_t depth) {
     return;
   }
 
-  const auto* con_goal = dynamic_cast<const VAL::con_goal*>(goal);
-  const auto* constraint_goal = dynamic_cast<const VAL::constraint_goal*>(goal);
-  const auto* preference = dynamic_cast<const VAL::preference*>(goal);
-  const auto* imply_goal = dynamic_cast<const VAL::imply_goal*>(goal);
-  const auto* timed_goal = dynamic_cast<const VAL::timed_goal*>(goal);
-  const auto* comparison = dynamic_cast<const VAL::comparison*>(goal);
+  const auto* con_goal = dynamic_cast<const VAL_v1::con_goal*>(goal);
+  const auto* constraint_goal =
+      dynamic_cast<const VAL_v1::constraint_goal*>(goal);
+  const auto* preference = dynamic_cast<const VAL_v1::preference*>(goal);
+  const auto* imply_goal = dynamic_cast<const VAL_v1::imply_goal*>(goal);
+  const auto* timed_goal = dynamic_cast<const VAL_v1::timed_goal*>(goal);
+  const auto* comparison = dynamic_cast<const VAL_v1::comparison*>(goal);
   os << "con_goal: " << con_goal << std::endl;
   os << "constraint_goal: " << constraint_goal << std::endl;
   os << "preference: " << preference << std::endl;
@@ -554,20 +557,20 @@ void PrintGoal(std::ostream& os, const VAL::goal* goal, size_t depth) {
   throw std::runtime_error("PrintGoal(): Goal type not implemented.");
 }
 
-void PrintEffects(std::ostream& os, const VAL::effect_lists* effects,
+void PrintEffects(std::ostream& os, const VAL_v1::effect_lists* effects,
                   size_t depth) {
   std::string padding(depth, '\t');
-  for (const VAL::simple_effect* effect : effects->add_effects) {
+  for (const VAL_v1::simple_effect* effect : effects->add_effects) {
     os << padding << "(+) " << *effect << std::endl;
   }
-  for (const VAL::simple_effect* effect : effects->del_effects) {
+  for (const VAL_v1::simple_effect* effect : effects->del_effects) {
     os << padding << "(-) " << *effect << std::endl;
   }
-  for (const VAL::forall_effect* effect : effects->forall_effects) {
+  for (const VAL_v1::forall_effect* effect : effects->forall_effects) {
     os << padding << "forall" << *effect->getVarsList() << ":" << std::endl;
     PrintEffects(os, effect->getEffects(), depth + 1);
   }
-  for (const VAL::cond_effect* effect : effects->cond_effects) {
+  for (const VAL_v1::cond_effect* effect : effects->cond_effects) {
     os << padding << "when:" << std::endl;
     PrintGoal(os, effect->getCondition(), depth + 1);
     os << padding << "then:" << std::endl;
@@ -576,10 +579,10 @@ void PrintEffects(std::ostream& os, const VAL::effect_lists* effects,
 }
 
 template <typename T>
-void PrintArgs(std::ostream& os, const VAL::typed_symbol_list<T>& args) {
+void PrintArgs(std::ostream& os, const VAL_v1::typed_symbol_list<T>& args) {
   std::string separator;
   os << "(";
-  for (const VAL::parameter_symbol* param : args) {
+  for (const VAL_v1::parameter_symbol* param : args) {
     os << separator << param->getName() << " [" << param
        << "]: " << param->type->getName();
     if (separator.empty()) separator = ", ";
@@ -589,18 +592,18 @@ void PrintArgs(std::ostream& os, const VAL::typed_symbol_list<T>& args) {
 
 }  // namespace
 
-namespace VAL {
+namespace VAL_v1 {
 
-std::ostream& operator<<(std::ostream& os, const VAL::domain& domain) {
+std::ostream& operator<<(std::ostream& os, const domain& domain) {
   os << "DOMAIN" << std::endl;
   os << "======" << std::endl;
   os << "Name: " << domain.name << std::endl;
 
-  os << "Requirements: " << VAL::pddl_req_flags_string(domain.req) << std::endl;
+  os << "Requirements: " << pddl_req_flags_string(domain.req) << std::endl;
 
   os << "Types: " << std::endl;
   if (domain.types != nullptr) {
-    for (const VAL::pddl_type* type : *domain.types) {
+    for (const pddl_type* type : *domain.types) {
       os << "\t" << type->getName() << ": " << type->type->getName() << " ["
          << type << "]" << std::endl;
     }
@@ -608,7 +611,7 @@ std::ostream& operator<<(std::ostream& os, const VAL::domain& domain) {
 
   os << "Constants: " << std::endl;
   if (domain.constants != nullptr) {
-    for (const VAL::const_symbol* c : *domain.constants) {
+    for (const const_symbol* c : *domain.constants) {
       os << "\t" << c->getName() << " [" << c << "]"
          << ": " << c->type->getName() << std::endl;
     }
@@ -616,7 +619,7 @@ std::ostream& operator<<(std::ostream& os, const VAL::domain& domain) {
 
   os << "Predicates:" << std::endl;
   if (domain.predicates != nullptr) {
-    for (const VAL::pred_decl* pred : *domain.predicates) {
+    for (const pred_decl* pred : *domain.predicates) {
       os << "\t" << pred->getPred()->getName() << *pred->getArgs() << " ["
          << pred << "]" << std::endl;
     }
@@ -624,7 +627,7 @@ std::ostream& operator<<(std::ostream& os, const VAL::domain& domain) {
 
   os << "Actions: " << std::endl;
   if (domain.ops != nullptr) {
-    for (const VAL::operator_* op : *domain.ops) {
+    for (const operator_* op : *domain.ops) {
       os << "\t" << op->name->getName() << *op->parameters << std::endl;
 
       os << "\t\tPreconditions:" << std::endl;
@@ -638,18 +641,17 @@ std::ostream& operator<<(std::ostream& os, const VAL::domain& domain) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const VAL::problem& problem) {
+std::ostream& operator<<(std::ostream& os, const problem& problem) {
   os << "PROBLEM" << std::endl;
   os << "=======" << std::endl;
   os << "Name: " << problem.name << std::endl;
 
   os << "Domain: " << problem.domain_name << std::endl;
 
-  os << "Requirements: " << VAL::pddl_req_flags_string(problem.req)
-     << std::endl;
+  os << "Requirements: " << pddl_req_flags_string(problem.req) << std::endl;
 
   os << "Objects:" << std::endl;
-  for (const VAL::const_symbol* object : *problem.objects) {
+  for (const const_symbol* object : *problem.objects) {
     os << "\t" << object->getName() << " [" << object << "]"
        << ": " << object->type->getName() << std::endl;
   }
@@ -663,21 +665,20 @@ std::ostream& operator<<(std::ostream& os, const VAL::problem& problem) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const VAL::simple_effect& effect) {
+std::ostream& operator<<(std::ostream& os, const simple_effect& effect) {
   os << effect.prop->head->getName() << *effect.prop->args << " ["
      << effect.prop->head << "]";
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const VAL::var_symbol_list& args) {
+std::ostream& operator<<(std::ostream& os, const var_symbol_list& args) {
   PrintArgs(os, args);
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os,
-                         const VAL::parameter_symbol_list& args) {
+std::ostream& operator<<(std::ostream& os, const parameter_symbol_list& args) {
   PrintArgs(os, args);
   return os;
 }
 
-}  // namespace VAL
+}  // namespace VAL_v1

@@ -63,7 +63,7 @@ target_link_libraries(${LIB_NAME}
   PRIVATE
     ctrl_utils::ctrl_utils
     doctest::doctest
-    VAL::VAL
+    VAL_v1::VAL_v1
 )
 
 # Build python wrapper.

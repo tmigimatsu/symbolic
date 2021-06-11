@@ -21,11 +21,11 @@
 #include "symbolic/state.h"
 #include "symbolic/utils/parameter_generator.h"
 
-namespace VAL {
+namespace VAL_v1 {
 
 class goal;
 
-}  // namespace VAL
+}  // namespace VAL_v1
 
 namespace symbolic_v1 {
 
@@ -37,13 +37,13 @@ class Formula {
  public:
   Formula() = default;
 
-  Formula(const Pddl& pddl, const VAL::goal* symbol)
+  Formula(const Pddl& pddl, const VAL_v1::goal* symbol)
       : Formula(pddl, symbol, {}) {}
 
-  Formula(const Pddl& pddl, const VAL::goal* symbol,
+  Formula(const Pddl& pddl, const VAL_v1::goal* symbol,
           const std::vector<Object>& parameters);
 
-  const VAL::goal* symbol() const { return symbol_; }
+  const VAL_v1::goal* symbol() const { return symbol_; }
 
   bool operator()(const State& state,
                   const std::vector<Object>& arguments) const {
@@ -70,7 +70,7 @@ class Formula {
                             const std::vector<Object>& prop_params);
 
  private:
-  const VAL::goal* symbol_ = nullptr;
+  const VAL_v1::goal* symbol_ = nullptr;
 
   std::function<bool(const State& state, const std::vector<Object>& arguments)>
       P_;

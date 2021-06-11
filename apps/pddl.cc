@@ -60,23 +60,23 @@ int main(int argc, char* argv[]) {  // NOLINT(bugprone-exception-escape)
             << "Depth: " << args.depth << std::endl
             << std::endl;
 
-  const symbolic::Pddl pddl(args.filename_domain, args.filename_problem);
+  const symbolic_v1::Pddl pddl(args.filename_domain, args.filename_problem);
   pddl.IsValid(true);
 
   std::cout << pddl << std::endl;
 
-  symbolic::Planner planner(pddl);
+  symbolic_v1::Planner planner(pddl);
 
   std::cout << "Planning:" << std::endl;
   const auto t_start = std::chrono::high_resolution_clock::now();
-  symbolic::BreadthFirstSearch<symbolic::Planner::Node> bfs(planner.root(),
+  symbolic_v1::BreadthFirstSearch<symbolic_v1::Planner::Node> bfs(planner.root(),
                                                             args.depth);
-  for (const std::vector<symbolic::Planner::Node>& plan : bfs) {
+  for (const std::vector<symbolic_v1::Planner::Node>& plan : bfs) {
     std::cout << std::chrono::duration<float>(
                      std::chrono::high_resolution_clock::now() - t_start)
                      .count()
               << "s" << std::endl;
-    for (const symbolic::Planner::Node& node : plan) {
+    for (const symbolic_v1::Planner::Node& node : plan) {
       std::cout << node << std::endl;
     }
     std::cout << std::endl;

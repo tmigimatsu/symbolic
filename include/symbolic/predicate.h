@@ -12,19 +12,19 @@
 
 #include "symbolic/action.h"
 
-namespace VAL {
+namespace VAL_v1 {
 
 class pred_decl;
 
-}  // namespace VAL
+}  // namespace VAL_v1
 
 namespace symbolic_v1 {
 
 class Predicate : public Action {
  public:
-  Predicate(const Pddl& pddl, const VAL::pred_decl* symbol);
+  Predicate(const Pddl& pddl, const VAL_v1::pred_decl* symbol);
 
-  const VAL::pred_decl* symbol() const { return symbol_; }
+  const VAL_v1::pred_decl* symbol() const { return symbol_; }
 
   /**
    * Predicate head.
@@ -65,7 +65,7 @@ class Predicate : public Action {
   friend std::ostream& operator<<(std::ostream& os, const Predicate& pred);
 
  private:
-  const VAL::pred_decl* symbol_ = nullptr;
+  const VAL_v1::pred_decl* symbol_ = nullptr;
   std::string name_;
   std::vector<Object> parameters_;
   ParameterGenerator param_gen_;

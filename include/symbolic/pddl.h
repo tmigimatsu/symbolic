@@ -26,11 +26,11 @@
 #include "symbolic/predicate.h"
 #include "symbolic/proposition.h"
 
-namespace VAL {
+namespace VAL_v1 {
 
 class analysis;
 
-}  // namespace VAL
+}  // namespace VAL_v1
 
 namespace symbolic_v1 {
 
@@ -197,16 +197,16 @@ class Pddl {
   std::vector<std::string> ListValidActions(
       const std::set<std::string>& state) const;
 
-  const VAL::analysis* symbol() const { return analysis_.get(); }
+  const VAL_v1::analysis* symbol() const { return analysis_.get(); }
 
   /**
    * Pddl domain name.
    */
   const std::string& name() const;
 
-  // const VAL::domain& domain() const { return *analysis().the_domain; }
+  // const VAL_v1::domain& domain() const { return *analysis().the_domain; }
 
-  // const VAL::problem& problem() const { return *analysis().the_problem; }
+  // const VAL_v1::problem& problem() const { return *analysis().the_problem; }
 
   const std::string& domain_pddl() const { return domain_pddl_; }
 
@@ -233,7 +233,7 @@ class Pddl {
   const Formula& goal() const { return goal_; }
 
  private:
-  std::unique_ptr<VAL::analysis> analysis_;
+  std::unique_ptr<VAL_v1::analysis> analysis_;
   std::string domain_pddl_;
   std::string problem_pddl_;
 

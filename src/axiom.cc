@@ -15,7 +15,7 @@
 
 namespace symbolic_v1 {
 
-Axiom::Axiom(const Pddl& pddl, const VAL::operator_* symbol)
+Axiom::Axiom(const Pddl& pddl, const VAL_v1::operator_* symbol)
     : Action(pddl, symbol) {
   for (const std::vector<Object>& arguments : parameter_generator()) {
     const std::optional<DisjunctiveFormula> dnf = DisjunctiveFormula::Create(

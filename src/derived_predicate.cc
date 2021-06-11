@@ -16,7 +16,7 @@
 namespace symbolic_v1 {
 
 DerivedPredicate::DerivedPredicate(const Pddl& pddl,
-                                   const VAL::derivation_rule* symbol)
+                                   const VAL_v1::derivation_rule* symbol)
     : symbol_(symbol) {
   name_ = symbol_->get_head()->head->getName();
   parameters_ = Object::CreateList(pddl, symbol_->get_head()->args);

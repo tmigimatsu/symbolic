@@ -17,7 +17,7 @@
 
 namespace symbolic_v1 {
 
-Predicate::Predicate(const Pddl& pddl, const VAL::pred_decl* symbol)
+Predicate::Predicate(const Pddl& pddl, const VAL_v1::pred_decl* symbol)
     : symbol_(symbol),
       name_(symbol_->getPred()->getName()),
       parameters_(Object::CreateList(pddl, symbol_->getArgs())),

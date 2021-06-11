@@ -14,7 +14,7 @@
 #include <tuple>    // std::tie
 #include <vector>   // std::vector
 
-namespace VAL {
+namespace VAL_v1 {
 
 class pddl_type;
 class pddl_typed_symbol;
@@ -24,7 +24,7 @@ class typed_symbol_list;
 
 using pddl_type_list = class typed_symbol_list<pddl_type>;
 
-}  // namespace VAL
+}  // namespace VAL_v1
 
 namespace symbolic_v1 {
 
@@ -36,9 +36,9 @@ class Object {
    public:
     Type() = default;
 
-    explicit Type(const VAL::pddl_type* symbol);
+    explicit Type(const VAL_v1::pddl_type* symbol);
 
-    const VAL::pddl_type* symbol() const { return symbol_; }
+    const VAL_v1::pddl_type* symbol() const { return symbol_; }
 
     bool IsSubtype(const std::string& type) const;
     bool IsSubtype(const Type& type) const { return IsSubtype(type.name()); }
@@ -62,23 +62,23 @@ class Object {
     }
 
    private:
-    const VAL::pddl_type* symbol_ = nullptr;
+    const VAL_v1::pddl_type* symbol_ = nullptr;
 
     std::string name_;
   };
 
   Object() = default;
 
-  Object(const Pddl& pddl, const VAL::pddl_typed_symbol* symbol);
+  Object(const Pddl& pddl, const VAL_v1::pddl_typed_symbol* symbol);
 
-  Object(const VAL::pddl_type_list* types,
-         const VAL::pddl_typed_symbol* symbol);
+  Object(const VAL_v1::pddl_type_list* types,
+         const VAL_v1::pddl_typed_symbol* symbol);
 
   Object(const Pddl& pddl, const std::string& name_object);
 
   explicit Object(const std::string& name_object) : name_(name_object){};
 
-  const VAL::pddl_typed_symbol* symbol() const { return symbol_; }
+  const VAL_v1::pddl_typed_symbol* symbol() const { return symbol_; }
 
   const std::string& name() const { return name_; }
 
@@ -95,12 +95,12 @@ class Object {
 
   template <typename T>
   static std::vector<Object> CreateList(
-      const Pddl& pddl, const VAL::typed_symbol_list<T>* symbols);
+      const Pddl& pddl, const VAL_v1::typed_symbol_list<T>* symbols);
 
   template <typename T>
   static std::vector<Object> CreateList(
-      const VAL::pddl_type_list* types,
-      const VAL::typed_symbol_list<T>* symbols);
+      const VAL_v1::pddl_type_list* types,
+      const VAL_v1::typed_symbol_list<T>* symbols);
 
   friend bool operator<(const Object& lhs, const Object& rhs) {
     return lhs.name() < rhs.name();
@@ -123,7 +123,7 @@ class Object {
   }
 
  private:
-  const VAL::pddl_typed_symbol* symbol_ = nullptr;
+  const VAL_v1::pddl_typed_symbol* symbol_ = nullptr;
 
   std::string name_;
   Type type_;
@@ -131,7 +131,7 @@ class Object {
 
 template <typename T>
 std::vector<Object> Object::CreateList(
-    const Pddl& pddl, const VAL::typed_symbol_list<T>* symbols) {
+    const Pddl& pddl, const VAL_v1::typed_symbol_list<T>* symbols) {
   std::vector<Object> objects;
   objects.reserve(symbols->size());
   for (const T* symbol : *symbols) {
@@ -142,8 +142,8 @@ std::vector<Object> Object::CreateList(
 
 template <typename T>
 std::vector<Object> Object::CreateList(
-    const VAL::pddl_type_list* types,
-    const VAL::typed_symbol_list<T>* symbols) {
+    const VAL_v1::pddl_type_list* types,
+    const VAL_v1::typed_symbol_list<T>* symbols) {
   std::vector<Object> objects;
   objects.reserve(symbols->size());
   for (const T* symbol : *symbols) {

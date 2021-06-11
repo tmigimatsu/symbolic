@@ -22,12 +22,12 @@
 #include "symbolic/state.h"
 #include "symbolic/utils/parameter_generator.h"
 
-namespace VAL {
+namespace VAL_v1 {
 
 class operator_;
 class effect_lists;
 
-}  // namespace VAL
+}  // namespace VAL_v1
 
 namespace symbolic_v1 {
 
@@ -37,7 +37,7 @@ class Action {
  public:
   Action() = default;
 
-  Action(const Pddl& pddl, const VAL::operator_* symbol);
+  Action(const Pddl& pddl, const VAL_v1::operator_* symbol);
 
   // action_call can be action(params) or action name
   Action(const Pddl& pddl, const std::string& action_call);
@@ -68,7 +68,7 @@ class Action {
     return ApplyPartial_(arguments, state);
   }
 
-  const VAL::operator_* symbol() const { return symbol_; }
+  const VAL_v1::operator_* symbol() const { return symbol_; }
 
   const std::string& name() const { return name_; }
 
@@ -78,7 +78,7 @@ class Action {
 
   const Formula& preconditions() const { return Preconditions_; }
 
-  const VAL::effect_lists* postconditions() const;
+  const VAL_v1::effect_lists* postconditions() const;
 
   std::string to_string() const;
 
@@ -98,7 +98,7 @@ class Action {
   friend std::ostream& operator<<(std::ostream& os, const Action& action);
 
  protected:
-  const VAL::operator_* symbol_ = nullptr;
+  const VAL_v1::operator_* symbol_ = nullptr;
   std::string name_;
   std::vector<Object> parameters_;
   ParameterGenerator param_gen_;
