@@ -51,7 +51,7 @@ jobs:
         run: |
           mkdir -p build
           cd build
-          cmake .. -DBUILD_PYTHON=ON
+          cmake .. -DBUILD_PYTHON=ON -DPYBIND11_PYTHON_VERSION=3
           make
 
   ubuntu_pip:
