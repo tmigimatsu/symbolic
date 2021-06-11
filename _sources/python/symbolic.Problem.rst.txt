@@ -1,0 +1,40 @@
+symbolic.Problem
+================
+
+.. currentmodule:: symbolic
+
+.. autoclass:: Problem
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Problem.__init__
+      ~Problem.add_initial_prop
+      ~Problem.add_object
+      ~Problem.set_goal
+      ~Problem.set_initial_state
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Problem.definition
+      ~Problem.domain
+      ~Problem.goal
+      ~Problem.initial_state
+      ~Problem.objects
+      ~Problem.problem
+   
+   

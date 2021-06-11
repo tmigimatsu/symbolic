@@ -1,0 +1,26 @@
+symbolic.ParameterGenerator
+===========================
+
+.. currentmodule:: symbolic
+
+.. autoclass:: ParameterGenerator
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~ParameterGenerator.__init__
+      ~ParameterGenerator.index
+   
+   
+
+   
+   
+   

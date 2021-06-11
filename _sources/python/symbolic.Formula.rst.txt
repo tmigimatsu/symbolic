@@ -1,0 +1,25 @@
+symbolic.Formula
+================
+
+.. currentmodule:: symbolic
+
+.. autoclass:: Formula
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Formula.__init__
+   
+   
+
+   
+   
+   
