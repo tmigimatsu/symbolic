@@ -62,9 +62,17 @@ std::unordered_set<std::string> State::Stringify() const {
 }
 
 std::ostream& operator<<(std::ostream& os, const State& state) {
+  // Sort propositions.
+  std::vector<std::string> props_sorted;
+  props_sorted.reserve(state.size());
+  for (const Proposition& prop : state) {
+    props_sorted.push_back(prop.to_string());
+  }
+  std::sort(props_sorted.begin(), props_sorted.end());
+
   std::string delimiter;
   os << "{ ";
-  for (const Proposition& prop : state) {
+  for (const std::string& prop : props_sorted) {
     os << delimiter << prop;
     if (delimiter.empty()) delimiter = ", ";
   }
