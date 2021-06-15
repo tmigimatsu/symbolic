@@ -1,0 +1,17 @@
+############################################################
+# CMake config for the symbolic library.
+#
+# Copyright 2020. All Rights Reserved.
+#
+# Created: April 1, 2020
+# Authors: Toki Migimatsu
+############################################################
+
+include(CMakeFindDependencyMacro)
+
+set(LIB_NAME @LIB_NAME@)
+set(LIB_BINARY_DIR @PROJECT_BINARY_DIR@)
+
+if(NOT TARGET ${LIB_NAME}::${LIB_NAME})
+    include("${LIB_BINARY_DIR}/${LIB_NAME}Targets.cmake")
+endif()
