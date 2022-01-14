@@ -7,6 +7,9 @@ import subprocess
 import sys
 
 
+__version__ = "0.0.0"
+
+
 class CMakeExtension(setuptools.Extension):
     def __init__(self, name):
         setuptools.Extension.__init__(self, name, sources=[])
@@ -95,7 +98,7 @@ class CMakeBuild(build_ext.build_ext):
 
 setuptools.setup(
     name="pysymbolic",
-    version="1.0.0",
+    version=__version__,
     author="Toki Migimatsu",
     author_email="takatoki@cs.stanford.edu",
     description="PDDL symbolic library",

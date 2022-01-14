@@ -5,6 +5,8 @@ on:
       - main
     paths-ignore:
       - '.github/workflows/builds.yaml'
+      - '.github/workflows/releases.yaml'
+      - '.github/workflows/publish.yaml'
       - '.github/workflows/tests.yaml'
       - '*.md'
   pull_request:
