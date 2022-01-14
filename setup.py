@@ -1,7 +1,10 @@
-import setuptools
+import packaging  # type: ignore
+import pathlib
+import re
+import shutil
+import setuptools  # type: ignore
 import subprocess
-
-from setuptools.command import build_ext
+import sys
 
 
 class CMakeExtension(setuptools.Extension):
@@ -9,11 +12,8 @@ class CMakeExtension(setuptools.Extension):
         setuptools.Extension.__init__(self, name, sources=[])
 
 
-class CMakeBuild(build_ext.build_ext):
+class CMakeBuild(setuptools.command.build_ext.build_ext):
     def run(self):
-        import distutils
-        import re
-
         if not self.inplace:
             try:
                 out = subprocess.check_output(["cmake", "--version"])
@@ -23,10 +23,10 @@ class CMakeBuild(build_ext.build_ext):
                     + ", ".join(e.name for e in self.extensions)
                 )
 
-            cmake_version = distutils.version.LooseVersion(
+            cmake_version = packaging.version.Version(
                 re.search(r"version\s*([\d.]+)", out.decode()).group(1)
             )
-            if cmake_version < "3.13.0":
+            if cmake_version < packaging.version.Version("3.13.0"):
                 raise RuntimeError(
                     "CMake >= 3.13.0 is required. Install the latest CMake with 'pip install cmake'."
                 )
@@ -35,12 +35,6 @@ class CMakeBuild(build_ext.build_ext):
             self.build_extension(extension)
 
     def build_extension(self, extension: setuptools.Extension):
-        import os
-        import pathlib
-        import re
-        import shutil
-        import sys
-
         extension_dir = pathlib.Path(self.get_ext_fullpath(extension.name)).parent
         extension_dir.mkdir(parents=True, exist_ok=True)
 
@@ -86,16 +80,15 @@ class CMakeBuild(build_ext.build_ext):
         if not self.inplace:
             # Copy pybind11 library.
             symbolic_dir = str(extension_dir / "symbolic")
-            for file in os.listdir(build_dir / "src" / "python"):
-                if re.match(r".*\.(?:so|dylib)\.?", file) is not None:
-                    file = str(build_dir / "src" / "python" / file)
-                    shutil.move(file, symbolic_dir)
+            for file in (build_dir / "src" / "python").iterdir():
+                if re.match(r".*\.(?:so|dylib)\.?", file.name) is not None:
+                    shutil.move(str(file), symbolic_dir)
 
             # Copy C++ libraries.
-            for file in os.listdir(os.path.join("install", "lib")):
-                if re.match(r".*\.(?:so|dylib)\.?", file) is not None:
-                    file = os.path.join("install", "lib", file)
-                    shutil.move(file, symbolic_dir)
+            libdir = next(iter(pathlib.Path("install").glob("lib*")))
+            for file in libdir.iterdir():
+                if re.match(r".*\.(?:so|dylib)\.?", file.name) is not None:
+                    shutil.move(str(file), symbolic_dir)
 
 
 setuptools.setup(
