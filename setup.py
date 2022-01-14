@@ -1,8 +1,8 @@
-import packaging  # type: ignore
 import pathlib
 import re
 import shutil
 import setuptools  # type: ignore
+from setuptools.command import build_ext  # type: ignore
 import subprocess
 import sys
 
@@ -12,8 +12,10 @@ class CMakeExtension(setuptools.Extension):
         setuptools.Extension.__init__(self, name, sources=[])
 
 
-class CMakeBuild(setuptools.command.build_ext.build_ext):
+class CMakeBuild(build_ext.build_ext):
     def run(self):
+        from packaging import version  # type: ignore
+
         if not self.inplace:
             try:
                 out = subprocess.check_output(["cmake", "--version"])
@@ -23,10 +25,10 @@ class CMakeBuild(setuptools.command.build_ext.build_ext):
                     + ", ".join(e.name for e in self.extensions)
                 )
 
-            cmake_version = packaging.version.Version(
+            cmake_version = version.Version(
                 re.search(r"version\s*([\d.]+)", out.decode()).group(1)
             )
-            if cmake_version < packaging.version.Version("3.13.0"):
+            if cmake_version < version.Version("3.13.0"):
                 raise RuntimeError(
                     "CMake >= 3.13.0 is required. Install the latest CMake with 'pip install cmake'."
                 )
@@ -106,6 +108,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.6",
+    setup_requires=["packaging"],
     ext_modules=[CMakeExtension("symbolic")],
     cmdclass={
         "build_ext": CMakeBuild,
