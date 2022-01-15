@@ -2,11 +2,14 @@
 # requires = ["setuptools", "wheel"]
 # build-backend = "setuptools.build_meta:__legacy__"
 
-[semantic_release]
+[tool.semantic_release]
+branch = "main"
+build_command = "false"
+upload_to_repository = "false"
 version_variable = [
     "setup.py:__version__",
-    "pysymbolic/__init__.py:__version__",
+    "symbolic/__init__.py:__version__",
 ]
 version_pattern = [
-    "CMakeLists.txt:VERSION {version}",
+    "CMakeLists.txt:VERSION {version}$",
 ]
