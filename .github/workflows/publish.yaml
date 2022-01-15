@@ -17,17 +17,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/setup-python@v2
-
-      - name: Install cibuildwheel
-        run: pip3 install cibuildwheel==2.3.1
-
       - name: Build wheels
-        run: python -m cibuildwheel --output-dir wheels
+        uses: pypa/cibuildwheel@v2.3.1
+        env:
+          CMAKE_OSX_ARCHITECTURES: "arm64;x86_64"
+          MACOSX_DEPLOYMENT_TARGET: "10.14"
+          CIBW_ARCHS_MACOS: x86_64 universal2
 
       - uses: actions/upload-artifact@v2
         with:
-          path: wheels/*.whl
+          path: wheelhouse/*.whl
 
   upload_pypi:
     name: Upload to PyPi

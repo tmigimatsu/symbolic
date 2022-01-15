@@ -29,6 +29,8 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build
+        env:
+          CMAKE_OSX_ARCHITECTURES: "arm64;x86_64"
         run: |
           mkdir -p build
           cd build
@@ -48,6 +50,8 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install
+        env:
+          CMAKE_OSX_ARCHITECTURES: "arm64;x86_64"
         run: |
           pip3 install . -vvv
 
@@ -64,5 +68,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install
+        env:
+          CMAKE_OSX_ARCHITECTURES: "arm64;x86_64"
         run: |
           pip3 install --no-use-pep517 -e . -vvv
