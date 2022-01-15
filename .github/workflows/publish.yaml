@@ -5,23 +5,43 @@ on:
       - published
 
 jobs:
-  manylinux_wheels:
-    name: Manylinux Wheels
-    runs-on: ubuntu-latest
-    concurrency: manylinux_wheels
+  build_wheels:
+    name: Build wheels ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Manylinux Wheels
-        uses: RalfG/python-wheels-manylinux-build@v0.4.2-manylinux2014_x86_64
-        with:
-          python-versions: "cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310"
-          pip-wheel-args: "-w ./wheels"
+      - uses: actions/setup-python@v2
 
-      - name: PyPi
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          twine upload wheels/*-manylinux*.whl
+      - name: Install cibuildwheel
+        run: pip3 install cibuildwheel==2.3.1
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheels
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: wheels/*.whl
+
+  upload_pypi:
+    name: Upload to PyPi
+    needs:
+      - build_wheels
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
+
+      - name: Publish to PyPi
+        uses: pypa/gh-action-pypi-publish@v1.5.0
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}

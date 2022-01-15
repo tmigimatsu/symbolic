@@ -4,47 +4,27 @@ on:
     branches:
       - main
     paths-ignore:
-      - '.github/workflows/docs.yaml'
-      - '.github/workflows/publish.yaml'
-      - '.github/workflows/tests.yaml'
-      - '*.md'
+      - ".github/workflows/docs.yaml"
+      - ".github/workflows/publish.yaml"
+      - ".github/workflows/tests.yaml"
+      - "*.md"
   pull_request:
     branches:
       - main
 
 jobs:
-  bionic:
+  cmake:
     # Bionic default: gcc 7, python 3.6
-    name: Bionic
-    runs-on: ubuntu-18.04
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Build
-        run: |
-          mkdir -p build
-          cd build
-          cmake .. -DBUILD_PYTHON=ON
-          make
-
-  focal:
     # Focal default: gcc 9, python 3.8
-    name: Focal
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Build
-        run: |
-          mkdir -p build
-          cd build
-          cmake .. -DBUILD_PYTHON=ON
-          make
-
-  macos:
     # Catalina default: clang 12, python 3.9
-    name: macOS
-    runs-on: macos-latest
+    name: CMake ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-20.04
+          - macos-latest
+
     steps:
       - uses: actions/checkout@v2
 
@@ -55,32 +35,34 @@ jobs:
           cmake .. -DBUILD_PYTHON=ON -DPYBIND11_PYTHON_VERSION=3
           make
 
-  ubuntu_pip:
-    name: Ubuntu pip
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+  pip:
+    name: Pip ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
 
-      - name: Install
-        run: |
-          pip install . -vvv
-
-  ubuntu_pip_dev:
-    name: Ubuntu pip dev
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install
-        run: |
-          pip install --no-use-pep517 -e . -vvv
-
-  macos_pip:
-    name: macOS pip
-    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
 
       - name: Install
         run: |
           pip3 install . -vvv
+
+  pip_dev:
+    name: Pip dev ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install
+        run: |
+          pip3 install --no-use-pep517 -e . -vvv
