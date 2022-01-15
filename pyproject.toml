@@ -4,8 +4,8 @@
 
 [tool.semantic_release]
 branch = "main"
-build_command = "false"
-upload_to_repository = "false"
+build_command = false
+upload_to_repository = false
 version_variable = [
     "setup.py:__version__",
     "symbolic/__init__.py:__version__",
