@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.0 (2022-04-26)
+### Feature
+* Implement fast method to apply sequence of actions ([`b7a4a68`](https://github.com/tmigimatsu/symbolic/commit/b7a4a68f406782a808b50d5875d4a5266f47146d))
+
+### Fix
+* Build only cpython wheels ([`20ac4ac`](https://github.com/tmigimatsu/symbolic/commit/20ac4ace704584a9765345e5cb08b2750623a793))
+
 ## v0.1.2 (2022-01-15)
 ### Fix
 * Do not upload release ([`b5e172b`](https://github.com/tmigimatsu/symbolic/commit/b5e172b572b2d3fb4410c378315e5228332ef8d6))
