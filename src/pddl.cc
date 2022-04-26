@@ -334,6 +334,20 @@ TEST_CASE_FIXTURE(testing::Fixture, "Pddl.NextState") {
   REQUIRE(pddl.NextState(state, "pick(hook)") == next_state);
 }
 
+State Pddl::ApplyActions(const State& state,
+                         const std::vector<std::string>& action_calls) const {
+  State next_state(state);
+  for (const std::string& action_call : action_calls) {
+    const std::pair<Action, std::vector<Object>> action_args =
+        Action::Parse(*this, action_call);
+    const Action& action = action_args.first;
+    const std::vector<Object>& arguments = action_args.second;
+
+    Apply(action, arguments, derived_predicates(), &next_state);
+  }
+  return next_state;
+}
+
 State Pddl::DerivedState(const State& state) const {
   return DerivedPredicate::Apply(state, derived_predicates());
 }
