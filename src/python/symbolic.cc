@@ -158,6 +158,26 @@ PYBIND11_MODULE(pysymbolic, m) {
             .. seealso:: C++: :symbolic:`symbolic::Pddl::NextState`.
           )pbdoc")
       .def(
+          "apply_actions",
+          [](const Pddl& pddl, const std::unordered_set<std::string>& state,
+             const std::vector<std::string>& actions) {
+            return pddl.ApplyActions(State(pddl, state), actions).Stringify();
+          },
+          "state"_a, "action"_a, R"pbdoc(
+            Execute a sequence of actions from the given state
+
+            The action preconditions are not checked. The resulting state includes
+            derived predicates.
+
+            Args:
+                state: Current state.
+                actions: Action calls in the form of :code:`"action(obj_a, obj_b)"`.
+            Returns:
+                Final state.
+
+            .. seealso:: C++: :symbolic:`symbolic::Pddl::Execute`.
+          )pbdoc")
+      .def(
           "derived_state",
           [](const Pddl& pddl, const std::unordered_set<std::string>& state) {
             return pddl.DerivedState(State(pddl, state)).Stringify();
