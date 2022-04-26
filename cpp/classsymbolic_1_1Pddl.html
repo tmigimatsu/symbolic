@@ -95,6 +95,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a4a749a2a055e4906856562073be6457a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac900b67ab2426f7b77d1f476ced2d605"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classsymbolic_1_1State.html">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsymbolic_1_1Pddl.html#ac900b67ab2426f7b77d1f476ced2d605">NextState</a> (const <a class="el" href="classsymbolic_1_1State.html">State</a> &amp;state, const std::string &amp;action_call) const</td></tr>
 <tr class="separator:ac900b67ab2426f7b77d1f476ced2d605"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af551bdc82cb8c413c0d1b79978fcdbb4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classsymbolic_1_1State.html">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsymbolic_1_1Pddl.html#af551bdc82cb8c413c0d1b79978fcdbb4">ApplyActions</a> (const <a class="el" href="classsymbolic_1_1State.html">State</a> &amp;state, const std::vector&lt; std::string &gt; &amp;action_calls) const</td></tr>
+<tr class="separator:af551bdc82cb8c413c0d1b79978fcdbb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5fc5d73c1c8159e53dda357aa658475d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classsymbolic_1_1State.html">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsymbolic_1_1Pddl.html#a5fc5d73c1c8159e53dda357aa658475d">DerivedState</a> (const <a class="el" href="classsymbolic_1_1State.html">State</a> &amp;state) const</td></tr>
 <tr class="separator:a5fc5d73c1c8159e53dda357aa658475d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad56584aeb472eb335b73a70498d5e28a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classsymbolic_1_1State.html">State</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsymbolic_1_1Pddl.html#ad56584aeb472eb335b73a70498d5e28a">ConsistentState</a> (const <a class="el" href="classsymbolic_1_1State.html">State</a> &amp;state) const</td></tr>
@@ -252,6 +254,45 @@ const <a class="el" href="classsymbolic_1_1Formula.html">Formula</a> &amp;&#160;
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="af551bdc82cb8c413c0d1b79978fcdbb4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af551bdc82cb8c413c0d1b79978fcdbb4">&#9670;&nbsp;</a></span>ApplyActions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classsymbolic_1_1State.html">State</a> symbolic::Pddl::ApplyActions </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classsymbolic_1_1State.html">State</a> &amp;&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>action_calls</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Execute a sequence of actions from the given state.</p>
+<p>The action preconditionss are not checked. The resulting state includes derived predicates.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>Current state. </td></tr>
+    <tr><td class="paramname">action_call</td><td><a class="el" href="classsymbolic_1_1Action.html">Action</a> calls in the form of <code>"action(obj_a, obj_b)"</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Final state.</dd></dl>
+<p>@seepython{symbolic.Pddl.execute} </p>
+
+</div>
+</div>
 <a id="a944c8c9fdd23af37063dd6fd1bc89b08"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a944c8c9fdd23af37063dd6fd1bc89b08">&#9670;&nbsp;</a></span>axiom_map()</h2>
 
@@ -711,7 +752,7 @@ const <a class="el" href="classsymbolic_1_1Formula.html">Formula</a> &amp;&#160;
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">state</td><td>Current state. </td></tr>
-    <tr><td class="paramname">action</td><td><a class="el" href="classsymbolic_1_1Action.html">Action</a> call in the form of <code>"action(obj_a, obj_b)"</code>. </td></tr>
+    <tr><td class="paramname">action_call</td><td><a class="el" href="classsymbolic_1_1Action.html">Action</a> call in the form of <code>"action(obj_a, obj_b)"</code>. </td></tr>
   </table>
   </dd>
 </dl>
