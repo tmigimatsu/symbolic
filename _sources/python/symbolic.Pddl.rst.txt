@@ -17,6 +17,7 @@ symbolic.Pddl
    .. autosummary::
    
       ~Pddl.__init__
+      ~Pddl.add_object
       ~Pddl.apply_actions
       ~Pddl.consistent_state
       ~Pddl.derived_state
@@ -29,6 +30,7 @@ symbolic.Pddl
       ~Pddl.list_valid_actions
       ~Pddl.list_valid_arguments
       ~Pddl.next_state
+      ~Pddl.remove_object
    
    
 
@@ -40,6 +42,7 @@ symbolic.Pddl
    
       ~Pddl.actions
       ~Pddl.axioms
+      ~Pddl.constants
       ~Pddl.derived_predicates
       ~Pddl.domain_pddl
       ~Pddl.goal

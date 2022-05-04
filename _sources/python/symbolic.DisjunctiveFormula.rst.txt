@@ -19,6 +19,8 @@ symbolic.DisjunctiveFormula
       ~DisjunctiveFormula.__init__
       ~DisjunctiveFormula.normalize_conditions
       ~DisjunctiveFormula.normalize_goal
+      ~DisjunctiveFormula.normalize_postconditions
+      ~DisjunctiveFormula.normalize_preconditions
    
    
 
