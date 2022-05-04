@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.0 (2022-05-04)
+### Feature
+* Support dynamically adding objects and serializing pddl ([`0d5e50f`](https://github.com/tmigimatsu/symbolic/commit/0d5e50f24a719de4db7f614b89bec3101e332559))
+
 ## v0.2.0 (2022-04-26)
 ### Feature
 * Implement fast method to apply sequence of actions ([`b7a4a68`](https://github.com/tmigimatsu/symbolic/commit/b7a4a68f406782a808b50d5875d4a5266f47146d))
