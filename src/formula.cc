@@ -63,7 +63,7 @@ NamedFormulaFunction<T> CreateProposition(
       return prop_args[0] == prop_args[1];
     };
 
-    return {std::move(F), Proposition(name_predicate, prop_params).to_string()};
+    return {std::move(F), Proposition(name_predicate, prop_params).to_pddl()};
   }
   if (pddl.object_map().find(name_predicate) != pddl.object_map().end()) {
     // Predicate is a type. If it isn't in the object map, then no objects of
@@ -78,7 +78,7 @@ NamedFormulaFunction<T> CreateProposition(
       return prop_args[0].type().IsSubtype(name_predicate);
     };
 
-    return {std::move(F), Proposition(name_predicate, prop_params).to_string()};
+    return {std::move(F), Proposition(name_predicate, prop_params).to_pddl()};
   }
 
   const size_t predicate_hash = std::hash<std::string>{}(name_predicate);
@@ -91,15 +91,15 @@ NamedFormulaFunction<T> CreateProposition(
     return state.contains(P);
   };
 
-  return {std::move(F), Proposition(name_predicate, prop_params).to_string()};
+  return {std::move(F), Proposition(name_predicate, prop_params).to_pddl()};
 }
 
 template <typename T>
 NamedFormulaFunction<T> CreateConjunction(
     const Pddl& pddl, const VAL::conj_goal* symbol,
     const std::vector<Object>& parameters) {
-  std::stringstream ss("(");
-  std::string delim;
+  std::stringstream ss;
+  ss << "(and";
 
   std::vector<FormulaFunction<T>> subformulas;
   const VAL::goal_list* goals = symbol->getGoals();
@@ -108,8 +108,7 @@ NamedFormulaFunction<T> CreateConjunction(
     NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, parameters);
     subformulas.push_back(std::move(P_str.first));
 
-    ss << delim << P_str.second;
-    if (delim.empty()) delim = " && ";
+    ss << " " << P_str.second;
   }
   ss << ")";
 
@@ -129,8 +128,8 @@ template <typename T>
 NamedFormulaFunction<T> CreateDisjunction(
     const Pddl& pddl, const VAL::disj_goal* symbol,
     const std::vector<Object>& parameters) {
-  std::stringstream ss("(");
-  std::string delim;
+  std::stringstream ss;
+  ss << "(or";
 
   std::vector<FormulaFunction<T>> subformulas;
   const VAL::goal_list* goals = symbol->getGoals();
@@ -139,8 +138,7 @@ NamedFormulaFunction<T> CreateDisjunction(
     NamedFormulaFunction<T> P_str = CreateFormula<T>(pddl, goal, parameters);
     subformulas.push_back(std::move(P_str.first));
 
-    ss << delim << P_str.second;
-    if (delim.empty()) delim = " || ";
+    ss << " " << P_str.second;
   }
   ss << ")";
 
@@ -170,7 +168,7 @@ NamedFormulaFunction<T> CreateNegation(const Pddl& pddl,
     return !P(state, arguments);
   };
 
-  return {std::move(F), "!" + P_str.second};
+  return {std::move(F), "(not " + P_str.second + ")"};
 }
 template <>
 NamedFormulaFunction<PartialState> CreateNegation(
@@ -204,7 +202,7 @@ NamedFormulaFunction<PartialState> CreateNegation(
       };
 
       return {std::move(F),
-              "!" + Proposition(name_predicate, prop_params).to_string()};
+              "(not " + Proposition(name_predicate, prop_params).to_pddl() + ")"};
     }
     // Otherwise proposition is an = or type, so evaluate as normal.
   }
@@ -220,7 +218,7 @@ NamedFormulaFunction<PartialState> CreateNegation(
     return !P(state, arguments);
   };
 
-  return {std::move(F), "!" + P_str.second};
+  return {std::move(F), "(not " + P_str.second + ")"};
 }
 
 template <typename T>

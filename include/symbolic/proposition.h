@@ -29,6 +29,7 @@ class PropositionBase {
   virtual const std::vector<Object>& arguments() const = 0;
 
   virtual std::string to_string() const;
+  virtual std::string to_pddl() const;
 
   size_t hash() const { return hash_; }
 

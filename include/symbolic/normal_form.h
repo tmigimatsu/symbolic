@@ -94,6 +94,14 @@ struct DisjunctiveFormula {
   NormalizeConditions(const Pddl& pddl, const std::string& action_call,
                       bool apply_axioms = false);
 
+  static std::optional<DisjunctiveFormula> NormalizePreconditions(
+      const Pddl& pddl, const std::string& action_call,
+      bool apply_axioms = false);
+
+  static std::optional<DisjunctiveFormula> NormalizePostconditions(
+      const Pddl& pddl, const std::string& action_call,
+      bool apply_axioms = false);
+
   static std::optional<DisjunctiveFormula> NormalizeGoal(
       const Pddl& pddl, bool apply_axioms = false);
 

@@ -497,7 +497,7 @@ DisjunctiveFormula::NormalizeConditions(const Pddl& pddl,
       conj_pre.push_back(pddl.ConsistentState(conj));
     }
     std::vector<DisjunctiveFormula::Conjunction> conj_post;
-    conj_post.reserve(pre->conjunctions.size());
+    conj_post.reserve(post->conjunctions.size());
     for (const DisjunctiveFormula::Conjunction& conj : post->conjunctions) {
       conj_post.push_back(pddl.ConsistentState(conj));
     }
@@ -505,6 +505,43 @@ DisjunctiveFormula::NormalizeConditions(const Pddl& pddl,
                           DisjunctiveFormula(std::move(conj_post)));
   }
   return std::make_pair(std::move(*pre), std::move(*post));
+}
+
+std::optional<DisjunctiveFormula> DisjunctiveFormula::NormalizePreconditions(
+    const Pddl& pddl, const std::string& action_call, bool apply_axioms) {
+  const auto aa = Action::Parse(pddl, action_call);
+  std::optional<DisjunctiveFormula> pre =
+      DisjunctiveFormula::Create(pddl, aa.first.preconditions().symbol(),
+                                 aa.first.parameters(), aa.second);
+  if (!pre.has_value()) return pre;
+
+  if (apply_axioms) {
+    std::vector<DisjunctiveFormula::Conjunction> conj_pre;
+    conj_pre.reserve(pre->conjunctions.size());
+    for (const DisjunctiveFormula::Conjunction& conj : pre->conjunctions) {
+      conj_pre.push_back(pddl.ConsistentState(conj));
+    }
+    pre = DisjunctiveFormula(std::move(conj_pre));
+  }
+  return pre;
+}
+
+std::optional<DisjunctiveFormula> DisjunctiveFormula::NormalizePostconditions(
+    const Pddl& pddl, const std::string& action_call, bool apply_axioms) {
+  const auto aa = Action::Parse(pddl, action_call);
+  std::optional<DisjunctiveFormula> post = DisjunctiveFormula::Create(
+      pddl, aa.first.postconditions(), aa.first.parameters(), aa.second);
+  if (!post.has_value()) return post;
+
+  if (apply_axioms) {
+    std::vector<DisjunctiveFormula::Conjunction> conj_post;
+    conj_post.reserve(post->conjunctions.size());
+    for (const DisjunctiveFormula::Conjunction& conj : post->conjunctions) {
+      conj_post.push_back(pddl.ConsistentState(conj));
+    }
+    post = DisjunctiveFormula(std::move(conj_post));
+  }
+  return post;
 }
 
 std::optional<DisjunctiveFormula> DisjunctiveFormula::NormalizeGoal(

@@ -199,6 +199,9 @@ class Pddl {
   std::vector<std::string> ListValidActions(
       const std::set<std::string>& state) const;
 
+  void AddObject(const std::string& name, const std::string& type);
+  void RemoveObject(const std::string& name);
+
   const VAL::analysis* symbol() const { return analysis_.get(); }
 
   /**
@@ -224,6 +227,7 @@ class Pddl {
 
   const ObjectTypeMap& object_map() const { return object_map_; }
 
+  const std::vector<Object>& constants() const { return constants_; }
   const std::vector<Object>& objects() const { return objects_; }
 
   const std::vector<Action>& actions() const { return actions_; }
@@ -250,6 +254,7 @@ class Pddl {
   std::string domain_pddl_;
   std::string problem_pddl_;
 
+  std::vector<Object> constants_;
   std::vector<Object> objects_;
   ObjectTypeMap object_map_;
 

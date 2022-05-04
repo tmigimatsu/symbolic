@@ -249,6 +249,7 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl,
     : analysis_(ParsePddl(domain_pddl, problem_pddl)),
       domain_pddl_(domain_pddl),
       problem_pddl_(problem_pddl),
+      constants_(GetObjects(*analysis_->the_domain)),
       objects_(GetObjects(*analysis_->the_domain, analysis_->the_problem)),
       object_map_(CreateObjectTypeMap(objects_)),
       axioms_(GetAxioms(*this, *analysis_->the_domain)),
@@ -507,6 +508,35 @@ std::vector<std::string> Pddl::ListValidActions(const State& state) const {
 std::vector<std::string> Pddl::ListValidActions(
     const std::set<std::string>& state) const {
   return ListValidActions(ParseState(*this, state));
+}
+
+void Pddl::AddObject(const std::string& name, const std::string& type) {
+  VAL::const_symbol* symbol = new VAL::const_symbol(name);
+  for (VAL::pddl_type* type_symbol : *analysis_->the_domain->types) {
+    if (type_symbol->getName() != type) continue;
+    symbol->type = type_symbol;
+    break;
+  }
+  analysis_->the_problem->objects->push_back(symbol);
+  objects_.emplace_back(*this, symbol);
+}
+
+void Pddl::RemoveObject(const std::string& name) {
+  for (auto it = objects_.begin(); it != objects_.end(); ++it) {
+    if (it->name() != name) continue;
+    const VAL::pddl_typed_symbol* symbol = it->symbol();
+    objects_.erase(it);
+
+    VAL::const_symbol_list* objects = analysis_->the_problem->objects;
+    for (auto itt = objects->begin(); itt != objects->end(); ++itt) {
+      if ((*itt)->getNameRef() != name) continue;
+      objects->erase(itt);
+      break;
+    }
+
+    delete symbol;
+    break;
+  }
 }
 
 const std::string& Pddl::name() const { return symbol()->the_domain->name; }
