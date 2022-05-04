@@ -249,13 +249,13 @@ NamedFormulaFunction<T> CreateForall(const Pddl& pddl,
     return true;
   };
 
-  std::stringstream ss("(forall ");
+  std::stringstream ss("(forall (");
   std::string delim;
   for (const Object& param : parameters) {
-    ss << delim << param;
-    if (delim.empty()) delim = ", ";
+    ss << delim << "?" << param << " - " << param.type().name();
+    if (delim.empty()) delim = " ";
   }
-  ss << " =>" << std::endl << P_str.second << std::endl << ")";
+  ss << ")" << std::endl << P_str.second << std::endl << ")";
 
   return {std::move(F), ss.str()};
 }
@@ -288,13 +288,13 @@ NamedFormulaFunction<T> CreateExists(const Pddl& pddl,
     return false;
   };
 
-  std::stringstream ss("(exists ");
+  std::stringstream ss("(exists (");
   std::string delim;
   for (const Object& param : parameters) {
-    ss << delim << param;
-    if (delim.empty()) delim = ", ";
+    ss << delim << "?" << param << " - " << param.type().name();
+    if (delim.empty()) delim = " ";
   }
-  ss << " =>" << std::endl << P_str.second << std::endl << ")";
+  ss << ")" << std::endl << P_str.second << std::endl << ")";
 
   return {std::move(F), ss.str()};
 }
