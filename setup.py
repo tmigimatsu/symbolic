@@ -102,6 +102,8 @@ setuptools.setup(
     author="Toki Migimatsu",
     author_email="takatoki@cs.stanford.edu",
     description="PDDL symbolic library",
+    long_description="Symbolic is a C++/Python library for parsing and manipulating Plannning Domain Definition Language (PDDL) symbols for AI planning.",
+    long_description_content_type="text/plain",
     url="https://github.com/tmigimatsu/symbolic",
     license="MIT",
     packages=["symbolic"],
