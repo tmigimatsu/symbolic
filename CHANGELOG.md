@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.1 (2022-07-01)
+### Fix
+* Pypi long description ([`834499d`](https://github.com/tmigimatsu/symbolic/commit/834499db88b5e8675968a9d80647a25b972ef7fa))
+* Foreall, exists formula serialization ([`b99271e`](https://github.com/tmigimatsu/symbolic/commit/b99271ebc6f23ad017289d049fb35425c8a9c92b))
+
 ## v0.3.0 (2022-05-04)
 ### Feature
 * Support dynamically adding objects and serializing pddl ([`0d5e50f`](https://github.com/tmigimatsu/symbolic/commit/0d5e50f24a719de4db7f614b89bec3101e332559))
