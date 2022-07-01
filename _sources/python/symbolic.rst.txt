@@ -16,6 +16,7 @@
    
       parse_args
       parse_head
+      parse_proposition
    
    
 
