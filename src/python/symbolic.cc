@@ -351,6 +351,7 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def_property_readonly("parameters", &Action::parameters)
       .def_property_readonly("parameter_generator",
                              &Action::parameter_generator)
+      .def_static("parse", &Action::Parse, "pddl"_a, "action_call"_a)
       .def("to_string",
            [](const Action& action,
               const std::vector<std::string>& arguments) -> std::string {
