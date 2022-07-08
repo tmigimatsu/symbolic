@@ -1,6 +1,0 @@
-symbolic.parse\_proposition
-===========================
-
-.. currentmodule:: symbolic
-
-.. autofunction:: parse_proposition

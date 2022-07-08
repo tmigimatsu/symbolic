@@ -1,6 +1,0 @@
-symbolic.parse\_head
-====================
-
-.. currentmodule:: symbolic
-
-.. autofunction:: parse_head
