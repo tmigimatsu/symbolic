@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.2 (2022-07-08)
+### Fix
+* Add action parsing python binding ([`5e0e61c`](https://github.com/tmigimatsu/symbolic/commit/5e0e61c72a53f4a5a24262bfe3a266e4cd2b2a97))
+
 ## v0.3.1 (2022-07-01)
 ### Fix
 * Pypi long description ([`834499d`](https://github.com/tmigimatsu/symbolic/commit/834499db88b5e8675968a9d80647a25b972ef7fa))
