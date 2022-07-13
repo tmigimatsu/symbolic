@@ -131,6 +131,7 @@ template <typename T>
 std::vector<Object> Object::CreateList(
     const Pddl& pddl, const VAL::typed_symbol_list<T>* symbols) {
   std::vector<Object> objects;
+  if (symbols == nullptr) return objects;
   objects.reserve(symbols->size());
   for (const T* symbol : *symbols) {
     objects.emplace_back(pddl, symbol);
@@ -143,6 +144,7 @@ std::vector<Object> Object::CreateList(
     const VAL::pddl_type_list* types,
     const VAL::typed_symbol_list<T>* symbols) {
   std::vector<Object> objects;
+  if (symbols == nullptr) return objects;
   objects.reserve(symbols->size());
   for (const T* symbol : *symbols) {
     objects.emplace_back(types, symbol);
