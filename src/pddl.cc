@@ -48,8 +48,7 @@ std::ostream& operator<<(std::ostream& os, const parameter_symbol_list& args);
 }  // namespace VAL
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-const char* current_filename = nullptr;  // Expected in parse_error.h
-extern int line_no;
+extern const char* current_filename;  // Expected in parse_error.h
 
 namespace {
 
