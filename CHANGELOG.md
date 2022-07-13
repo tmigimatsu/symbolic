@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.6 (2022-07-13)
+### Fix
+* Switch file names on pddl parsing ([`476b671`](https://github.com/tmigimatsu/symbolic/commit/476b6718307e878e69d8ba5891fad73c3aa27352))
+
 ## v0.3.5 (2022-07-13)
 ### Fix
 * Print full pddl report ([`1a22daf`](https://github.com/tmigimatsu/symbolic/commit/1a22daf6f7f01b29edbaf6b239eb0948c3e82017))
