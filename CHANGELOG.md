@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.5 (2022-07-13)
+### Fix
+* Print full pddl report ([`1a22daf`](https://github.com/tmigimatsu/symbolic/commit/1a22daf6f7f01b29edbaf6b239eb0948c3e82017))
+* Print pddl problem parsing errors ([`60ae847`](https://github.com/tmigimatsu/symbolic/commit/60ae847a6ab53323bbc7689c894ffade8ac5a0db))
+
 ## v0.3.4 (2022-07-13)
 ### Fix
 * Print more parsing information ([`0ad24b4`](https://github.com/tmigimatsu/symbolic/commit/0ad24b4b6f75e3f38cbc103c9780e97b49f10981))
