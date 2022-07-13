@@ -66,6 +66,10 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
   std::ifstream pddl_domain(filename_domain);
   yfl.switch_streams(&pddl_domain, &std::cout);
   yyparse();
+  for (VAL::parse_error* error : analysis->error_list) {
+    if (error == nullptr) continue;
+    error->report();
+  }
   if (analysis->the_domain == nullptr) {
     throw std::runtime_error("ParsePddl(): Unable to parse domain from file: " +
                              filename_domain);
