@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.7 (2022-07-13)
+### Fix
+* Allow parsing of longer object lists ([`08c95a5`](https://github.com/tmigimatsu/symbolic/commit/08c95a51563d3442cb165428f3030d30fd83adaa))
+
 ## v0.3.6 (2022-07-13)
 ### Fix
 * Switch file names on pddl parsing ([`476b671`](https://github.com/tmigimatsu/symbolic/commit/476b6718307e878e69d8ba5891fad73c3aa27352))
