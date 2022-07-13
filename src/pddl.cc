@@ -49,6 +49,7 @@ std::ostream& operator<<(std::ostream& os, const parameter_symbol_list& args);
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 const char* current_filename = nullptr;  // Expected in parse_error.h
+extern int line_no;
 
 namespace {
 
@@ -66,11 +67,11 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
   std::ifstream pddl_domain(filename_domain);
   yfl.switch_streams(&pddl_domain, &std::cout);
   yyparse();
-  for (VAL::parse_error* error : analysis->error_list) {
-    if (error == nullptr) continue;
-    error->report();
-  }
   if (analysis->the_domain == nullptr) {
+    for (VAL::parse_error* error : analysis->error_list) {
+      if (error == nullptr) continue;
+      error->report();
+    }
     throw std::runtime_error("ParsePddl(): Unable to parse domain from file: " +
                              filename_domain);
   }
@@ -92,9 +93,14 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
   }
 
   // Parse problem
+  line_no = 1;
   yfl.switch_streams(input_problem.get(), &std::cout);
   yyparse();
   if (analysis->the_problem == nullptr) {
+    for (VAL::parse_error* error : analysis->error_list) {
+      if (error == nullptr) continue;
+      error->report();
+    }
     throw std::runtime_error("ParsePddl(): Unable to parse problem from: " +
                              problem);
   }
