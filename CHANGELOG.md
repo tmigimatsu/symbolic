@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.4 (2022-07-13)
+### Fix
+* Print more parsing information ([`0ad24b4`](https://github.com/tmigimatsu/symbolic/commit/0ad24b4b6f75e3f38cbc103c9780e97b49f10981))
+
 ## v0.3.3 (2022-07-13)
 ### Fix
 * Support empty constants and types ([`04b360c`](https://github.com/tmigimatsu/symbolic/commit/04b360c3773a2aabbc47eb6b19ed7da1c5e9f941))
