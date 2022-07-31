@@ -10,7 +10,7 @@
 message(STATUS "Configuring ${PROJECT_NAME} documentation.")
 
 add_custom_target(symbolic_docs ALL
-    COMMAND pipenv run make -C docs clean && pipenv run make -C docs
+    COMMAND make -C docs clean && make -C docs
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
 add_dependencies(symbolic_docs pysymbolic)

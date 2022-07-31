@@ -26,4 +26,7 @@ archs = ["auto64"]
 
 [tool.cibuildwheel.macos]
 archs = ["universal2"]
-environment = { CMAKE_OSX_ARCHITECTURES="arm64;x86_64", MACOSX_DEPLOYMENT_TARGET="10.14" }
+
+[tool.cibuildwheel.macos.environment]
+CMAKE_OSX_ARCHITECTURES = "arm64;x86_64"
+MACOSX_DEPLOYMENT_TARGET = "10.14"

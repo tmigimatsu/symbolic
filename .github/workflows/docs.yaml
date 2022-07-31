@@ -22,16 +22,16 @@ jobs:
 
       - name: Install pip dependencies
         run: |
-          sudo apt install doxygen
+          sudo apt update
+          sudo apt install -y doxygen
           pip install pipenv
           pipenv install --dev
 
       - name: Build
         run: |
-          mkdir -p build
-          cmake -B build -DBUILD_PYTHON=ON -DBUILD_DOCS=ON
           # symbolic needs to be in the virtual environment.
           pipenv run pip install --no-use-pep517 -e .
+          pipenv run make -C docs
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
