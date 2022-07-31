@@ -15,6 +15,13 @@ See the documentation for `symbolic`
 
 ## Installation
 
+The Python library can be installed via `pip`:
+```
+pip install pysymbolic
+```
+
+To compile the C++ library, follow the instructions below.
+
 This library is written in C++ with Python bindings automatically generated with
 [pybind11](https://github.com/pybind/pybind11). It has been tested on
 Ubuntu 18.04, Ubuntu 20.04, and macOS 10.15 Catalina.

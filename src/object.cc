@@ -24,6 +24,7 @@ using ::symbolic::Pddl;
 const VAL::pddl_type* GetTypeSymbol(const VAL::pddl_type_list* types,
                                     const VAL::pddl_type* symbol = nullptr) {
   if (symbol != nullptr) return symbol;
+  if (types == nullptr) return nullptr;
   // Iterate over domain types
   for (const VAL::pddl_type* type : *types) {
     // Iterate over ancestors of current type
@@ -36,15 +37,16 @@ const VAL::pddl_type* GetTypeSymbol(const VAL::pddl_type_list* types,
 
 const VAL::const_symbol* GetSymbol(const Pddl& pddl,
                                    const std::string& name_object) {
-  assert(pddl.symbol()->the_domain->constants != nullptr);
-  for (const VAL::const_symbol* obj : *pddl.symbol()->the_domain->constants) {
-    assert(obj != nullptr);
-    if (obj->getName() == name_object) return obj;
+  if (pddl.symbol()->the_domain->constants != nullptr) {
+    for (const VAL::const_symbol* obj : *pddl.symbol()->the_domain->constants) {
+      if (obj == nullptr) continue;
+      if (obj->getName() == name_object) return obj;
+    }
   }
   if (pddl.symbol()->the_problem != nullptr) {
     assert(pddl.symbol()->the_problem->objects != nullptr);
     for (const VAL::const_symbol* obj : *pddl.symbol()->the_problem->objects) {
-      assert(obj != nullptr);
+      if (obj == nullptr) continue;
       if (obj->getName() == name_object) return obj;
     }
   }
@@ -69,11 +71,14 @@ std::vector<std::string> TokenizeArguments(const std::string& proposition) {
   return args;
 }
 
+static const std::string kDefaultType = "object";
+
 }  // namespace
 
 namespace symbolic {
 
 bool Object::Type::IsSubtype(const std::string& type) const {
+  if (type == kDefaultType) return true;
   for (const VAL::pddl_type* curr = symbol_; curr != nullptr;
        curr = curr->type) {
     if (curr->getName() == type) return true;
@@ -87,10 +92,16 @@ std::vector<std::string> Object::Type::ListTypes() const {
        curr = curr->type) {
     types.push_back(curr->getName());
   }
+  if (types.empty() || types.back() != kDefaultType) {
+    types.push_back(kDefaultType);
+  }
   return types;
 }
 
-const std::string& Object::Type::name() const { return symbol_->getNameRef(); }
+const std::string& Object::Type::name() const {
+  if (symbol_ == nullptr) return kDefaultType;
+  return symbol_->getNameRef();
+}
 
 Object::Object(const Pddl& pddl, const VAL::pddl_typed_symbol* symbol)
     : symbol_(symbol),

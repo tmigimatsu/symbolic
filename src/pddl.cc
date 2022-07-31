@@ -48,7 +48,7 @@ std::ostream& operator<<(std::ostream& os, const parameter_symbol_list& args);
 }  // namespace VAL
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-const char* current_filename = nullptr;  // Expected in parse_error.h
+extern const char* current_filename;  // Expected in parse_error.h
 
 namespace {
 
@@ -67,6 +67,7 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
   yfl.switch_streams(&pddl_domain, &std::cout);
   yyparse();
   if (analysis->the_domain == nullptr) {
+    analysis->error_list.report();
     throw std::runtime_error("ParsePddl(): Unable to parse domain from file: " +
                              filename_domain);
   }
@@ -88,9 +89,11 @@ std::unique_ptr<VAL::analysis> ParsePddl(const std::string& filename_domain,
   }
 
   // Parse problem
+  line_no = 1;
   yfl.switch_streams(input_problem.get(), &std::cout);
   yyparse();
   if (analysis->the_problem == nullptr) {
+    analysis->error_list.report();
     throw std::runtime_error("ParsePddl(): Unable to parse problem from: " +
                              problem);
   }
@@ -249,6 +252,7 @@ Pddl::Pddl(const std::string& domain_pddl, const std::string& problem_pddl,
     : analysis_(ParsePddl(domain_pddl, problem_pddl)),
       domain_pddl_(domain_pddl),
       problem_pddl_(problem_pddl),
+      constants_(GetObjects(*analysis_->the_domain)),
       objects_(GetObjects(*analysis_->the_domain, analysis_->the_problem)),
       object_map_(CreateObjectTypeMap(objects_)),
       axioms_(GetAxioms(*this, *analysis_->the_domain)),
@@ -332,6 +336,20 @@ TEST_CASE_FIXTURE(testing::Fixture, "Pddl.NextState") {
   next_state.erase(Proposition(pddl, "on(hook, table)"));
   next_state.emplace(pddl, "inhand(hook)");
   REQUIRE(pddl.NextState(state, "pick(hook)") == next_state);
+}
+
+State Pddl::ApplyActions(const State& state,
+                         const std::vector<std::string>& action_calls) const {
+  State next_state(state);
+  for (const std::string& action_call : action_calls) {
+    const std::pair<Action, std::vector<Object>> action_args =
+        Action::Parse(*this, action_call);
+    const Action& action = action_args.first;
+    const std::vector<Object>& arguments = action_args.second;
+
+    Apply(action, arguments, derived_predicates(), &next_state);
+  }
+  return next_state;
 }
 
 State Pddl::DerivedState(const State& state) const {
@@ -493,6 +511,35 @@ std::vector<std::string> Pddl::ListValidActions(const State& state) const {
 std::vector<std::string> Pddl::ListValidActions(
     const std::set<std::string>& state) const {
   return ListValidActions(ParseState(*this, state));
+}
+
+void Pddl::AddObject(const std::string& name, const std::string& type) {
+  VAL::const_symbol* symbol = new VAL::const_symbol(name);
+  for (VAL::pddl_type* type_symbol : *analysis_->the_domain->types) {
+    if (type_symbol->getName() != type) continue;
+    symbol->type = type_symbol;
+    break;
+  }
+  analysis_->the_problem->objects->push_back(symbol);
+  objects_.emplace_back(*this, symbol);
+}
+
+void Pddl::RemoveObject(const std::string& name) {
+  for (auto it = objects_.begin(); it != objects_.end(); ++it) {
+    if (it->name() != name) continue;
+    const VAL::pddl_typed_symbol* symbol = it->symbol();
+    objects_.erase(it);
+
+    VAL::const_symbol_list* objects = analysis_->the_problem->objects;
+    for (auto itt = objects->begin(); itt != objects->end(); ++itt) {
+      if ((*itt)->getNameRef() != name) continue;
+      objects->erase(itt);
+      break;
+    }
+
+    delete symbol;
+    break;
+  }
 }
 
 const std::string& Pddl::name() const { return symbol()->the_domain->name; }

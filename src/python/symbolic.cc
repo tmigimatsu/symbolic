@@ -158,6 +158,26 @@ PYBIND11_MODULE(pysymbolic, m) {
             .. seealso:: C++: :symbolic:`symbolic::Pddl::NextState`.
           )pbdoc")
       .def(
+          "apply_actions",
+          [](const Pddl& pddl, const std::unordered_set<std::string>& state,
+             const std::vector<std::string>& actions) {
+            return pddl.ApplyActions(State(pddl, state), actions).Stringify();
+          },
+          "state"_a, "action"_a, R"pbdoc(
+            Execute a sequence of actions from the given state
+
+            The action preconditions are not checked. The resulting state includes
+            derived predicates.
+
+            Args:
+                state: Current state.
+                actions: Action calls in the form of :code:`"action(obj_a, obj_b)"`.
+            Returns:
+                Final state.
+
+            .. seealso:: C++: :symbolic:`symbolic::Pddl::Execute`.
+          )pbdoc")
+      .def(
           "derived_state",
           [](const Pddl& pddl, const std::unordered_set<std::string>& state) {
             return pddl.DerivedState(State(pddl, state)).Stringify();
@@ -254,6 +274,8 @@ PYBIND11_MODULE(pysymbolic, m) {
 
             .. seealso:: C++: :symbolic:`symbolic::Pddl::IsValidState`.
           )pbdoc")
+      .def("add_object", &Pddl::AddObject, "name"_a, "type"_a)
+      .def("remove_object", &Pddl::RemoveObject, "name"_a)
       .def_property_readonly("name", &Pddl::name, R"pbdoc(
           Pddl domain name.
 
@@ -269,6 +291,7 @@ PYBIND11_MODULE(pysymbolic, m) {
             Initial state for planning.
           )pbdoc")
       .def_property_readonly("object_map", &Pddl::object_map)
+      .def_property_readonly("constants", &Pddl::constants)
       .def_property_readonly("objects", &Pddl::objects)
       .def_property_readonly("actions", &Pddl::actions)
       .def_property_readonly("predicates", &Pddl::predicates)
@@ -291,7 +314,6 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def("list_valid_actions",
            static_cast<StringVector (Pddl::*)(const StringSet&) const>(
                &Pddl::ListValidActions))
-      .def_property_readonly("name", &Pddl::name)
       .def_property_readonly("domain_pddl", &Pddl::domain_pddl)
       .def_property_readonly("problem_pddl", &Pddl::domain_pddl)
       .def("__repr__",
@@ -329,6 +351,7 @@ PYBIND11_MODULE(pysymbolic, m) {
       .def_property_readonly("parameters", &Action::parameters)
       .def_property_readonly("parameter_generator",
                              &Action::parameter_generator)
+      .def_static("parse", &Action::Parse, "pddl"_a, "action_call"_a)
       .def("to_string",
            [](const Action& action,
               const std::vector<std::string>& arguments) -> std::string {
@@ -625,6 +648,12 @@ PYBIND11_MODULE(pysymbolic, m) {
 
           .. seealso:: C++: :symbolic:`symbolic::DisjunctiveFormula::NormalizeConditions`.
           )pbdoc")
+      .def_static("normalize_preconditions",
+                  &DisjunctiveFormula::NormalizePreconditions, "pddl"_a,
+                  "action_call"_a, "apply_axioms"_a = false)
+      .def_static("normalize_postconditions",
+                  &DisjunctiveFormula::NormalizePostconditions, "pddl"_a,
+                  "action_call"_a, "apply_axioms"_a = false)
       .def("__repr__", [](const DisjunctiveFormula& dnf) {
         std::stringstream ss;
         ss << dnf;

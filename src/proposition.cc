@@ -41,6 +41,16 @@ std::string PropositionBase::to_string() const {
   return ss.str();
 }
 
+std::string PropositionBase::to_pddl() const {
+  std::stringstream ss;
+  ss << "(" << name();
+  for (const Object& arg : arguments()) {
+    ss << " " << arg;
+  }
+  ss << ")";
+  return ss.str();
+}
+
 std::ostream& operator<<(std::ostream& os, const PropositionBase& P) {
   os << P.name() << "(";
   std::string separator;
