@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.8 (2022-07-31)
+### Fix
+* Fix pyproject.toml ([`1ab05f1`](https://github.com/tmigimatsu/symbolic/commit/1ab05f192a4995037230a57e0eb4abaf1cd10336))
+
 ## v0.3.7 (2022-07-13)
 ### Fix
 * Allow parsing of longer object lists ([`08c95a5`](https://github.com/tmigimatsu/symbolic/commit/08c95a51563d3442cb165428f3030d30fd83adaa))
