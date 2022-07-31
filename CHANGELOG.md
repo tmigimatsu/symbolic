@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.9 (2022-07-31)
+### Fix
+* Remove symbolic from Pipfile to fix docs ([`4a86c14`](https://github.com/tmigimatsu/symbolic/commit/4a86c145d36c19859ef2445f687e9ce1561ebe0e))
+* Restore previous VAL commit ([`8941d1c`](https://github.com/tmigimatsu/symbolic/commit/8941d1c6fc59c9f6a77a1e7e2493e76754857ccf))
+
 ## v0.3.8 (2022-07-31)
 ### Fix
 * Fix pyproject.toml ([`1ab05f1`](https://github.com/tmigimatsu/symbolic/commit/1ab05f192a4995037230a57e0eb4abaf1cd10336))
