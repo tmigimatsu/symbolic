@@ -1,0 +1,32 @@
+symbolic.Object
+===============
+
+.. currentmodule:: symbolic
+
+.. autoclass:: Object
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Object.__init__
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Object.name
+      ~Object.type
+   
+   

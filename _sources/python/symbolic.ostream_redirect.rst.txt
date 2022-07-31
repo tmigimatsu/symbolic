@@ -1,0 +1,25 @@
+symbolic.ostream\_redirect
+==========================
+
+.. currentmodule:: symbolic
+
+.. autoclass:: ostream_redirect
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~ostream_redirect.__init__
+   
+   
+
+   
+   
+   

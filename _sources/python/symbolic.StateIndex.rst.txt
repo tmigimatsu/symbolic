@@ -1,0 +1,29 @@
+symbolic.StateIndex
+===================
+
+.. currentmodule:: symbolic
+
+.. autoclass:: StateIndex
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~StateIndex.__init__
+      ~StateIndex.get_indexed_state
+      ~StateIndex.get_proposition
+      ~StateIndex.get_proposition_index
+      ~StateIndex.get_state
+   
+   
+
+   
+   
+   

@@ -1,0 +1,56 @@
+﻿symbolic
+========
+
+.. automodule:: symbolic
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      parse_args
+      parse_head
+      parse_proposition
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom_class.rst
+   
+      Action
+      Axiom
+      BreadthFirstSearch
+      DerivedPredicate
+      DisjunctiveFormula
+      Formula
+      Object
+      ObjectType
+      ParameterGenerator
+      PartialState
+      Pddl
+      Planner
+      PlannerNode
+      Predicate
+      Problem
+      StateIndex
+      ostream_redirect
+   
+   
+
+   
+   
+   
+
+
+

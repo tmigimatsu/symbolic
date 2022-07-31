@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>symbolic.DisjunctiveFormula &#8212; symbolic  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="symbolic.Formula" href="symbolic.Formula.html" />
+    <link rel="prev" title="symbolic.DerivedPredicate" href="symbolic.DerivedPredicate.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          symbolic</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api_documentation.html">API Documentation</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">symbolic.DisjunctiveFormula</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="symbolic.DerivedPredicate.html" title="Previous Chapter: symbolic.DerivedPredicate"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; symbolic.Deri...</span>
+    </a>
+  </li>
+  <li>
+    <a href="symbolic.Formula.html" title="Next Chapter: symbolic.Formula"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">symbolic.Formula &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/python/symbolic.DisjunctiveFormula.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">symbolic.DisjunctiveFormula</a></li>
+</ul>
+
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <section id="symbolic-disjunctiveformula">
+<h1>symbolic.DisjunctiveFormula<a class="headerlink" href="#symbolic-disjunctiveformula" title="Permalink to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="symbolic.DisjunctiveFormula">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">symbolic.</span></span><span class="sig-name descname"><span class="pre">DisjunctiveFormula</span></span><a class="headerlink" href="#symbolic.DisjunctiveFormula" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="symbolic.DisjunctiveFormula.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#symbolic.DisjunctiveFormula.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#symbolic.DisjunctiveFormula.__init__" title="symbolic.DisjunctiveFormula.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#symbolic.DisjunctiveFormula.normalize_conditions" title="symbolic.DisjunctiveFormula.normalize_conditions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_conditions</span></code></a>(pddl, action_call[, ...])</p></td>
+<td><p>Normalize the pre/post conditions of the given action.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#symbolic.DisjunctiveFormula.normalize_goal" title="symbolic.DisjunctiveFormula.normalize_goal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_goal</span></code></a>(pddl[, apply_axioms])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#symbolic.DisjunctiveFormula.normalize_postconditions" title="symbolic.DisjunctiveFormula.normalize_postconditions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_postconditions</span></code></a>(pddl, action_call)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#symbolic.DisjunctiveFormula.normalize_preconditions" title="symbolic.DisjunctiveFormula.normalize_preconditions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_preconditions</span></code></a>(pddl, action_call[, ...])</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">conjunctions</span></code></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="symbolic.DisjunctiveFormula.normalize_conditions">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">normalize_conditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pddl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="symbolic.Pddl.html#symbolic.Pddl" title="symbolic.pysymbolic.Pddl"><span class="pre">symbolic.pysymbolic.Pddl</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_call</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_axioms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#symbolic.DisjunctiveFormula" title="symbolic.pysymbolic.DisjunctiveFormula"><span class="pre">symbolic.pysymbolic.DisjunctiveFormula</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#symbolic.DisjunctiveFormula" title="symbolic.pysymbolic.DisjunctiveFormula"><span class="pre">symbolic.pysymbolic.DisjunctiveFormula</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#symbolic.DisjunctiveFormula.normalize_conditions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize the pre/post conditions of the given action.</p>
+<p>If either of the conditions are invalid, this function will return an
+empty optional.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pddl</strong> – Pddl object.</p></li>
+<li><p><strong>action</strong> – Action call in the form of <code class="code docutils literal notranslate"><span class="pre">&quot;action(obj_a,</span> <span class="pre">obj_b)&quot;</span></code>.</p></li>
+<li><p><strong>apply_axioms</strong> – Whether to apply the axioms to the pre/post conditions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pair of normalized pre/post conditions.</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">symbolic</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pddl</span> <span class="o">=</span> <span class="n">symbolic</span><span class="o">.</span><span class="n">Pddl</span><span class="p">(</span><span class="s2">&quot;../resources/domain.pddl&quot;</span><span class="p">,</span> <span class="s2">&quot;../resources/problem.pddl&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">symbolic</span><span class="o">.</span><span class="n">DisjunctiveFormula</span><span class="o">.</span><span class="n">normalize_conditions</span><span class="p">(</span><span class="n">pddl</span><span class="p">,</span> <span class="s2">&quot;pick(hook)&quot;</span><span class="p">)</span>
+<span class="go">((or</span>
+<span class="go">    (and</span>
+<span class="go">        inworkspace(hook)</span>
+<span class="go">        not inhand(hook)</span>
+<span class="go">        not inhand(box)</span>
+<span class="go">    )</span>
+<span class="go">)</span>
+<span class="go">, (or</span>
+<span class="go">    (and</span>
+<span class="go">        inhand(hook)</span>
+<span class="go">        not on(hook, shelf)</span>
+<span class="go">        not on(hook, box)</span>
+<span class="go">        not on(hook, hook)</span>
+<span class="go">        not on(hook, table)</span>
+<span class="go">    )</span>
+<span class="go">)</span>
+<span class="go">)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>C++: <a class="reference external" href="../cpp/structsymbolic_1_1DisjunctiveFormula.html#a3be6c27c01572dfb0ac76a2884845901">symbolic::DisjunctiveFormula::NormalizeConditions()</a>.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="symbolic.DisjunctiveFormula.normalize_goal">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">normalize_goal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pddl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="symbolic.Pddl.html#symbolic.Pddl" title="symbolic.pysymbolic.Pddl"><span class="pre">symbolic.pysymbolic.Pddl</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_axioms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#symbolic.DisjunctiveFormula" title="symbolic.pysymbolic.DisjunctiveFormula"><span class="pre">symbolic.pysymbolic.DisjunctiveFormula</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#symbolic.DisjunctiveFormula.normalize_goal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="symbolic.DisjunctiveFormula.normalize_postconditions">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">normalize_postconditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pddl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="symbolic.Pddl.html#symbolic.Pddl" title="symbolic.pysymbolic.Pddl"><span class="pre">symbolic.pysymbolic.Pddl</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_call</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_axioms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#symbolic.DisjunctiveFormula" title="symbolic.pysymbolic.DisjunctiveFormula"><span class="pre">symbolic.pysymbolic.DisjunctiveFormula</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#symbolic.DisjunctiveFormula.normalize_postconditions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="symbolic.DisjunctiveFormula.normalize_preconditions">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">normalize_preconditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pddl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="symbolic.Pddl.html#symbolic.Pddl" title="symbolic.pysymbolic.Pddl"><span class="pre">symbolic.pysymbolic.Pddl</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_call</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_axioms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#symbolic.DisjunctiveFormula" title="symbolic.pysymbolic.DisjunctiveFormula"><span class="pre">symbolic.pysymbolic.DisjunctiveFormula</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#symbolic.DisjunctiveFormula.normalize_preconditions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020, Toki Migimatsu.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

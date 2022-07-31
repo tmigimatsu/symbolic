@@ -1,0 +1,31 @@
+symbolic.Planner
+================
+
+.. currentmodule:: symbolic
+
+.. autoclass:: Planner
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Planner.__init__
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Planner.root
+   
+   
