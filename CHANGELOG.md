@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.0 (2022-08-01)
+### Breaking
+* No longer supports Python 3.6.  ([`e1dedda`](https://github.com/tmigimatsu/symbolic/commit/e1dedda72af45189c49ed115d6a8f36676555274))
+
 ## v0.4.0 (2022-08-01)
 ### Feature
 * Update pip install to pep517 ([`27801d4`](https://github.com/tmigimatsu/symbolic/commit/27801d4d0c808314e19defe8b8d15ab7fb2d24f5))
