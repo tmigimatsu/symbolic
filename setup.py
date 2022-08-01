@@ -1,23 +1,24 @@
 import pathlib
 import re
 import shutil
-import setuptools  # type: ignore
-from setuptools.command import build_ext  # type: ignore
 import subprocess
 import sys
+
+from packaging import version
+import setuptools  # type: ignore
+from setuptools.command import build_ext  # type: ignore
 
 
 __version__ = "0.3.8"
 
 
 class CMakeExtension(setuptools.Extension):
-    def __init__(self, name):
-        setuptools.Extension.__init__(self, name, sources=[])
+    def __init__(self, name: str):
+        setuptools.Extension.__init__(self, name=name, sources=[])
 
 
 class CMakeBuild(build_ext.build_ext):
-    def run(self):
-        from packaging import version  # type: ignore
+    def run(self) -> None:
 
         if not self.inplace:
             try:
@@ -36,15 +37,24 @@ class CMakeBuild(build_ext.build_ext):
                     "CMake >= 3.13.0 is required. Install the latest CMake with 'pip install cmake'."
                 )
 
-        for extension in self.extensions:
+        cmake_extensions = [e for e in self.extensions if isinstance(e, CMakeExtension)]
+        for extension in cmake_extensions:
             self.build_extension(extension)
 
-    def build_extension(self, extension: setuptools.Extension):
-        extension_dir = pathlib.Path(self.get_ext_fullpath(extension.name)).parent
-        extension_dir.mkdir(parents=True, exist_ok=True)
+    def build_extension(self, extension: CMakeExtension) -> None:
+        extension_dir = pathlib.Path(
+            self.get_ext_fullpath(extension.name)
+        ).parent.absolute()
 
+        # Clean old build.
+        for old_build in extension_dir.glob(
+            "*.dylib" if sys.platform == "darwin" else "*.so"
+        ):
+            old_build.unlink()
+
+        # Create new build folder.
         if self.inplace:
-            build_dir = extension_dir / "build"
+            build_dir = (pathlib.Path(__file__).parent / "build").absolute()
         else:
             build_dir = pathlib.Path(self.build_temp)
         build_dir.mkdir(parents=True, exist_ok=True)
@@ -65,9 +75,10 @@ class CMakeBuild(build_ext.build_ext):
             # Use relative paths for install rpath.
             rpath_origin = "@loader_path" if sys.platform == "darwin" else "$ORIGIN"
             cmake_command += [
-                "-DCMAKE_INSTALL_PREFIX=install",
-                "-DCMAKE_INSTALL_RPATH=" + rpath_origin,
+                f"-DCMAKE_INSTALL_PREFIX={extension_dir}",
+                f"-DCMAKE_INSTALL_RPATH={rpath_origin}",
             ]
+        print(*cmake_command)
         self.spawn(cmake_command)
 
         # Build and install.
@@ -80,41 +91,25 @@ class CMakeBuild(build_ext.build_ext):
         )
         make_command += ["--", "-j" + ncpus]
 
+        print(*make_command)
         self.spawn(make_command)
 
         if not self.inplace:
             # Copy pybind11 library.
-            symbolic_dir = str(extension_dir / "symbolic")
             for file in (build_dir / "src" / "python").iterdir():
                 if re.match(r".*\.(?:so|dylib)\.?", file.name) is not None:
-                    shutil.move(str(file), symbolic_dir)
+                    shutil.move(str(file), str(extension_dir))
 
             # Copy C++ libraries.
-            libdir = next(iter(pathlib.Path("install").glob("lib*")))
+            libdir = next(iter(extension_dir.glob("lib*")))
             for file in libdir.iterdir():
                 if re.match(r".*\.(?:so|dylib)\.?", file.name) is not None:
-                    shutil.move(str(file), symbolic_dir)
+                    shutil.move(str(file), str(extension_dir))
 
 
 setuptools.setup(
-    name="pysymbolic",
-    version=__version__,
-    author="Toki Migimatsu",
-    author_email="takatoki@cs.stanford.edu",
-    description="PDDL symbolic library",
-    long_description="Symbolic is a C++/Python library for parsing and manipulating Plannning Domain Definition Language (PDDL) symbols for AI planning.",
-    long_description_content_type="text/plain",
-    url="https://github.com/tmigimatsu/symbolic",
-    license="MIT",
     packages=["symbolic"],
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-    ],
-    python_requires=">=3.6",
-    setup_requires=["packaging"],
-    ext_modules=[CMakeExtension("symbolic")],
+    ext_modules=[CMakeExtension("symbolic.pysymbolic")],
     cmdclass={
         "build_ext": CMakeBuild,
     },

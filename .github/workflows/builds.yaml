@@ -71,4 +71,4 @@ jobs:
         env:
           CMAKE_OSX_ARCHITECTURES: "arm64;x86_64"
         run: |
-          pip3 install --no-use-pep517 -e . -vvv
+          pip3 install -e . -vvv

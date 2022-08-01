@@ -1,6 +1,28 @@
-# [build-system]
-# requires = ["setuptools", "wheel"]
-# build-backend = "setuptools.build_meta:__legacy__"
+[build-system]
+requires = ["packaging", "setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pysymbolic"
+version = "0.3.8"
+authors = [
+    {name = "Toki Migimatsu", email = "takatoki@cs.stanford.edu"}
+]
+description = "PDDL symbolic library"
+license = {file = "LICENSE"}
+readme = "README.md"
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/tmigimatsu/symbolic"
+
+# [tool.setuptools]
+# packages = ["symbolic"]
 
 [tool.semantic_release]
 branch = "main"
@@ -13,6 +35,10 @@ version_variable = [
 ]
 version_pattern = [
     "CMakeLists.txt:VERSION {version}$",
+    # "setup.cfg:version = {version}$"
+]
+version_toml = [
+    "pyproject.toml:project.version"
 ]
 
 [tool.cibuildwheel]
