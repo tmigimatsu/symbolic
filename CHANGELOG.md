@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.0 (2022-08-01)
+### Feature
+* Update pip install to pep517 ([`27801d4`](https://github.com/tmigimatsu/symbolic/commit/27801d4d0c808314e19defe8b8d15ab7fb2d24f5))
+
 ## v0.3.9 (2022-07-31)
 ### Fix
 * Remove symbolic from Pipfile to fix docs ([`4a86c14`](https://github.com/tmigimatsu/symbolic/commit/4a86c145d36c19859ef2445f687e9ce1561ebe0e))
