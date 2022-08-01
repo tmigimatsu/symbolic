@@ -11,7 +11,7 @@ authors = [
 description = "PDDL symbolic library"
 license = {file = "LICENSE"}
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -43,6 +43,7 @@ version_toml = [
 
 [tool.cibuildwheel]
 skip = [
+    "cp36-*",
     "pp*",
     "*-musllinux*",
 ]
