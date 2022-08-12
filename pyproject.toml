@@ -9,44 +9,29 @@ authors = [
     {name = "Toki Migimatsu", email = "takatoki@cs.stanford.edu"}
 ]
 description = "PDDL symbolic library"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent"
 ]
 
 [project.urls]
 Homepage = "https://github.com/tmigimatsu/symbolic"
-
-# [tool.setuptools]
-# packages = ["symbolic"]
 
 [tool.semantic_release]
 branch = "main"
 build_command = false
 upload_to_repository = false
 upload_to_release = false
-version_variable = [
-    "setup.py:__version__",
-    "symbolic/__init__.py:__version__",
-]
-version_pattern = [
-    "CMakeLists.txt:VERSION {version}$",
-    # "setup.cfg:version = {version}$"
-]
-version_toml = [
-    "pyproject.toml:project.version"
-]
+version_variable = ["setup.py:__version__", "symbolic/__init__.py:__version__"]
+version_pattern = ["CMakeLists.txt:VERSION {version}$"]
+version_toml = ["pyproject.toml:project.version"]
 
 [tool.cibuildwheel]
-skip = [
-    "cp36-*",
-    "pp*",
-    "*-musllinux*",
-]
+skip = ["cp36-*", "pp*", "*-musllinux*"]
 
 [tool.cibuildwheel.linux]
 archs = ["auto64"]

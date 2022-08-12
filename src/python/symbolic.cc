@@ -596,6 +596,8 @@ PYBIND11_MODULE(pysymbolic, m) {
         if (!it.initialized) {
           it.it = it.bfs.begin();
           it.initialized = true;
+        } else {
+          ++it.it;
         }
 
         if (it.it == it.bfs.end()) {
