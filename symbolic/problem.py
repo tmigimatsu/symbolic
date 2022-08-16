@@ -1,4 +1,4 @@
-import typing
+from typing import List, Union, Sequence, Set, Tuple
 
 
 class Object:
@@ -14,13 +14,11 @@ def create_inline_group(name: str, token: str):
     return f"({name} {token})"
 
 
-def create_group(
-    name: str, tokens: typing.List
-) -> typing.List[typing.Union[str, typing.List]]:
+Formula = Union[str, Sequence]
+
+
+def create_group(name: str, tokens: Sequence) -> List[Formula]:
     return [f"({name}", tokens, ")"]
-
-
-Formula = typing.Union[str, typing.List]
 
 
 def _P(predicate: str, *arguments: str):
@@ -42,27 +40,27 @@ def _not(formulas: Formula):
 
 
 def _forall(var: str, var_type: str, formula: Formula):
-    var = Object(f"?{var}", var_type)
-    return create_group(f"forall {var}", formula)
+    var_obj = Object(f"?{var}", var_type)
+    return create_group(f"forall {var_obj}", formula)
 
 
 def _exists(var: str, var_type: str, formula: Formula):
-    var = Object(f"?{var}", var_type)
-    return create_group(f"exists {var}", formula)
+    var_obj = Object(f"?{var}", var_type)
+    return create_group(f"exists {var_obj}", formula)
 
 
 def _when(condition: Formula, implies: Formula):
-    return create_group("when", condition, implies)
+    return create_group("when", (condition, implies))
 
 
-def parse_proposition(str_prop: str) -> typing.Tuple[str, typing.List[str]]:
+def parse_proposition(str_prop: str) -> Tuple[str, List[str]]:
     """Parses the head and arguments of a proposition string.
 
     For example, 'on(box, table)' becomes ('on', ['box', 'table']).
     """
     import re
 
-    matches = re.match("([^\(]*)\(([^\)]*)", str_prop)
+    matches = re.match(r"([^\(]*)\(([^\)]*)", str_prop)
     if matches is None:
         raise ValueError(f"Unable to parse proposition from '{str_prop}'.")
     name_pred = matches.group(1)
@@ -74,18 +72,18 @@ def parse_head(str_prop: str) -> str:
     """Parses the head of a proposition string."""
     import re
 
-    matches = re.match("([^\(]*)\([^\)]*", str_prop)
+    matches = re.match(r"([^\(]*)\([^\)]*", str_prop)
     if matches is None:
         raise ValueError(f"Unable to parse proposition from '{str_prop}'.")
     name_pred = matches.group(1)
     return name_pred
 
 
-def parse_args(str_prop: str) -> typing.List[str]:
+def parse_args(str_prop: str) -> List[str]:
     """Parses the arguments of a proposition string."""
     import re
 
-    matches = re.match("[^\(]*\(([^\)]*)", str_prop)
+    matches = re.match(r"[^\(]*\(([^\)]*)", str_prop)
     if matches is None:
         raise ValueError(f"Unable to parse objects from '{str_prop}'.")
     str_args = matches.group(1).replace(" ", "").split(",")
@@ -97,9 +95,9 @@ class Problem:
         self._name = name
         self._domain = domain
 
-        self._objects: typing.List[Object] = []
-        self._initial_state: typing.List[str] = []
-        self._goal = "(and)"
+        self._objects: List[Object] = []
+        self._initial_state: List[str] = []
+        self._goal: Formula = "(and)"
 
     def add_object(self, name: str, object_type: str = ""):
         self._objects.append(Object(name, object_type))
@@ -110,7 +108,7 @@ class Problem:
             prop = _P(head, *args)
         self._initial_state.append(prop)
 
-    def set_initial_state(self, state: typing.Set[str]):
+    def set_initial_state(self, state: Set[str]):
         for prop in state:
             self.add_initial_prop(prop)
 
@@ -126,15 +124,15 @@ class Problem:
         return create_inline_group(":domain", self._domain)
 
     @property
-    def objects(self) -> typing.List[typing.Union[str, typing.List[str]]]:
-        return create_group(":objects", map(str, self._objects))
+    def objects(self) -> List[Union[str, Sequence[str]]]:
+        return create_group(":objects", list(map(str, self._objects)))
 
     @property
-    def initial_state(self) -> typing.List[typing.Union[str, typing.List[str]]]:
+    def initial_state(self) -> List[Union[str, Sequence[str]]]:
         return create_group(":init", self._initial_state)
 
     @property
-    def goal(self) -> typing.List[typing.Union[str, Formula]]:
+    def goal(self) -> List[Union[str, Formula]]:
         if isinstance(self._goal, str):
             return [create_inline_group(":goal", self._goal)]
         return create_group(":goal", self._goal)
@@ -147,7 +145,7 @@ class Problem:
         )
 
     def __repr__(self) -> str:
-        def pprint(strings: typing.Union[str, typing.List], indent: int = 0) -> str:
+        def pprint(strings: Union[str, List], indent: int = 0) -> str:
             if isinstance(strings, str):
                 return "\t" * (indent - 1) + strings + "\n"
             return "".join(pprint(s, indent + 1) for s in strings)
