@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.1 (2022-08-12)
+### Fix
+* Increment bfs iterator for python wrapper ([`ae4ce82`](https://github.com/tmigimatsu/symbolic/commit/ae4ce82332c3491344c1341fccd28828730efd0d))
+
 ## v1.0.0 (2022-08-01)
 ### Breaking
 * No longer supports Python 3.6.  ([`e1dedda`](https://github.com/tmigimatsu/symbolic/commit/e1dedda72af45189c49ed115d6a8f36676555274))
