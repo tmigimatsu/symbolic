@@ -4,9 +4,9 @@ import shutil
 import subprocess
 import sys
 
-from packaging import version
 import setuptools  # type: ignore
 from setuptools.command import build_ext  # type: ignore
+from setuptools.extern.packaging import version  # type: ignore
 
 
 __version__ = "1.0.1"
@@ -29,9 +29,10 @@ class CMakeBuild(build_ext.build_ext):
                     + ", ".join(e.name for e in self.extensions)
                 )
 
-            cmake_version = version.Version(
-                re.search(r"version\s*([\d.]+)", out.decode()).group(1)
-            )
+            m = re.search(r"version\s*([\d.]+)", out.decode())
+            if m is None:
+                raise RuntimeError("Could not find CMake version.")
+            cmake_version = version.Version(m.group(1))
             if cmake_version < version.Version("3.13.0"):
                 raise RuntimeError(
                     "CMake >= 3.13.0 is required. Install the latest CMake with 'pip install cmake'."
