@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.2 (2022-08-23)
+### Fix
+* Typing on problem.py ([`78f5c39`](https://github.com/tmigimatsu/symbolic/commit/78f5c391ba6fb2f6f80cb1f36f17182b3b0ea729))
+
 ## v1.0.1 (2022-08-12)
 ### Fix
 * Increment bfs iterator for python wrapper ([`ae4ce82`](https://github.com/tmigimatsu/symbolic/commit/ae4ce82332c3491344c1341fccd28828730efd0d))
