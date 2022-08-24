@@ -315,7 +315,7 @@ PYBIND11_MODULE(pysymbolic, m) {
            static_cast<StringVector (Pddl::*)(const StringSet&) const>(
                &Pddl::ListValidActions))
       .def_property_readonly("domain_pddl", &Pddl::domain_pddl)
-      .def_property_readonly("problem_pddl", &Pddl::domain_pddl)
+      .def_property_readonly("problem_pddl", &Pddl::problem_pddl)
       .def("__repr__",
            [](const Pddl& pddl) {
              return "symbolic.Pddl('" + pddl.domain_pddl() + "', '" +
