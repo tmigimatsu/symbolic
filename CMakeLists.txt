@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.11)
 
 # Define project.
 project(symbolic
-    VERSION 1.0.2
+    VERSION 1.0.3
     DESCRIPTION "Library for manipulating PDDL symbols"
     LANGUAGES CXX)
 string(TOUPPER ${PROJECT_NAME} LIB_CMAKE_NAME)
