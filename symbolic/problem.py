@@ -90,6 +90,12 @@ def parse_args(str_prop: str) -> List[str]:
     return str_args
 
 
+def pprint_formula(strings: Union[str, List], indent: int = 0) -> str:
+    if isinstance(strings, str):
+        return "\t" * (indent - 1) + strings + "\n"
+    return "".join(pprint_formula(s, indent + 1) for s in strings)
+
+
 class Problem:
     def __init__(self, name: str, domain: str = ""):
         self._name = name
@@ -145,9 +151,4 @@ class Problem:
         )
 
     def __repr__(self) -> str:
-        def pprint(strings: Union[str, List], indent: int = 0) -> str:
-            if isinstance(strings, str):
-                return "\t" * (indent - 1) + strings + "\n"
-            return "".join(pprint(s, indent + 1) for s in strings)
-
-        return pprint(self.definition)
+        return pprint_formula(self.definition)
