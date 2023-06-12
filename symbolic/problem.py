@@ -9,6 +9,14 @@ class Object:
     def __repr__(self) -> str:
         return f"{self.name} - {self.type}" if self.type else self.name
 
+    def __hash__(self):
+        return hash((self.name, self.type))
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Object):
+            return NotImplemented
+        return self.name == other.name and self.type == other.type
+
 
 def create_inline_group(name: str, token: str):
     return f"({name} {token})"
@@ -101,18 +109,26 @@ class Problem:
         self._name = name
         self._domain = domain
 
-        self._objects: List[Object] = []
-        self._initial_state: List[str] = []
+        self._objects: Set[Object] = set()
+        self._initial_state: Set[Object] = set()
         self._goal: Formula = "(and)"
 
-    def add_object(self, name: str, object_type: str = ""):
-        self._objects.append(Object(name, object_type))
+    def add_object(self, name: str, object_type: str = "") -> bool:
+        if Object(name, object_type) in self._objects:
+            return False
+        else:
+            self._objects.add(Object(name, object_type))
+            return True
 
-    def add_initial_prop(self, prop: str):
+    def add_initial_prop(self, prop: str) -> bool:
         if prop and prop[0] != "(":
             head, args = parse_proposition(prop)
             prop = _P(head, *args)
-        self._initial_state.append(prop)
+        if prop in self._initial_state:
+            return False
+        else:
+            self._initial_state.add(prop)
+            return True
 
     def set_initial_state(self, state: Set[str]):
         for prop in state:
@@ -131,11 +147,13 @@ class Problem:
 
     @property
     def objects(self) -> List[Union[str, Sequence[str]]]:
-        return create_group(":objects", list(map(str, self._objects)))
+        sorted_objects = sorted(self._objects, key=lambda x: x.name)
+        return create_group(":objects", list(map(str, sorted_objects)))
 
     @property
     def initial_state(self) -> List[Union[str, Sequence[str]]]:
-        return create_group(":init", self._initial_state)
+        sorted_state = sorted(self._initial_state)
+        return create_group(":init", sorted_state)
 
     @property
     def goal(self) -> List[Union[str, Formula]]:
