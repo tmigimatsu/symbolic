@@ -22,6 +22,8 @@ namespace symbolic {
 
 class DerivedPredicate : public Action {
  public:
+  DerivedPredicate() = delete;
+
   DerivedPredicate(const Pddl& pddl, const VAL::derivation_rule* symbol);
 
   const VAL::derivation_rule* symbol() const { return symbol_; }
