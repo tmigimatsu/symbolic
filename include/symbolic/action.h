@@ -10,6 +10,7 @@
 #ifndef SYMBOLIC_ACTION_H_
 #define SYMBOLIC_ACTION_H_
 
+#include <cassert>     // assert
 #include <functional>  // std::function
 #include <ostream>     // std::ostream
 #include <string>      // std::string
@@ -35,7 +36,9 @@ class Pddl;
 
 class Action {
  public:
-  Action() = default;
+  Action() = delete; // default;
+
+  explicit Action(const Pddl& pddl) : pddl_(&pddl) {};
 
   Action(const Pddl& pddl, const VAL::operator_* symbol);
 
@@ -70,7 +73,10 @@ class Action {
 
   const VAL::operator_* symbol() const { return symbol_; }
 
-  const Pddl& pddl() const { return *pddl_; }
+  const Pddl& pddl() const {
+    assert(pddl_);
+    return *pddl_;
+  }
 
   const std::string& name() const { return name_; }
 
